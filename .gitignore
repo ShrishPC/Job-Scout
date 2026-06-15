@@ -1,0 +1,32 @@
+__pycache__/
+*.py[cod]
+*$py.class
+.env
+.venv
+env/
+venv/
+ENV/
+env.bak/
+venv.bak/
+node_modules/
+dist/
+build/
+.next/
+.DS_Store
+*.log
+
+# Local AI Model Cache
+models/
+
+# Celery schedules & logs
+celerybeat-schedule*
+*.beat
+
+# Temporary files
+temp_*
+
+# Local test scratch files
+dummy.txt
+test.txt
+test_resume.txt
+*.docx.md

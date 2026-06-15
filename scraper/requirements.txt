@@ -1,0 +1,11 @@
+celery
+redis
+beautifulsoup4
+playwright
+scrapy
+pydantic
+python-dotenv
+feedparser
+pgvector
+sqlalchemy
+psycopg2-binary

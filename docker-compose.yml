@@ -1,0 +1,47 @@
+services:
+  db:
+    image: ankane/pgvector:latest
+    ports:
+      - "5432:5432"
+    environment:
+      POSTGRES_DB: job_scout
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: password
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+
+  redis:
+    image: redis:alpine
+    ports:
+      - "6379:6379"
+
+  backend:
+    build: ./backend
+    ports:
+      - "8000:8000"
+    environment:
+      - DATABASE_URL=postgresql+psycopg2://postgres:password@db:5432/job_scout
+      - REDIS_URL=redis://redis:6379/0
+    depends_on:
+      - db
+      - redis
+
+  scraper:
+    build: ./scraper
+    environment:
+      - DATABASE_URL=postgresql+psycopg2://postgres:password@db:5432/job_scout
+      - REDIS_URL=redis://redis:6379/0
+    depends_on:
+      - db
+      - redis
+
+  celery-beat:
+    build: ./scraper
+    command: celery -A celery_app beat --loglevel=info
+    environment:
+      - REDIS_URL=redis://redis:6379/0
+    depends_on:
+      - redis
+
+volumes:
+  postgres_data:
