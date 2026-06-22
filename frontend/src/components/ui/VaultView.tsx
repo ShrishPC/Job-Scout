@@ -174,7 +174,7 @@ const VaultView: React.FC<VaultViewProps> = ({ onActiveProfileChanged }) => {
                 </div>
 
                 {/* Upload Card */}
-                <div className="lg:col-span-7 bg-white border-3 border-black rounded-xl p-8 shadow-[4px_4px_0px_0px_rgba(0,0,0,1)]">
+                <div className="lg:col-span-7 bg-white border-3 border-black rounded-xl p-8 shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] upload-card">
                     <h3 className="text-sm font-black uppercase tracking-widest text-black mb-6 flex items-center">
                         <Upload className="w-4 h-4 mr-2 text-retro-red" />
                         Add Resume to Vault
@@ -210,7 +210,7 @@ const VaultView: React.FC<VaultViewProps> = ({ onActiveProfileChanged }) => {
                             onClick={handleUpload}
                             disabled={!uploadFile || uploading}
                             className={`
-                                w-full py-3.5 rounded-lg font-black text-[11px] uppercase tracking-[0.2em] transition-all flex items-center justify-center space-x-2 border-3 border-black
+                                w-full py-3.5 rounded-lg font-black text-[11px] uppercase tracking-[0.2em] transition-all flex items-center justify-center space-x-2 border-3 border-black sync-profile-btn
                                 ${!uploadFile || uploading 
                                     ? 'bg-gray-100 text-black/35 border-black/30 cursor-not-allowed shadow-none' 
                                     : 'bg-retro-yellow text-black shadow-[3px_3px_0px_0px_rgba(0,0,0,1)] hover:translate-x-[0.5px] hover:translate-y-[0.5px] hover:shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] active:translate-x-[2.5px] active:translate-y-[2.5px] active:shadow-none'

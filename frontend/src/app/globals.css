@@ -329,6 +329,7 @@ body {
 .dark .job-card.bg-retro-pink { background-color: #3d1d2b !important; }
 .dark .job-card.bg-retro-mint { background-color: #1d3a2e !important; }
 .dark .job-card.bg-white { background-color: #1f2026 !important; }
+.dark .job-card.bg-gray-100 { background-color: #16171c !important; } /* Dark background for archived cards */
 
 /* Job Card Inner panels details */
 .dark .job-card .bg-white,
@@ -353,6 +354,20 @@ body {
 .dark .job-card h3.text-black {
   color: #ffffff !important;
 }
+.dark .job-card .text-black {
+  color: #d1d5db !important; /* Make text-black visible as light gray */
+}
+.dark .job-card .text-retro-green {
+  color: #3eff8a !important; /* Bright green for company name to stand out */
+}
+.dark .job-card .text-black\/80,
+.dark .job-card .text-black\/75,
+.dark .job-card .text-black\/70,
+.dark .job-card .text-black\/60,
+.dark .job-card .text-black\/50,
+.dark .job-card .text-black\/40 {
+  color: rgba(209, 213, 219, 0.7) !important; /* Muted light text */
+}
 .dark .job-card .score-tag {
   background-color: #131317 !important; /* Darker gray/black score tag bg */
   color: #cca32c !important; /* Deep gold text */
@@ -370,11 +385,11 @@ body {
 .dark .job-card button.bg-retro-sand,
 .dark .job-card button.bg-white {
   background-color: #473924 !important; /* Deep bronze restore button */
-  color: #e5e7eb !important;
+  color: #ffffff !important; /* White text for high visibility */
 }
 .dark .job-card button.bg-retro-sand svg,
 .dark .job-card button.bg-white svg {
-  stroke: #e5e7eb !important;
+  stroke: #ffffff !important;
 }
 .dark .job-card button.border-2.border-black:not(.bg-retro-red, .bg-retro-sand) {
   background-color: #1f2026 !important;
@@ -411,6 +426,11 @@ body {
 }
 .dark .upload-card .sync-profile-btn svg {
   stroke: #e5e7eb !important;
+}
+.dark .upload-card .sync-profile-btn:disabled {
+  background-color: #141519 !important; /* Very dark background for disabled state */
+  color: #4b5563 !important; /* Muted gray text color */
+  border-color: #000000 !important;
 }
 
 /* Base border rules - KEEP all thick black borders and shadows preserved! */
