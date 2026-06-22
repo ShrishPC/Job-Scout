@@ -248,7 +248,6 @@ export default function Home() {
         <header className="h-24 bg-retro-cream border-b-4 border-black flex items-center justify-between px-10 flex-shrink-0 z-10">
           <div className="flex items-center space-x-3">
             <div className="px-4 py-2 bg-retro-yellow border-3 border-black shadow-[3px_3px_0px_0px_rgba(0,0,0,1)] rounded-xl flex items-center justify-center font-black text-xl tracking-tighter uppercase italic">
-               <Sparkles className="w-5 h-5 text-black mr-2 animate-pulse" />
                JOB<span className="text-retro-red">SCOUT</span>
             </div>
           </div>
