@@ -63,51 +63,51 @@ const KanbanBoard = () => {
     }
 
     return (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 p-8 min-h-[calc(100vh-12rem)]">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 p-8 min-h-[calc(100vh-12rem)] bg-retro-cream">
             {columns.map((col) => (
-                <div key={col.id} className="flex flex-col h-full bg-slate-900/30 border border-slate-800/50 rounded-2xl">
-                    <div className="p-4 border-b border-slate-800/50 flex items-center justify-between">
-                        <h3 className="text-xs font-black uppercase tracking-[0.2em] text-slate-300">
+                <div key={col.id} className="flex flex-col h-full bg-white border-3 border-black rounded-xl shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] overflow-hidden">
+                    <div className="p-4 border-b-3 border-black bg-retro-sand flex items-center justify-between">
+                        <h3 className="text-xs font-black uppercase tracking-[0.2em] text-black">
                             {col.title}
                         </h3>
-                        <span className="bg-slate-800/80 text-slate-200 text-[10px] px-2 py-0.5 rounded-md border border-slate-700 font-bold">
+                        <span className="bg-white text-black text-[10px] px-2..5 py-1 rounded border-2 border-black font-black shadow-[1.5px_1.5px_0px_0px_rgba(0,0,0,1)]">
                             {jobs.filter(j => j.status === col.id).length}
                         </span>
                     </div>
                     
-                    <div className="p-3 space-y-3 overflow-y-auto flex-1 max-h-[70vh] custom-scrollbar">
+                    <div className="p-4 space-y-4 overflow-y-auto flex-1 max-h-[70vh] custom-scrollbar bg-white">
                         {jobs.filter(j => j.status === col.id).map((job) => (
-                            <div key={job.id} className="group bg-slate-900 border border-slate-800 rounded-xl p-4 shadow-sm hover:border-slate-700 transition-all">
+                            <div key={job.id} className="bg-white border-2 border-black rounded-lg p-4 shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] hover:translate-x-[-1px] hover:translate-y-[-1px] hover:shadow-[3px_3px_0px_0px_rgba(0,0,0,1)] transition-all">
                                 <div className="flex justify-between items-start mb-3">
                                     <div className="min-w-0 pr-2">
-                                        <h4 className="font-bold text-slate-100 text-[13px] leading-tight truncate">{job.title}</h4>
-                                        <p className="text-brand-400 text-[11px] font-semibold mt-0.5 truncate">{job.company}</p>
+                                        <h4 className="font-extrabold text-black text-[13px] leading-tight truncate">{job.title}</h4>
+                                        <p className="text-retro-green text-[11px] font-black mt-0.5 truncate">{job.company}</p>
                                     </div>
                                     <a 
                                         href={job.job_url} 
                                         target="_blank" 
                                         rel="noopener noreferrer"
-                                        className="text-slate-400 hover:text-brand-400 p-1.5 rounded-lg border border-slate-800 hover:bg-slate-800 transition-all"
+                                        className="text-black hover:text-retro-red p-1.5 rounded border-2 border-black bg-white shadow-[1.5px_1.5px_0px_0px_rgba(0,0,0,1)] hover:translate-x-[0.5px] hover:translate-y-[0.5px] hover:shadow-[1px_1px_0px_0px_rgba(0,0,0,1)] active:translate-x-[1.5px] active:translate-y-[1.5px] active:shadow-none transition-all"
                                     >
-                                        <ExternalLink className="w-3 h-3" />
+                                        <ExternalLink className="w-3.5 h-3.5" />
                                     </a>
                                 </div>
                                 
-                                <div className="flex items-center space-x-3 text-[10px] text-slate-400 font-medium">
+                                <div className="flex items-center space-x-3 text-[10px] text-black/60 font-bold">
                                     <div className="flex items-center">
-                                        <MapPin className="w-3 h-3 mr-1 opacity-50" />
+                                        <MapPin className="w-3.5 h-3.5 mr-1 text-black/40" />
                                         {job.location}
                                     </div>
-                                    <div className="flex items-center text-slate-300">
-                                        <Calendar className="w-3 h-3 mr-1 opacity-50" />
+                                    <div className="flex items-center text-black/75">
+                                        <Calendar className="w-3.5 h-3.5 mr-1 text-black/40" />
                                         {job.date_posted}
                                     </div>
                                 </div>
                                 
-                                <div className="flex items-center justify-between mt-4 pt-3 border-t border-slate-800/50">
+                                <div className="flex items-center justify-between mt-4 pt-3 border-t-2 border-black/10">
                                     <button 
                                         onClick={() => updateStatus(job.id, 'rejected')}
-                                        className="p-1.5 rounded-lg text-slate-600 hover:text-red-400 hover:bg-red-400/5 border border-transparent hover:border-red-400/10 transition-all"
+                                        className="p-1.5 rounded border-2 border-black bg-white text-black hover:bg-retro-pink shadow-[1.5px_1.5px_0px_0px_rgba(0,0,0,1)] hover:translate-x-[0.5px] hover:translate-y-[0.5px] hover:shadow-[1px_1px_0px_0px_rgba(0,0,0,1)] active:translate-x-[1.5px] active:translate-y-[1.5px] active:shadow-none transition-all"
                                         title="Archive"
                                     >
                                         <Trash2 className="w-3.5 h-3.5" />
@@ -117,7 +117,7 @@ const KanbanBoard = () => {
                                         {col.id === 'interested' && (
                                             <button 
                                                 onClick={() => updateStatus(job.id, 'applied')}
-                                                className="bg-brand-500 text-slate-950 text-[10px] font-black uppercase px-3 py-1.5 rounded-lg hover:bg-brand-400 transition-all flex items-center"
+                                                className="bg-retro-yellow text-black text-[9px] font-black uppercase px-3 py-1.5 rounded border-2 border-black shadow-[1.5px_1.5px_0px_0px_rgba(0,0,0,1)] hover:translate-x-[0.5px] hover:translate-y-[0.5px] hover:shadow-[1px_1px_0px_0px_rgba(0,0,0,1)] active:translate-x-[1.5px] active:translate-y-[1.5px] active:shadow-none transition-all flex items-center"
                                             >
                                                 <span>Apply</span>
                                                 <ArrowRight className="w-3 h-3 ml-1.5" />
@@ -126,7 +126,7 @@ const KanbanBoard = () => {
                                         {col.id === 'applied' && (
                                             <button 
                                                 onClick={() => updateStatus(job.id, 'interviewing')}
-                                                className="bg-slate-800 text-slate-200 text-[10px] font-black uppercase px-3 py-1.5 rounded-lg hover:bg-slate-700 transition-all flex items-center"
+                                                className="bg-retro-mint text-black text-[9px] font-black uppercase px-3 py-1.5 rounded border-2 border-black shadow-[1.5px_1.5px_0px_0px_rgba(0,0,0,1)] hover:translate-x-[0.5px] hover:translate-y-[0.5px] hover:shadow-[1px_1px_0px_0px_rgba(0,0,0,1)] active:translate-x-[1.5px] active:translate-y-[1.5px] active:shadow-none transition-all flex items-center"
                                             >
                                                 <span>Interview</span>
                                                 <ArrowRight className="w-3 h-3 ml-1.5" />
@@ -135,7 +135,7 @@ const KanbanBoard = () => {
                                         {col.id === 'interviewing' && (
                                             <button 
                                                 onClick={() => updateStatus(job.id, 'offered')}
-                                                className="bg-emerald-500 text-slate-950 text-[10px] font-black uppercase px-3 py-1.5 rounded-lg hover:bg-emerald-400 transition-all flex items-center"
+                                                className="bg-retro-green text-white text-[9px] font-black uppercase px-3 py-1.5 rounded border-2 border-black shadow-[1.5px_1.5px_0px_0px_rgba(0,0,0,1)] hover:translate-x-[0.5px] hover:translate-y-[0.5px] hover:shadow-[1px_1px_0px_0px_rgba(0,0,0,1)] active:translate-x-[1.5px] active:translate-y-[1.5px] active:shadow-none transition-all flex items-center"
                                             >
                                                 <span>Offer</span>
                                                 <ArrowRight className="w-3 h-3 ml-1.5" />
@@ -147,9 +147,9 @@ const KanbanBoard = () => {
                         ))}
                         
                         {jobs.filter(j => j.status === col.id).length === 0 && (
-                            <div className="py-10 flex flex-col items-center justify-center opacity-20 group">
-                                <Briefcase className="w-8 h-8 text-slate-600 mb-2 group-hover:scale-110 transition-transform" />
-                                <p className="text-[9px] font-black uppercase tracking-widest text-slate-600">Empty</p>
+                            <div className="py-12 flex flex-col items-center justify-center opacity-30 group border-2 border-dashed border-black/30 rounded-lg bg-retro-cream/20">
+                                <Briefcase className="w-8 h-8 text-black mb-2 group-hover:scale-110 transition-transform" />
+                                <p className="text-[9px] font-black uppercase tracking-widest text-black">Empty</p>
                             </div>
                         )}
                     </div>

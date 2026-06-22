@@ -19,6 +19,8 @@ Job Scout is a modern, privacy-focused, full-stack job discovery and application
 *   **🕷️ Automated Scraping Pipeline**: Celery background tasks trigger Playwright scrapers in parallel to pull fresh postings from LinkedIn, Indeed, Naukri, RemoteOK, and We Work Remotely.
 *   **📋 Kanban Board**: Move jobs through a visual application pipeline (Interested ➔ Applied ➔ Interviewing ➔ Offer).
 *   **📊 Market Radar & Insights**: Highlights target roles, preferred locations, and matches your skill set against real-time market demands using interactive radar charts.
+*   **🎨 Neo-Brutalist Responsive Theme System**: Stark, vibrant Neo-Brutalist design that dynamically toggles between a colorful warm-cream Light mode and a deep Midnight-Indigo Cyberpunk Dark mode (`#090a0f`) with a glowing violet grid paper effect (`rgba(99, 102, 241, 0.08)`). Thick black outlines and offsets are preserved globally.
+*   **⚙️ System Config & Diagnostics Panel**: Access settings directly from the navigation bar. Toggle visual interface mode (Light, Dark, or System-preferred sync) and check server diagnostics (Backend API connection status, pgvector engine activation, environment parameters) in real-time.
 *   **🔒 Privacy First**: 100% offline resume parsing and embedding generation—no data leaves your machine or goes to external paid APIs (like OpenAI or Anthropic).
 
 ---

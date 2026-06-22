@@ -13,12 +13,12 @@ const ProfileView: React.FC<ProfileViewProps> = ({ parsedData }) => {
 
     if (!parsedData) {
         return (
-            <div className="py-24 text-center bg-slate-900/40 border border-slate-800 rounded-3xl p-8 max-w-2xl mx-auto backdrop-blur-sm">
-                <div className="w-16 h-16 bg-slate-900 border border-slate-800 rounded-2xl flex items-center justify-center mx-auto mb-6">
-                    <User className="w-8 h-8 text-slate-500" />
+            <div className="py-24 text-center bg-white border-3 border-black rounded-xl p-8 max-w-2xl mx-auto shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] bg-retro-cream">
+                <div className="w-16 h-16 bg-retro-sand border-2 border-black rounded-xl flex items-center justify-center mx-auto mb-6 shadow-[2px_2px_0px_0px_rgba(0,0,0,1)]">
+                    <User className="w-8 h-8 text-black" />
                 </div>
-                <h3 className="text-lg font-bold text-slate-200 mb-2">No Profile Synced</h3>
-                <p className="text-slate-400 text-xs leading-relaxed max-w-sm mx-auto mb-6">
+                <h3 className="text-xl font-black text-black mb-2 uppercase">No Profile Synced</h3>
+                <p className="text-black/70 text-xs leading-relaxed max-w-sm mx-auto mb-6 font-bold">
                     Please upload your resume first under the Hunt tab or Vault tab to generate your neural profile identity.
                 </p>
             </div>
@@ -42,22 +42,21 @@ const ProfileView: React.FC<ProfileViewProps> = ({ parsedData }) => {
     );
 
     return (
-        <div className="space-y-10 px-4 max-w-7xl mx-auto pb-20">
+        <div className="space-y-10 px-4 max-w-7xl mx-auto pb-20 bg-retro-cream text-black">
             {/* Upper profile header / quick info */}
-            <div className="relative overflow-hidden bg-slate-900/40 border border-slate-800 rounded-3xl p-8 backdrop-blur-sm flex flex-col md:flex-row justify-between items-start md:items-center gap-6">
-                <div className="absolute top-0 right-0 w-80 h-80 bg-brand-500/5 rounded-full blur-3xl pointer-events-none"></div>
+            <div className="relative overflow-hidden bg-white border-3 border-black rounded-xl p-8 shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] flex flex-col md:flex-row justify-between items-start md:items-center gap-6">
                 <div className="flex items-center space-x-5">
-                    <div className="w-16 h-16 bg-gradient-to-br from-brand-600 to-brand-400 rounded-2xl flex items-center justify-center text-slate-950 font-black text-2xl shadow-[0_0_20px_rgba(56,171,248,0.3)]">
+                    <div className="w-16 h-16 bg-retro-yellow text-black border-3 border-black rounded-xl flex items-center justify-center font-black text-2xl shadow-[3px_3px_0px_0px_rgba(0,0,0,1)] profile-avatar">
                         {parsed_json?.full_name ? parsed_json.full_name.charAt(0) : 'U'}
                     </div>
                     <div>
                         <div className="flex items-center space-x-2.5">
-                            <h2 className="text-2xl font-black text-slate-100 tracking-tight">{parsed_json?.full_name || "Unknown"}</h2>
-                            <span className="bg-brand-500/10 border border-brand-500/30 text-brand-400 text-[9px] font-black uppercase tracking-widest px-2.5 py-0.5 rounded-full">
+                            <h2 className="text-2xl font-black text-black tracking-tight">{parsed_json?.full_name || "Unknown"}</h2>
+                            <span className="bg-retro-green border-2 border-black text-white text-[9px] font-black uppercase tracking-widest px-2.5 py-0.5 rounded">
                                 Profile Active
                             </span>
                         </div>
-                        <p className="text-brand-400 text-xs font-bold mt-1 uppercase tracking-widest flex items-center">
+                        <p className="text-retro-green font-black text-xs mt-1 uppercase tracking-widest flex items-center">
                             <Mail className="w-3.5 h-3.5 mr-1.5 opacity-80" />
                             {parsed_json?.email || "No Email Provided"}
                         </p>
@@ -65,10 +64,10 @@ const ProfileView: React.FC<ProfileViewProps> = ({ parsedData }) => {
                 </div>
 
                 <div className="flex flex-wrap gap-4 text-xs font-bold">
-                    <div className="bg-slate-950/60 border border-slate-900 px-4 py-3 rounded-2xl flex items-center space-x-2">
-                        <FileText className="w-4 h-4 text-brand-400" />
-                        <span className="text-slate-400">Source File:</span>
-                        <span className="text-slate-200 truncate max-w-40">{filename || "Active Resume"}</span>
+                    <div className="bg-retro-cream border-2 border-black px-4 py-3 rounded-lg flex items-center space-x-2 shadow-[2px_2px_0px_0px_rgba(0,0,0,1)]">
+                        <FileText className="w-4 h-4 text-black/60" />
+                        <span className="text-black/60">Source File:</span>
+                        <span className="text-black font-black truncate max-w-40">{filename || "Active Resume"}</span>
                     </div>
                 </div>
             </div>
@@ -77,13 +76,13 @@ const ProfileView: React.FC<ProfileViewProps> = ({ parsedData }) => {
                 {/* Left Side: Skills & Metadata */}
                 <div className="lg:col-span-5 space-y-8">
                     {/* Skills card */}
-                    <div className="bg-slate-900/40 border border-slate-800 rounded-3xl p-8 backdrop-blur-sm">
+                    <div className="bg-white border-3 border-black rounded-xl p-8 shadow-[4px_4px_0px_0px_rgba(0,0,0,1)]">
                         <div className="flex justify-between items-center mb-6">
-                            <h3 className="text-xs font-black uppercase tracking-widest text-slate-200 flex items-center">
-                                <Sparkles className="w-4 h-4 mr-2 text-brand-400" />
+                            <h3 className="text-xs font-black uppercase tracking-widest text-black flex items-center">
+                                <Sparkles className="w-4 h-4 mr-2 text-retro-red" />
                                 Professional Skills
                             </h3>
-                            <span className="bg-slate-800 text-slate-400 text-[10px] px-2 py-0.5 rounded-md font-bold">
+                            <span className="bg-retro-sand text-black border-2 border-black text-[10px] px-2 py-0.5 rounded font-black">
                                 {skills.length} Total
                             </span>
                         </div>
@@ -95,7 +94,7 @@ const ProfileView: React.FC<ProfileViewProps> = ({ parsedData }) => {
                                 placeholder="Filter skills..."
                                 value={skillsFilter}
                                 onChange={(e) => setSkillsFilter(e.target.value)}
-                                className="w-full bg-slate-950/60 border border-slate-800/80 rounded-xl px-4 py-2 text-xs font-bold text-slate-300 placeholder-slate-600 focus:outline-none focus:border-brand-500/50 transition-colors"
+                                className="neo-input w-full px-4 py-2.5 rounded-lg text-xs font-extrabold text-black placeholder-gray-500 focus:outline-none"
                             />
                         </div>
 
@@ -103,35 +102,35 @@ const ProfileView: React.FC<ProfileViewProps> = ({ parsedData }) => {
                             {filteredSkills.map((skill: string, i: number) => (
                                 <span 
                                     key={i} 
-                                    className="px-3 py-2 bg-slate-950/60 text-slate-300 rounded-xl text-xs font-bold border border-slate-900 hover:border-brand-500/20 transition-all cursor-default"
+                                    className="px-3 py-1.5 bg-retro-mint text-black border-2 border-black shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] text-xs font-black cursor-default skill-tag"
                                 >
                                     {skill}
                                 </span>
                             ))}
                             {filteredSkills.length === 0 && (
-                                <p className="text-slate-600 text-xs italic py-4">No matching skills found.</p>
+                                <p className="text-black/60 text-xs italic py-4">No matching skills found.</p>
                             )}
                         </div>
                     </div>
 
                     {/* Metadata Card */}
-                    <div className="bg-slate-900/40 border border-slate-800 rounded-3xl p-8 backdrop-blur-sm">
-                        <h3 className="text-xs font-black uppercase tracking-widest text-slate-200 mb-6 flex items-center">
-                            <User className="w-4 h-4 mr-2 text-brand-400" />
+                    <div className="bg-white border-3 border-black rounded-xl p-8 shadow-[4px_4px_0px_0px_rgba(0,0,0,1)]">
+                        <h3 className="text-xs font-black uppercase tracking-widest text-black mb-6 flex items-center">
+                            <User className="w-4 h-4 mr-2 text-retro-red" />
                             Target Roles & Meta
                         </h3>
                         
                         <div className="space-y-4 text-xs">
-                            <div className="flex justify-between items-center py-2.5 border-b border-slate-800/50">
-                                <span className="text-slate-500 font-bold uppercase tracking-wider">Target Role</span>
-                                <span className="text-slate-200 font-black bg-brand-500/5 border border-brand-500/10 px-2.5 py-1 rounded-lg">
+                            <div className="flex justify-between items-center py-2.5 border-b-2 border-black/10">
+                                <span className="text-black/60 font-black uppercase tracking-wider">Target Role</span>
+                                <span className="text-black font-black bg-retro-yellow border-2 border-black px-2.5 py-1 rounded shadow-[2px_2px_0px_0px_rgba(0,0,0,1)]">
                                     {parsed_json?.target_role || "Not Specified"}
                                 </span>
                             </div>
-                            <div className="flex justify-between items-center py-2.5 border-b border-slate-800/50">
-                                <span className="text-slate-500 font-bold uppercase tracking-wider">Target Location</span>
-                                <span className="text-slate-200 font-black flex items-center">
-                                    <MapPin className="w-3.5 h-3.5 text-slate-500 mr-1" />
+                            <div className="flex justify-between items-center py-2.5 border-b-2 border-black/10">
+                                <span className="text-black/60 font-black uppercase tracking-wider">Target Location</span>
+                                <span className="text-black font-black flex items-center">
+                                    <MapPin className="w-3.5 h-3.5 text-black/60 mr-1" />
                                     {parsed_json?.target_location || "Remote"}
                                 </span>
                             </div>
@@ -142,32 +141,32 @@ const ProfileView: React.FC<ProfileViewProps> = ({ parsedData }) => {
                 {/* Right Side: Timeline and Markdown Source */}
                 <div className="lg:col-span-7 space-y-8">
                     {/* Experience Timeline */}
-                    <div className="bg-slate-900/40 border border-slate-800 rounded-3xl p-8 backdrop-blur-sm">
-                        <h3 className="text-xs font-black uppercase tracking-widest text-slate-200 mb-8 flex items-center">
-                            <Briefcase className="w-4 h-4 mr-2 text-brand-400" />
+                    <div className="bg-white border-3 border-black rounded-xl p-8 shadow-[4px_4px_0px_0px_rgba(0,0,0,1)]">
+                        <h3 className="text-xs font-black uppercase tracking-widest text-black mb-8 flex items-center">
+                            <Briefcase className="w-4 h-4 mr-2 text-retro-red" />
                             Work History Timeline
                         </h3>
 
                         {experiences.length === 0 ? (
-                            <p className="text-slate-500 text-xs italic">No experience blocks extracted.</p>
+                            <p className="text-black/60 text-xs italic">No experience blocks extracted.</p>
                         ) : (
-                            <div className="space-y-8 relative before:content-[''] before:absolute before:left-3 before:top-2 before:bottom-2 before:w-0.5 before:bg-slate-800">
+                            <div className="space-y-8 relative before:content-[''] before:absolute before:left-3 before:top-2 before:bottom-2 before:w-1 before:bg-black">
                                 {experiences.map((exp: any, i: number) => (
                                     <div key={i} className="relative pl-10 group">
                                         {/* Dot */}
-                                        <div className="absolute left-1.5 top-1.5 w-3.5 h-3.5 rounded-full bg-slate-950 border-2 border-brand-400 group-hover:bg-brand-400 transition-colors shadow-[0_0_8px_rgba(56,171,248,0.4)]"></div>
+                                        <div className="absolute left-1 top-1.5 w-4.5 h-4.5 rounded-none bg-retro-red border-2 border-black group-hover:bg-retro-yellow transition-colors"></div>
                                         
-                                        <div className="bg-slate-950/40 border border-slate-900 rounded-2xl p-5 hover:border-slate-800 transition-colors">
+                                        <div className="bg-retro-cream border-2 border-black rounded-lg p-5 shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] transition-colors">
                                             <div className="flex flex-col sm:flex-row justify-between sm:items-center mb-2 gap-1">
-                                                <h4 className="font-bold text-slate-100 text-[15px]">{exp.title}</h4>
-                                                <span className="text-[10px] text-slate-500 font-bold uppercase tracking-wider flex items-center">
-                                                    <Calendar className="w-3 h-3 mr-1 text-slate-600" />
+                                                <h4 className="font-black text-black text-[15px]">{exp.title}</h4>
+                                                <span className="text-[10px] text-black/60 font-black uppercase tracking-wider flex items-center">
+                                                    <Calendar className="w-3.5 h-3.5 mr-1 text-black/40" />
                                                     {exp.duration}
                                                 </span>
                                             </div>
-                                            <p className="text-brand-400 text-xs font-bold mb-3 uppercase tracking-wider">{exp.company}</p>
+                                            <p className="text-retro-green font-black text-xs mb-3 uppercase tracking-wider">{exp.company}</p>
                                             {exp.description && (
-                                                <p className="text-slate-400 text-xs leading-relaxed font-medium mt-2 whitespace-pre-line">
+                                                <p className="text-black/80 text-xs leading-relaxed font-bold mt-2 whitespace-pre-line bg-white/50 p-3 border border-black/10 rounded">
                                                     {exp.description}
                                                 </p>
                                             )}
@@ -180,32 +179,32 @@ const ProfileView: React.FC<ProfileViewProps> = ({ parsedData }) => {
 
                     {/* Resume Markdown View */}
                     {resume_markdown && (
-                        <div className="bg-slate-900/40 border border-slate-800 rounded-3xl p-8 backdrop-blur-sm">
+                        <div className="bg-white border-3 border-black rounded-xl p-8 shadow-[4px_4px_0px_0px_rgba(0,0,0,1)]">
                             <div className="flex justify-between items-center mb-6">
-                                <h3 className="text-xs font-black uppercase tracking-widest text-slate-200 flex items-center">
-                                    <FileText className="w-4 h-4 mr-2 text-brand-400" />
+                                <h3 className="text-xs font-black uppercase tracking-widest text-black flex items-center">
+                                    <FileText className="w-4 h-4 mr-2 text-retro-red" />
                                     Resume Source (Markdown format)
                                 </h3>
                                 <button 
                                     onClick={handleCopy}
-                                    className="px-3.5 py-1.5 bg-slate-950 border border-slate-800 rounded-xl text-[10px] font-black uppercase tracking-wider text-slate-400 hover:text-slate-200 hover:bg-slate-900 transition-all flex items-center"
+                                    className="px-3.5 py-1.5 bg-white border-2 border-black rounded-lg text-[10px] font-black uppercase tracking-wider text-black shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] hover:bg-retro-cream hover:translate-x-[0.5px] hover:translate-y-[0.5px] hover:shadow-[1px_1px_0px_0px_rgba(0,0,0,1)] active:translate-x-[2px] active:translate-y-[2px] active:shadow-none transition-all flex items-center"
                                 >
                                     {copied ? (
                                         <>
-                                            <Check className="w-3 h-3 mr-1.5 text-green-400" />
+                                            <Check className="w-3.5 h-3.5 mr-1.5 text-retro-green" />
                                             Copied
                                         </>
                                     ) : (
                                         <>
-                                            <Copy className="w-3 h-3 mr-1.5" />
+                                            <Copy className="w-3.5 h-3.5 mr-1.5" />
                                             Copy Code
                                         </>
                                     )}
                                 </button>
                             </div>
                             
-                            <div className="bg-slate-950/60 border border-slate-900 rounded-2xl p-6 max-h-[300px] overflow-y-auto custom-scrollbar">
-                                <pre className="text-[11px] font-mono text-slate-400 whitespace-pre-wrap leading-relaxed select-text">
+                            <div className="bg-retro-cream border-2 border-black rounded-lg p-6 max-h-[300px] overflow-y-auto custom-scrollbar">
+                                <pre className="text-[11px] font-mono text-black whitespace-pre-wrap leading-relaxed select-text">
                                     {resume_markdown}
                                 </pre>
                             </div>

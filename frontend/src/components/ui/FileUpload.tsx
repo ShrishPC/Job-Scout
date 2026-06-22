@@ -50,25 +50,25 @@ const FileUpload: React.FC<FileUploadProps> = ({ onUploadSuccess }) => {
   };
 
   return (
-    <div className="w-full bg-slate-900/50 border border-slate-800 rounded-2xl p-6 shadow-xl backdrop-blur-sm">
+    <div className="w-full bg-white border-3 border-black rounded-xl p-6 shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] upload-card">
       <div className="flex flex-col space-y-5">
         <div className="flex items-center space-x-4">
-          <div className="w-12 h-12 bg-brand-500/10 rounded-xl flex items-center justify-center border border-brand-500/20 text-brand-400">
-            {success ? <CheckCircle2 className="w-6 h-6 text-green-400" /> : <Upload className="w-6 h-6" />}
+          <div className="w-12 h-12 bg-retro-sand rounded-lg flex items-center justify-center border-2 border-black text-black shadow-[2px_2px_0px_0px_rgba(0,0,0,1)]">
+            {success ? <CheckCircle2 className="w-6 h-6 text-retro-green" /> : <Upload className="w-6 h-6" />}
           </div>
           <div>
-            <h2 className="text-lg font-bold text-slate-100">Upload Resume</h2>
-            <p className="text-slate-400 text-xs">PDF, DOCX, or MD • Max 5MB</p>
+            <h2 className="text-lg font-black text-black">Upload Resume</h2>
+            <p className="text-black/60 text-xs font-bold">PDF, DOCX, or MD • Max 5MB</p>
           </div>
         </div>
 
         <label className="relative group block cursor-pointer">
           <div className={`
-            flex flex-col items-center justify-center p-8 border-2 border-dashed rounded-xl transition-all duration-300
-            ${file ? 'border-brand-500/40 bg-brand-500/5' : 'border-slate-800 hover:border-slate-700 hover:bg-slate-800/30'}
+            flex flex-col items-center justify-center p-8 border-3 border-dashed rounded-lg transition-all duration-100 upload-dropzone
+            ${file ? 'border-retro-green bg-retro-mint/20 bg-opacity-30' : 'border-black bg-white hover:bg-retro-cream'}
           `}>
-            <FileText className={`w-10 h-10 mb-3 transition-colors ${file ? 'text-brand-400' : 'text-slate-600 group-hover:text-slate-400'}`} />
-            <span className="text-sm font-medium text-slate-300 text-center px-4">
+            <FileText className={`w-10 h-10 mb-3 transition-colors ${file ? 'text-retro-green' : 'text-black/40 group-hover:text-black'}`} />
+            <span className="text-sm font-extrabold text-black text-center px-4">
               {file ? file.name : 'Click to select or drag resume'}
             </span>
           </div>
@@ -81,7 +81,7 @@ const FileUpload: React.FC<FileUploadProps> = ({ onUploadSuccess }) => {
         </label>
 
         {error && (
-          <div className="flex items-center space-x-2 text-red-400 text-xs bg-red-400/5 border border-red-400/20 p-3 rounded-xl animate-in fade-in slide-in-from-top-2">
+          <div className="flex items-center space-x-2 text-retro-red text-xs bg-retro-pink/20 border-2 border-black p-3 rounded-lg animate-in fade-in slide-in-from-top-2 font-bold">
             <AlertCircle className="w-4 h-4 flex-shrink-0" />
             <span>{error}</span>
           </div>
@@ -91,10 +91,12 @@ const FileUpload: React.FC<FileUploadProps> = ({ onUploadSuccess }) => {
           onClick={handleUpload}
           disabled={!file || uploading || success}
           className={`
-            w-full py-4 rounded-xl font-black text-[11px] uppercase tracking-[0.2em] transition-all flex items-center justify-center space-x-3 border
+            w-full py-4 rounded-lg font-black text-[11px] uppercase tracking-[0.2em] transition-all flex items-center justify-center space-x-3 border-3 border-black sync-profile-btn
             ${!file || uploading || success 
-              ? 'bg-slate-900 text-slate-600 border-slate-800 cursor-not-allowed' 
-              : 'bg-gradient-to-r from-brand-600 to-brand-400 text-slate-50 border-brand-400/50 hover:from-brand-500 hover:to-brand-300 active:scale-[0.98] shadow-[0_0_20px_rgba(56,171,248,0.2)]'
+              ? 'bg-gray-100 text-black/35 border-black/30 cursor-not-allowed shadow-none' 
+              : success
+                ? 'bg-retro-green text-white shadow-none translate-x-[2px] translate-y-[2px]'
+                : 'bg-retro-yellow text-black shadow-[3px_3px_0px_0px_rgba(0,0,0,1)] hover:translate-x-[0.5px] hover:translate-y-[0.5px] hover:shadow-[2.5px_2.5px_0px_0px_rgba(0,0,0,1)] active:translate-x-[2.5px] active:translate-y-[2.5px] active:shadow-none'
             }
           `}
         >
@@ -104,7 +106,7 @@ const FileUpload: React.FC<FileUploadProps> = ({ onUploadSuccess }) => {
               <span>Analyzing Resume...</span>
             </>
           ) : success ? (
-            <div className="flex items-center text-slate-950">
+            <div className="flex items-center text-white">
               <CheckCircle2 className="w-4 h-4 mr-2" />
               <span>Resume Synced</span>
             </div>

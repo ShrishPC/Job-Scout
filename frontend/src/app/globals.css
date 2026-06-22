@@ -15,29 +15,96 @@
   --color-brand-800: #074d86;
   --color-brand-900: #0c416f;
   --color-brand-950: #082949;
+
+  /* Neo Brutalist Retro Theme Colors mapped to CSS variables */
+  --color-retro-cream: var(--retro-cream);
+  --color-retro-sand: var(--retro-sand);
+  --color-retro-red: var(--retro-red);
+  --color-retro-green: var(--retro-green);
+  --color-retro-yellow: var(--retro-yellow);
+  --color-retro-pink: var(--retro-pink);
+  --color-retro-mint: var(--retro-mint);
+  --color-retro-dark: var(--retro-dark);
+  --color-retro-black: var(--retro-black);
 }
 
 :root {
-  --background: #020617; /* Slate 950 */
-  --foreground: #f8fafc; /* Slate 50 */
-  --card: #0f172a; /* Slate 900 */
-  --card-foreground: #f8fafc;
-  --popover: #020617;
-  --popover-foreground: #f8fafc;
-  --primary: #38abf8; /* Brand 400 */
-  --primary-foreground: #082949;
-  --secondary: #1e293b; /* Slate 800 */
-  --secondary-foreground: #f8fafc;
-  --muted: #1e293b;
-  --muted-foreground: #94a3b8; /* Slate 400 */
-  --accent: #1e293b;
-  --accent-foreground: #f8fafc;
-  --destructive: #ef4444;
-  --destructive-foreground: #f8fafc;
-  --border: #1e293b; /* Slate 800 */
-  --input: #1e293b;
-  --ring: #38abf8;
-  --radius: 0.75rem;
+  --background: #e6eefc; /* Soft colorful blue-grey */
+  --foreground: #1e1e1e; /* Deep charcoal text */
+  --card: #ffffff;
+  --card-foreground: #1e1e1e;
+  --popover: #ffffff;
+  --popover-foreground: #1e1e1e;
+  --primary: #B83A2D; /* Retro terracotta red */
+  --primary-foreground: #ffffff;
+  --secondary: #DCC9A9; /* Retro sand */
+  --secondary-foreground: #1e1e1e;
+  --muted: #fbf6e8;
+  --muted-foreground: #4b5563;
+  --accent: #4E6851; /* Retro green */
+  --accent-foreground: #ffffff;
+  --destructive: #B83A2D;
+  --destructive-foreground: #ffffff;
+  --border: #000000; /* Black borders! */
+  --input: #ffffff;
+  --ring: #4E6851;
+  --radius: 0.25rem;
+
+  --retro-border: #000000;
+  --retro-shadow: #000000;
+  --retro-card-bg: #ffffff;
+  --retro-card-fg: #1e1e1e;
+  --retro-bg-grid: rgba(0, 0, 0, 0.05);
+
+  /* Retro theme variables - light values */
+  --retro-cream: #faf6ec;
+  --retro-sand: #DCC9A9;
+  --retro-red: #B83A2D;
+  --retro-green: #4E6851;
+  --retro-yellow: #fbbf24;
+  --retro-pink: #f5b6d1;
+  --retro-mint: #a2d2c1;
+  --retro-dark: #1e1e1e;
+  --retro-black: #000000;
+}
+
+.dark {
+  --background: #0a0b0d; /* Deep charcoal-black background */
+  --foreground: #d1d5db; /* Light gray text */
+  --card: #16171c;       /* Dark card background */
+  --card-foreground: #d1d5db;
+  --popover: #16171c;
+  --popover-foreground: #d1d5db;
+  --primary: #85221b;    /* Deep brick-red */
+  --primary-foreground: #e5e7eb;
+  --secondary: #1f2026;  /* Dark gray */
+  --secondary-foreground: #d1d5db;
+  --muted: #131317;
+  --muted-foreground: #9ca3af;
+  --accent: #114b4f;     /* Deep teal */
+  --accent-foreground: #d1d5db;
+  --destructive: #85221b;
+  --destructive-foreground: #e5e7eb;
+  --border: #000000;     /* Thicks borders remain black outline! */
+  --input: #1f2026;
+  --ring: #c69c3a;
+
+  --retro-border: #000000; /* Outlines remain stark black in dark mode */
+  --retro-shadow: #000000; /* Shadows remain black */
+  --retro-card-bg: #1f2026; /* Dark gray inner panels */
+  --retro-card-fg: #d1d5db;
+  --retro-bg-grid: rgba(255, 255, 255, 0.035); /* Subtle dark grid lines */
+
+  /* Neo Brutalist Retro Theme Colors shifted to desaturated dark-brutalist tones */
+  --retro-cream: #121316;  /* Navbar & background panels become deep charcoal-gray */
+  --retro-sand: #c69c3a;   /* Rich gold highlight against deep teal sidebar */
+  --retro-red: #85221b;    /* Deep brick-red sync/action buttons */
+  --retro-green: #24503b;  /* Deep desaturated green */
+  --retro-yellow: #a27b2c; /* Deep gold-bronze logo */
+  --retro-pink: #5a303f;   /* Deep plum accent */
+  --retro-mint: #131d20;   /* Sidebar desaturated teal-charcoal color */
+  --retro-dark: #d1d5db;
+  --retro-black: #d1d5db;
 }
 
 body {
@@ -45,34 +112,451 @@ body {
   color: var(--foreground);
   font-family: var(--font-sans), system-ui, sans-serif;
   -webkit-font-smoothing: antialiased;
+  
+  /* Retro graph paper grid background */
+  background-image: 
+    linear-gradient(var(--retro-bg-grid) 1.5px, transparent 1.5px),
+    linear-gradient(90deg, var(--retro-bg-grid) 1.5px, transparent 1.5px);
+  background-size: 28px 28px;
+  transition: background-color 0.2s ease, background-image 0.2s ease, color 0.2s ease;
 }
 
 /* Custom Scrollbar */
 ::-webkit-scrollbar {
-  width: 8px;
-  height: 8px;
+  width: 10px;
+  height: 10px;
 }
 
 ::-webkit-scrollbar-track {
   background: var(--background);
+  border-left: 2px solid var(--retro-border);
 }
 
 ::-webkit-scrollbar-thumb {
-  background: var(--border);
-  border-radius: 10px;
+  background: var(--secondary);
+  border: 2px solid var(--retro-border);
+  border-radius: 4px;
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  background: var(--muted-foreground);
+  background: var(--primary);
 }
 
-.glass {
-  background: rgba(15, 23, 42, 0.7);
-  backdrop-filter: blur(12px);
-  -webkit-backdrop-filter: blur(12px);
-  border: 1px solid rgba(255, 255, 255, 0.05);
+/* Neo Brutalist Styles with dynamic borders & shadows */
+.neo-border {
+  border: 3px solid var(--retro-border);
 }
 
-.card-gradient {
-  background: linear-gradient(135deg, rgba(15, 23, 42, 1) 0%, rgba(30, 41, 59, 0.5) 100%);
+.neo-border-sm {
+  border: 2px solid var(--retro-border);
+}
+
+.neo-shadow-sm {
+  box-shadow: 2px 2px 0px 0px var(--retro-shadow);
+}
+
+.neo-shadow {
+  box-shadow: 4px 4px 0px 0px var(--retro-shadow);
+}
+
+.neo-shadow-lg {
+  box-shadow: 6px 6px 0px 0px var(--retro-shadow);
+}
+
+.neo-shadow-xl {
+  box-shadow: 8px 8px 0px 0px var(--retro-shadow);
+}
+
+.neo-card {
+  border: 3px solid var(--retro-border);
+  box-shadow: 4px 4px 0px 0px var(--retro-shadow);
+  background-color: var(--retro-card-bg);
+  color: var(--retro-card-fg);
+}
+
+.neo-btn {
+  border: 3px solid var(--retro-border);
+  box-shadow: 4px 4px 0px 0px var(--retro-shadow);
+  transition: all 0.1s ease-in-out;
+}
+
+.neo-btn:hover:not(:disabled) {
+  transform: translate(1px, 1px);
+  box-shadow: 3px 3px 0px 0px var(--retro-shadow);
+}
+
+.neo-btn:active:not(:disabled) {
+  transform: translate(4px, 4px);
+  box-shadow: 0px 0px 0px 0px var(--retro-shadow);
+}
+
+.neo-btn-sm {
+  border: 2px solid var(--retro-border);
+  box-shadow: 2px 2px 0px 0px var(--retro-shadow);
+  transition: all 0.1s ease-in-out;
+}
+
+.neo-btn-sm:hover:not(:disabled) {
+  transform: translate(1px, 1px);
+  box-shadow: 1px 1px 0px 0px var(--retro-shadow);
+}
+
+.neo-btn-sm:active:not(:disabled) {
+  transform: translate(2px, 2px);
+  box-shadow: 0px 0px 0px 0px var(--retro-shadow);
+}
+
+.neo-input {
+  border: 3px solid var(--retro-border);
+  background-color: var(--retro-card-bg);
+  color: var(--retro-card-fg);
+  box-shadow: 2px 2px 0px 0px var(--retro-shadow);
+  transition: all 0.1s ease-in-out;
+}
+
+.neo-input:focus {
+  outline: none;
+  transform: translate(-1px, -1px);
+  box-shadow: 3px 3px 0px 0px var(--retro-shadow);
+}
+
+/* ==============================================
+   Dark Mode Adaptive Utility Overrides
+   ============================================== */
+
+/* 1. Sidebar Navigation container color replacement in dark mode */
+.dark nav.bg-retro-mint {
+  background-color: #162021 !important; /* Desaturated teal-charcoal */
+  color: #c8d0d2 !important; /* Light gray text/icons by default */
+  border-right-color: #000000 !important; /* Outer black borders remain */
+}
+
+/* Inactive NavItem buttons in dark sidebar */
+.dark nav.bg-retro-mint .bg-white {
+  background-color: #1b2729 !important; /* Slightly lighter teal-charcoal for buttons */
+  color: #c8d0d2 !important;
+}
+.dark nav.bg-retro-mint .bg-white svg {
+  stroke: #c8d0d2 !important;
+}
+
+/* Active NavItem button and label in dark sidebar */
+.dark nav.bg-retro-mint .bg-retro-sand {
+  background-color: #c69c3a !important; /* Gold highlight background */
+  color: #000000 !important; /* Black icon inside gold button */
+}
+.dark nav.bg-retro-mint .bg-retro-sand svg {
+  stroke: #000000 !important;
+}
+
+/* Active sidebar text label */
+.dark nav.bg-retro-mint .text-black.font-extrabold {
+  color: #c69c3a !important; /* Gold active text */
+}
+/* Inactive sidebar text label */
+.dark nav.bg-retro-mint .text-black\/60 {
+  color: #c8d0d2 !important;
+}
+.dark nav.bg-retro-mint .group-hover\:text-black {
+  color: #ffffff !important;
+}
+
+/* 2. Top Navbar adjustments */
+.dark header.bg-retro-cream {
+  background-color: #121316 !important; /* Deep charcoal-gray */
+  border-bottom-color: #000000 !important;
+}
+.dark header .bg-retro-yellow {
+  background-color: #a27b2c !important; /* Deep gold-bronze logo */
+  color: #000000 !important;
+}
+.dark header .bg-retro-yellow span.text-retro-red {
+  color: #ff5252 !important;
+}
+.dark header button.bg-retro-red {
+  background-color: #85221b !important; /* Deep brick-red sync button */
+  color: #c8d0d2 !important; /* Light gray text */
+}
+.dark header button.bg-retro-red svg {
+  stroke: #c8d0d2 !important;
+}
+.dark header input {
+  color: #c8d0d2 !important;
+}
+.dark header .text-black {
+  color: #c8d0d2 !important;
+}
+.dark header svg.text-black {
+  stroke: #c8d0d2 !important;
+}
+.dark header .bg-white {
+  background-color: #1e1e24 !important; /* Search area shifts to medium-dark gray */
+}
+
+/* 3. Avatar Circle adjustments */
+.dark .profile-avatar {
+  background-color: #114b4f !important; /* Deep teal avatar */
+  color: #d1d5db !important; /* Light gray text */
+}
+
+/* 4. Candidate Persona Card (bottom left) */
+.dark .persona-card .bg-retro-sand {
+  background-color: #473924 !important; /* Deep bronze header background */
+  color: #d1d5db !important;
+}
+.dark .persona-card .bg-white {
+  background-color: #1f2026 !important; /* Dark gray content background */
+  color: #d1d5db !important;
+}
+.dark .persona-card .text-black\/85,
+.dark .persona-card .text-black\/60,
+.dark .persona-card .text-black\/50,
+.dark .persona-card .text-black,
+.dark .persona-card p.font-extrabold {
+  color: #d1d5db !important;
+}
+
+/* 5. Skill tags styling */
+.dark .skill-tag {
+  background-color: #1f2026 !important; /* Dark gray */
+  border-color: #7a622e !important; /* Brass-gold outline */
+  color: #d1d5db !important; /* Light gray text */
+}
+
+/* 6. Job Cards background overrides */
+.dark .job-card.bg-retro-sand { background-color: #473924 !important; }
+.dark .job-card.bg-retro-yellow { background-color: #473c1d !important; }
+.dark .job-card.bg-retro-pink { background-color: #3d1d2b !important; }
+.dark .job-card.bg-retro-mint { background-color: #1d3a2e !important; }
+.dark .job-card.bg-white { background-color: #1f2026 !important; }
+
+/* Job Card Inner panels details */
+.dark .job-card .bg-white,
+.dark .job-card .bg-retro-sand,
+.dark .job-card .bg-retro-pink,
+.dark .job-card .bg-retro-mint,
+.dark .job-card .bg-retro-yellow {
+  background-color: #15161b !important; /* Dark gray inner panels */
+  color: #d1d5db !important; /* Light gray text */
+}
+.dark .job-card .bg-white svg,
+.dark .job-card .bg-retro-sand svg,
+.dark .job-card .bg-retro-pink svg,
+.dark .job-card .bg-retro-mint svg,
+.dark .job-card .bg-retro-yellow svg {
+  stroke: #9ca3af !important; /* Light gray icon */
+}
+.dark .job-card p.bg-retro-cream\/40 {
+  background-color: rgba(21, 22, 27, 0.4) !important;
+  color: #d1d5db !important;
+}
+.dark .job-card h3.text-black {
+  color: #ffffff !important;
+}
+.dark .job-card .score-tag {
+  background-color: #131317 !important; /* Darker gray/black score tag bg */
+  color: #cca32c !important; /* Deep gold text */
+  border-color: #000000 !important;
+}
+
+/* Job Card Action Buttons overrides */
+.dark .job-card button.bg-retro-red {
+  background-color: #85221b !important; /* Deep brick-red track button */
+  color: #e5e7eb !important;
+}
+.dark .job-card button.bg-retro-red svg {
+  stroke: #e5e7eb !important;
+}
+.dark .job-card button.bg-retro-sand,
+.dark .job-card button.bg-white {
+  background-color: #473924 !important; /* Deep bronze restore button */
+  color: #e5e7eb !important;
+}
+.dark .job-card button.bg-retro-sand svg,
+.dark .job-card button.bg-white svg {
+  stroke: #e5e7eb !important;
+}
+.dark .job-card button.border-2.border-black:not(.bg-retro-red, .bg-retro-sand) {
+  background-color: #1f2026 !important;
+  color: #e5e7eb !important;
+}
+.dark .job-card button.border-2.border-black:not(.bg-retro-red, .bg-retro-sand) svg {
+  stroke: #e5e7eb !important;
+}
+
+/* 7. File Upload layout adjustments */
+.dark .upload-card {
+  background-color: #1f2026 !important; /* Dark gray outer block */
+}
+.dark .upload-card h2.text-black,
+.dark .upload-card .text-black {
+  color: #d1d5db !important;
+}
+.dark .upload-card .text-black\/60 {
+  color: #9ca3af !important;
+}
+.dark .upload-card .upload-dropzone {
+  border-color: #9ca3af !important; /* Light gray dashed border */
+  background-color: #131317 !important; /* Darker gray background */
+}
+.dark .upload-card .upload-dropzone svg {
+  stroke: #9ca3af !important; /* Light gray upload icon */
+}
+.dark .upload-card .upload-dropzone span.text-black {
+  color: #d1d5db !important;
+}
+.dark .upload-card .sync-profile-btn {
+  background-color: #374151 !important; /* Medium gray */
+  color: #e5e7eb !important; /* Light gray text */
+}
+.dark .upload-card .sync-profile-btn svg {
+  stroke: #e5e7eb !important;
+}
+
+/* Base border rules - KEEP all thick black borders and shadows preserved! */
+.dark .border-black,
+.dark [class*="border-black"] {
+  border-color: #000000 !important;
+}
+.dark .border-b-black {
+  border-bottom-color: #000000 !important;
+}
+.dark .border-t-black {
+  border-top-color: #000000 !important;
+}
+.dark .border-r-black {
+  border-right-color: #000000 !important;
+}
+.dark .border-l-black {
+  border-left-color: #000000 !important;
+}
+
+/* Main background overrides inside dashboard */
+.dark .bg-white:not(
+  .bg-retro-yellow, .bg-retro-yellow *, 
+  .bg-retro-pink, .bg-retro-pink *, 
+  .bg-retro-sand, .bg-retro-sand *, 
+  .bg-retro-mint, .bg-retro-mint *,
+  .bg-retro-green, .bg-retro-green *,
+  .persona-card, .persona-card *,
+  .job-card, .job-card *,
+  .upload-card, .upload-card *
+) {
+  background-color: var(--retro-card-bg) !important;
+}
+.dark .bg-retro-cream:not(.persona-card *, .job-card *, .upload-card *) {
+  background-color: var(--retro-cream) !important;
+}
+
+/* Global text color corrections outside custom sections */
+.dark .text-black:not(
+  .bg-retro-yellow, .bg-retro-yellow *, 
+  .bg-retro-pink, .bg-retro-pink *, 
+  .bg-retro-sand, .bg-retro-sand *, 
+  .bg-retro-mint, .bg-retro-mint *, 
+  .bg-retro-green, .bg-retro-green *,
+  .persona-card, .persona-card *,
+  .job-card, .job-card *,
+  .upload-card, .upload-card *,
+  nav, nav *
+) {
+  color: var(--foreground) !important;
+}
+
+.dark .text-black\/85:not(
+  .bg-retro-yellow, .bg-retro-yellow *, 
+  .bg-retro-pink, .bg-retro-pink *, 
+  .bg-retro-sand, .bg-retro-sand *, 
+  .bg-retro-mint, .bg-retro-mint *, 
+  .bg-retro-green, .bg-retro-green *,
+  .persona-card, .persona-card *,
+  .job-card, .job-card *,
+  .upload-card, .upload-card *
+) {
+  color: rgba(255, 255, 255, 0.85) !important;
+}
+
+.dark .text-black\/80:not(
+  .bg-retro-yellow, .bg-retro-yellow *, 
+  .bg-retro-pink, .bg-retro-pink *, 
+  .bg-retro-sand, .bg-retro-sand *, 
+  .bg-retro-mint, .bg-retro-mint *, 
+  .bg-retro-green, .bg-retro-green *,
+  .persona-card, .persona-card *,
+  .job-card, .job-card *,
+  .upload-card, .upload-card *
+) {
+  color: rgba(255, 255, 255, 0.8) !important;
+}
+
+.dark .text-black\/70:not(
+  .bg-retro-yellow, .bg-retro-yellow *, 
+  .bg-retro-pink, .bg-retro-pink *, 
+  .bg-retro-sand, .bg-retro-sand *, 
+  .bg-retro-mint, .bg-retro-mint *, 
+  .bg-retro-green, .bg-retro-green *,
+  .persona-card, .persona-card *,
+  .job-card, .job-card *,
+  .upload-card, .upload-card *
+) {
+  color: rgba(255, 255, 255, 0.7) !important;
+}
+
+.dark .text-black\/60:not(
+  .bg-retro-yellow, .bg-retro-yellow *, 
+  .bg-retro-pink, .bg-retro-pink *, 
+  .bg-retro-sand, .bg-retro-sand *, 
+  .bg-retro-mint, .bg-retro-mint *, 
+  .bg-retro-green, .bg-retro-green *,
+  .persona-card, .persona-card *,
+  .job-card, .job-card *,
+  .upload-card, .upload-card *,
+  nav, nav *
+) {
+  color: rgba(255, 255, 255, 0.6) !important;
+}
+
+.dark .text-black\/50:not(
+  .bg-retro-yellow, .bg-retro-yellow *, 
+  .bg-retro-pink, .bg-retro-pink *, 
+  .bg-retro-sand, .bg-retro-sand *, 
+  .bg-retro-mint, .bg-retro-mint *, 
+  .bg-retro-green, .bg-retro-green *,
+  .persona-card, .persona-card *,
+  .job-card, .job-card *,
+  .upload-card, .upload-card *
+) {
+  color: rgba(255, 255, 255, 0.5) !important;
+}
+
+.dark .text-black\/40:not(
+  .bg-retro-yellow, .bg-retro-yellow *, 
+  .bg-retro-pink, .bg-retro-pink *, 
+  .bg-retro-sand, .bg-retro-sand *, 
+  .bg-retro-mint, .bg-retro-mint *, 
+  .bg-retro-green, .bg-retro-green *,
+  .persona-card, .persona-card *,
+  .job-card, .job-card *,
+  .upload-card, .upload-card *
+) {
+  color: rgba(255, 255, 255, 0.4) !important;
+}
+
+.dark .text-black\/35:not(
+  .bg-retro-yellow, .bg-retro-yellow *, 
+  .bg-retro-pink, .bg-retro-pink *, 
+  .bg-retro-sand, .bg-retro-sand *, 
+  .bg-retro-mint, .bg-retro-mint *, 
+  .bg-retro-green, .bg-retro-green *,
+  .persona-card, .persona-card *,
+  .job-card, .job-card *,
+  .upload-card, .upload-card *
+) {
+  color: rgba(255, 255, 255, 0.35) !important;
+}
+
+/* Ensure hover states transition dynamically */
+.dark .group-hover\:text-black:hover,
+.dark .group:hover .group-hover\:text-black {
+  color: var(--foreground) !important;
 }

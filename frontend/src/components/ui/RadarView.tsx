@@ -152,41 +152,38 @@ const RadarView: React.FC<RadarViewProps> = ({ jobs, parsedData }) => {
     }, [jobs, parsedData]);
 
     return (
-        <div className="space-y-10 px-4 pb-20">
+        <div className="space-y-10 px-4 pb-20 bg-retro-cream text-black font-sans">
             {/* Header Cards Row */}
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                <div className="bg-slate-900/40 border border-slate-800 rounded-3xl p-6 backdrop-blur-sm relative overflow-hidden group">
-                    <div className="absolute top-0 right-0 w-24 h-24 bg-brand-500/5 rounded-full blur-2xl group-hover:bg-brand-500/10 transition-colors"></div>
-                    <h3 className="text-[10px] font-black uppercase tracking-widest text-slate-500 mb-2">Total Jobs Scanned</h3>
-                    <p className="text-4xl font-black text-slate-100">{totalJobs}</p>
-                    <span className="text-[10px] text-slate-400 font-bold block mt-2">Active database pipeline</span>
+                <div className="bg-white border-3 border-black rounded-xl p-6 shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] relative overflow-hidden group">
+                    <h3 className="text-[11px] font-black uppercase tracking-widest text-black/60 mb-2">Total Jobs Scanned</h3>
+                    <p className="text-4xl font-black text-black">{totalJobs}</p>
+                    <span className="text-[10px] text-retro-green font-black block mt-2">Active database pipeline</span>
                 </div>
-                <div className="bg-slate-900/40 border border-slate-800 rounded-3xl p-6 backdrop-blur-sm relative overflow-hidden group">
-                    <div className="absolute top-0 right-0 w-24 h-24 bg-emerald-500/5 rounded-full blur-2xl group-hover:bg-emerald-500/10 transition-colors"></div>
-                    <h3 className="text-[10px] font-black uppercase tracking-widest text-slate-500 mb-2">Avg. Match Score</h3>
-                    <p className="text-4xl font-black text-brand-400">{avgMatchScore}%</p>
-                    <span className="text-[10px] text-slate-400 font-bold block mt-2">Semantic similarity strength</span>
+                <div className="bg-white border-3 border-black rounded-xl p-6 shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] relative overflow-hidden group">
+                    <h3 className="text-[11px] font-black uppercase tracking-widest text-black/60 mb-2">Avg. Match Score</h3>
+                    <p className="text-4xl font-black text-retro-red">{avgMatchScore}%</p>
+                    <span className="text-[10px] text-retro-green font-black block mt-2">Semantic similarity strength</span>
                 </div>
-                <div className="bg-slate-900/40 border border-slate-800 rounded-3xl p-6 backdrop-blur-sm relative overflow-hidden group">
-                    <div className="absolute top-0 right-0 w-24 h-24 bg-yellow-500/5 rounded-full blur-2xl group-hover:bg-yellow-500/10 transition-colors"></div>
-                    <h3 className="text-[10px] font-black uppercase tracking-widest text-slate-500 mb-2">Avg. Experience Req.</h3>
-                    <p className="text-4xl font-black text-emerald-400">
+                <div className="bg-white border-3 border-black rounded-xl p-6 shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] relative overflow-hidden group">
+                    <h3 className="text-[11px] font-black uppercase tracking-widest text-black/60 mb-2">Avg. Experience Req.</h3>
+                    <p className="text-4xl font-black text-black">
                         {avgExperience} <span className="text-lg">Yrs</span>
                     </p>
-                    <span className="text-[10px] text-slate-400 font-bold block mt-2">Ideal market alignment</span>
+                    <span className="text-[10px] text-retro-green font-black block mt-2">Ideal market alignment</span>
                 </div>
             </div>
 
             {/* Core Distribution Charts */}
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
                 {/* Experience Distribution Pie Chart */}
-                <div className="bg-slate-900/40 border border-slate-800 rounded-3xl p-8 backdrop-blur-sm flex flex-col justify-between">
+                <div className="bg-white border-3 border-black rounded-xl p-8 shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] flex flex-col justify-between">
                     <div>
-                        <h3 className="text-xs font-black uppercase tracking-widest text-slate-200 mb-6 flex items-center">
-                            <PieChart className="w-4 h-4 mr-2 text-brand-400" />
+                        <h3 className="text-xs font-black uppercase tracking-widest text-black mb-6 flex items-center">
+                            <PieChart className="w-4 h-4 mr-2 text-retro-red" />
                             Experience Requirements Distribution
                         </h3>
-                        <p className="text-xs text-slate-400 font-medium mb-8">
+                        <p className="text-xs text-black/60 font-bold mb-8">
                             A breakdown of the minimum required years of experience across all matching listings in your database.
                         </p>
                     </div>
@@ -196,8 +193,10 @@ const RadarView: React.FC<RadarViewProps> = ({ jobs, parsedData }) => {
                         {totalJobs > 0 ? (
                             <div className="relative w-40 h-40 flex items-center justify-center flex-shrink-0">
                                 <svg className="w-full h-full transform -rotate-90" viewBox="0 0 100 100">
-                                    {/* Background Circle */}
-                                    <circle cx="50" cy="50" r="40" fill="transparent" stroke="#1e293b" strokeWidth="10" />
+                                    {/* Black Outline base */}
+                                    <circle cx="50" cy="50" r="40" fill="transparent" stroke="var(--retro-border)" strokeWidth="14" />
+                                    {/* Inner core slice background */}
+                                    <circle cx="50" cy="50" r="40" fill="transparent" stroke="var(--retro-card-bg)" strokeWidth="10" />
                                     {/* Dynamic slices */}
                                     {(() => {
                                         let accumulatedPercent = 0;
@@ -219,7 +218,6 @@ const RadarView: React.FC<RadarViewProps> = ({ jobs, parsedData }) => {
                                                     strokeWidth="10"
                                                     strokeDasharray={strokeDasharray}
                                                     strokeDashoffset={strokeDashoffset}
-                                                    strokeLinecap="round"
                                                     className="transition-all duration-1000 ease-out"
                                                 />
                                             );
@@ -227,12 +225,12 @@ const RadarView: React.FC<RadarViewProps> = ({ jobs, parsedData }) => {
                                     })()}
                                 </svg>
                                 <div className="absolute flex flex-col items-center justify-center text-center">
-                                    <span className="text-[10px] font-black uppercase text-slate-500 tracking-wider">Scanned</span>
-                                    <span className="text-2xl font-black text-slate-100">{totalJobs}</span>
+                                    <span className="text-[10px] font-black uppercase text-black/50 tracking-wider">Scanned</span>
+                                    <span className="text-2xl font-black text-black">{totalJobs}</span>
                                 </div>
                             </div>
                         ) : (
-                            <div className="w-40 h-40 rounded-full border-4 border-dashed border-slate-800 flex items-center justify-center text-xs text-slate-600 font-bold italic">
+                            <div className="w-40 h-40 rounded-xl border-3 border-dashed border-black flex items-center justify-center text-xs text-black/60 font-black italic">
                                 No Jobs
                             </div>
                         )}
@@ -240,14 +238,14 @@ const RadarView: React.FC<RadarViewProps> = ({ jobs, parsedData }) => {
                         {/* Legend */}
                         <div className="space-y-3 flex-1 w-full">
                             {expDistribution.map((item, idx) => (
-                                <div key={idx} className="flex items-center justify-between text-xs">
+                                <div key={idx} className="flex items-center justify-between text-xs font-bold">
                                     <div className="flex items-center">
-                                        <div className="w-2.5 h-2.5 rounded-full mr-2.5" style={{ backgroundColor: item.color }}></div>
-                                        <span className="text-slate-300 font-bold">{item.label}</span>
+                                        <div className="w-3.5 h-3.5 border-2 border-black mr-2.5" style={{ backgroundColor: item.color }}></div>
+                                        <span className="text-black font-black">{item.label}</span>
                                     </div>
                                     <div className="text-right flex items-center space-x-2">
-                                        <span className="text-slate-500 font-bold">{item.count} roles</span>
-                                        <span className="text-slate-100 font-black w-8">{item.percentage}%</span>
+                                        <span className="text-black/60 font-bold">{item.count} roles</span>
+                                        <span className="text-black font-black w-8">{item.percentage}%</span>
                                     </div>
                                 </div>
                             ))}
@@ -256,13 +254,13 @@ const RadarView: React.FC<RadarViewProps> = ({ jobs, parsedData }) => {
                 </div>
 
                 {/* Platform Source Breakdown Bar Chart */}
-                <div className="bg-slate-900/40 border border-slate-800 rounded-3xl p-8 backdrop-blur-sm flex flex-col justify-between">
+                <div className="bg-white border-3 border-black rounded-xl p-8 shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] flex flex-col justify-between">
                     <div>
-                        <h3 className="text-xs font-black uppercase tracking-widest text-slate-200 mb-6 flex items-center">
-                            <BarChart3 className="w-4 h-4 mr-2 text-brand-400" />
+                        <h3 className="text-xs font-black uppercase tracking-widest text-black mb-6 flex items-center">
+                            <BarChart3 className="w-4 h-4 mr-2 text-retro-red" />
                             Market Job Sources Representation
                         </h3>
-                        <p className="text-xs text-slate-400 font-medium mb-8">
+                        <p className="text-xs text-black/60 font-bold mb-8">
                             A breakdown of where the active matching opportunities were harvested from.
                         </p>
                     </div>
@@ -271,23 +269,23 @@ const RadarView: React.FC<RadarViewProps> = ({ jobs, parsedData }) => {
                         {totalJobs > 0 ? (
                             sourceDistribution.map((item, idx) => (
                                 <div key={idx} className="space-y-1.5">
-                                    <div className="flex justify-between items-center text-xs">
-                                        <span className="font-bold text-slate-300">{item.name}</span>
-                                        <div className="flex space-x-3 text-slate-400 font-bold">
+                                    <div className="flex justify-between items-center text-xs font-bold">
+                                        <span className="font-black text-black">{item.name}</span>
+                                        <div className="flex space-x-3 text-black/60 font-bold">
                                             <span>{item.count} postings</span>
-                                            <span className="text-brand-400 font-black">{item.percentage}%</span>
+                                            <span className="text-retro-red font-black">{item.percentage}%</span>
                                         </div>
                                     </div>
-                                    <div className="h-3 bg-slate-950/80 rounded-full border border-slate-900 overflow-hidden relative">
+                                    <div className="h-4 bg-retro-cream rounded-lg border-2 border-black overflow-hidden relative">
                                         <div 
-                                            className="h-full rounded-full transition-all duration-1000 ease-out shadow-[0_0_8px_rgba(56,171,248,0.2)]" 
+                                            className="h-full rounded-none transition-all duration-1000 ease-out border-r-2 border-black" 
                                             style={{ width: `${item.percentage}%`, backgroundColor: item.color }}
                                         ></div>
                                     </div>
                                 </div>
                             ))
                         ) : (
-                            <div className="py-12 text-center text-xs text-slate-600 font-bold italic">
+                            <div className="py-12 text-center text-xs text-black/60 font-black italic border-2 border-dashed border-black/30 rounded-lg">
                                 Scrape job sources to build distribution graphs.
                             </div>
                         )}
@@ -296,81 +294,81 @@ const RadarView: React.FC<RadarViewProps> = ({ jobs, parsedData }) => {
             </div>
 
             {/* Skills demand mapping & gap analysis */}
-            <div className="bg-slate-900/40 border border-slate-800 rounded-3xl p-8 backdrop-blur-sm">
+            <div className="bg-white border-3 border-black rounded-xl p-8 shadow-[4px_4px_0px_0px_rgba(0,0,0,1)]">
                 <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-8">
                     <div>
-                        <h3 className="text-sm font-black uppercase tracking-widest text-slate-200 flex items-center">
-                            <Zap className="w-5 h-5 mr-3 text-brand-400" />
+                        <h3 className="text-sm font-black uppercase tracking-widest text-black flex items-center">
+                            <Zap className="w-5 h-5 mr-3 text-retro-red animate-bounce" />
                             Skills Gap Matrix & AI Insights
                         </h3>
-                        <p className="text-xs text-slate-500 font-bold uppercase tracking-wider mt-1">
+                        <p className="text-xs text-black/60 font-black uppercase tracking-wider mt-1">
                             Calculated by checking terms frequency in job descriptions relative to your profile
                         </p>
                     </div>
 
                     {parsedData && (
-                        <div className="text-xs bg-brand-500/5 border border-brand-500/20 text-brand-400 px-4 py-2.5 rounded-2xl font-bold flex items-center">
-                            <Sparkles className="w-4 h-4 mr-2" />
+                        <div className="text-xs bg-retro-yellow border-2 border-black text-black px-4 py-2.5 rounded-lg font-black flex items-center shadow-[2px_2px_0px_0px_rgba(0,0,0,1)]">
+                            <Sparkles className="w-4 h-4 mr-2 text-retro-red fill-retro-red" />
                             Analyzed using Active Neural Identity
                         </div>
                     )}
                 </div>
 
                 {!parsedData ? (
-                    <div className="py-12 text-center border border-dashed border-slate-800 rounded-2xl">
-                        <TrendingUp className="w-10 h-10 text-slate-700 mx-auto mb-3" />
-                        <p className="text-slate-500 text-xs font-bold italic">Sync your resume profile to activate deep skills mismatch intelligence.</p>
+                    <div className="py-12 text-center border-3 border-dashed border-black rounded-lg bg-retro-cream/20">
+                        <TrendingUp className="w-10 h-10 text-black/40 mx-auto mb-3" />
+                        <p className="text-black/70 text-xs font-black italic">Sync your resume profile to activate skills mismatch intelligence.</p>
                     </div>
                 ) : !skillsAnalysis || (skillsAnalysis.userSkillsMatched.length === 0 && skillsAnalysis.gapsDiscovered.length === 0) ? (
-                    <div className="py-12 text-center text-xs text-slate-500 italic">
+                    <div className="py-12 text-center text-xs text-black/60 italic font-bold">
                         Not enough job descriptions stored to perform statistical analysis. Trigger a scrape!
                     </div>
                 ) : (
                     <div className="grid grid-cols-1 lg:grid-cols-2 gap-10">
                         {/* Current Matching Strength */}
                         <div className="space-y-6">
-                            <h4 className="text-xs font-black text-slate-300 uppercase tracking-widest flex items-center">
-                                <CheckCircle className="w-4 h-4 mr-2 text-emerald-400" />
+                            <h4 className="text-xs font-black text-black uppercase tracking-widest flex items-center">
+                                <CheckCircle className="w-4 h-4 mr-2 text-retro-green" />
                                 Your Top Demanded Skills
                             </h4>
                             <div className="space-y-4">
                                 {skillsAnalysis.userSkillsMatched.slice(0, 5).map((skill, idx) => (
                                     <div key={idx} className="flex items-center">
-                                        <div className="w-28 text-xs font-bold text-slate-300 truncate pr-2 capitalize">{skill.name}</div>
-                                        <div className="flex-1 h-2.5 bg-slate-950/80 rounded-full border border-slate-900 overflow-hidden">
-                                            <div className="h-full bg-emerald-500 rounded-full" style={{ width: `${skill.percentage}%` }}></div>
+                                        <div className="w-28 text-xs font-black text-black truncate pr-2 capitalize">{skill.name}</div>
+                                        <div className="flex-1 h-3 bg-retro-cream rounded-lg border-2 border-black overflow-hidden">
+                                            <div className="h-full bg-retro-green border-r border-black" style={{ width: `${skill.percentage}%` }}></div>
                                         </div>
-                                        <div className="w-16 text-right text-xs font-black text-emerald-400">{skill.percentage}%</div>
+                                        <div className="w-16 text-right text-xs font-black text-retro-green">{skill.percentage}%</div>
                                     </div>
                                 ))}
                                 {skillsAnalysis.userSkillsMatched.length === 0 && (
-                                    <p className="text-slate-600 text-xs italic">No matching skills detected in job descriptions. Try importing jobs matching your role.</p>
+                                    <p className="text-black/60 text-xs italic">No matching skills detected in job descriptions. Try importing jobs matching your role.</p>
                                 )}
                             </div>
                         </div>
 
                         {/* Gap Analysis Opportunities */}
                         <div className="space-y-6">
-                            <h4 className="text-xs font-black text-slate-300 uppercase tracking-widest flex items-center">
-                                <ShieldAlert className="w-4 h-4 mr-2 text-yellow-400" />
+                            <h4 className="text-xs font-black text-black uppercase tracking-widest flex items-center">
+                                <ShieldAlert className="w-4 h-4 mr-2 text-retro-yellow fill-retro-yellow" />
                                 Identified Skills Gaps
                             </h4>
                             <div className="space-y-4">
                                 {skillsAnalysis.gapsDiscovered.map((skill, idx) => (
-                                    <div key={idx} className="flex items-center justify-between bg-slate-950/50 border border-slate-900 rounded-2xl p-4">
+                                    <div key={idx} className="flex items-center justify-between bg-retro-cream border-2 border-black rounded-lg p-4 shadow-[2px_2px_0px_0px_rgba(0,0,0,1)]">
                                         <div>
-                                            <span className="text-xs font-black text-slate-200 capitalize">{skill.name}</span>
-                                            <span className="text-[9px] text-slate-500 font-bold block uppercase tracking-wider mt-0.5">
+                                            <span className="text-xs font-black text-black capitalize">{skill.name}</span>
+                                            <span className="text-[9px] text-black/60 font-black block uppercase tracking-wider mt-0.5">
                                                 Found in {skill.percentage}% of matching roles
                                             </span>
                                         </div>
-                                        <div className="bg-yellow-500/10 border border-yellow-500/20 text-yellow-500 text-[10px] font-black uppercase tracking-wider px-3 py-1.5 rounded-xl">
+                                        <div className="bg-retro-pink border-2 border-black text-black text-[10px] font-black uppercase tracking-wider px-3 py-1.5 rounded shadow-[1.5px_1.5px_0px_0px_rgba(0,0,0,1)]">
                                             +{skill.percentage}% match boost
                                         </div>
                                     </div>
                                 ))}
                                 {skillsAnalysis.gapsDiscovered.length === 0 && (
-                                    <div className="py-6 text-center text-xs text-slate-600 font-bold italic border border-dashed border-slate-800 rounded-2xl">
+                                    <div className="py-6 text-center text-xs text-black/60 font-bold italic border-2 border-dashed border-black/30 rounded-lg">
                                         Excellent match! No high-frequency skills gaps detected.
                                     </div>
                                 )}
