@@ -27,28 +27,7 @@ Job Scout is a modern, privacy-focused, full-stack job discovery and application
 
 ## 🏗️ System Architecture
 
-```text
-                     ┌───────────────────┐
-                     │  Next.js Frontend │ (Port 3000)
-                     └─────────┬─────────┘
-                               │ HTTP API / JSON
-                               ▼
-                     ┌───────────────────┐
-                     │  FastAPI Backend  │ (Port 8000)
-                     └────┬──────────┬───┘
-                          │          │
-        SQL / pgvector    ▼          ▼    Redis Broker (Port 6379)
-  ┌─────────────────────────┐      ┌─────────────────────────┐
-  │ PostgreSQL (Port 5432)   │      │      Celery Queue       │
-  │ - Jobs & Resumes        │      ├────────────┬────────────┤
-  │ - 768d Vector Match     │      │   Worker   │    Beat    │
-  └─────────────────────────┘      └─────┬──────┴────────────┘
-                                         │ Scrapes in Background
-                                         ▼
-                             ┌───────────────────────┐
-                             │ Web Sites (Playwright)│
-                             └───────────────────────┘
-```
+![System Architecture](assets/system_architecture.jpg)
 
 *   **Embeddings Model**: `all-MiniLM-L6-v2` (384-dimensional vector padded to 768d for schema compatibility, running locally).
 *   **Text Generator Model**: `TinyLlama-1.1B-Chat-v1.0` (Local resume extraction on CPU).
