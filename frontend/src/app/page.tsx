@@ -165,8 +165,14 @@ export default function Home() {
     if (parsedData?.embedding) fetchMatches(parsedData.embedding, selectedWorkplaceTypes);
   };
 
-  const handleReject = (id: number) => {
-    setJobs(jobs.map(j => j.id === id ? { ...j, is_rejected: true } : j));
+  const handleReject = async (id: number) => {
+    const apiHost = typeof window !== 'undefined' ? `${window.location.protocol}//${window.location.hostname}:8000` : 'http://127.0.0.1:8000';
+    try {
+      await axios.post(`${apiHost}/jobs/interest`, { job_id: id, status: 'rejected' });
+      setJobs(jobs.map(j => j.id === id ? { ...j, is_rejected: true } : j));
+    } catch (err) {
+      console.error("Failed to archive job:", err);
+    }
   };
 
   const handleDeleteProfile = async () => {
