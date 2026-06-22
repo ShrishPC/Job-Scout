@@ -26,6 +26,13 @@ def init_db():
                 conn.execute(text("ALTER TABLE jobs ADD COLUMN workplace_type VARCHAR DEFAULT 'unspecified';"))
                 conn.commit()
                 print("Column 'workplace_type' added successfully.")
+        
+        # Create HNSW index for vector cosine distance optimization
+        with engine.connect() as conn:
+            print("Checking/Creating HNSW index on jobs.embedding column...")
+            conn.execute(text("CREATE INDEX IF NOT EXISTS jobs_embedding_hnsw_idx ON jobs USING hnsw (embedding vector_cosine_ops);"))
+            conn.commit()
+            print("HNSW index initialized successfully.")
                 
         print("Database initialized successfully.")
     except Exception as e:
