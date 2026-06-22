@@ -307,8 +307,7 @@ const RadarView: React.FC<RadarViewProps> = ({ jobs, parsedData }) => {
                     </div>
 
                     {parsedData && (
-                        <div className="text-xs bg-retro-yellow border-2 border-black text-black px-4 py-2.5 rounded-lg font-black flex items-center shadow-[2px_2px_0px_0px_rgba(0,0,0,1)]">
-                            <Sparkles className="w-4 h-4 mr-2 text-retro-red fill-retro-red" />
+                        <div className="text-xs bg-retro-yellow border-2 border-black text-black px-4 py-2.5 rounded-lg font-black flex items-center justify-center shadow-[2px_2px_0px_0px_rgba(0,0,0,1)]">
                             Analyzed using Active Neural Identity
                         </div>
                     )}

@@ -79,7 +79,6 @@ const ProfileView: React.FC<ProfileViewProps> = ({ parsedData }) => {
                     <div className="bg-white border-3 border-black rounded-xl p-8 shadow-[4px_4px_0px_0px_rgba(0,0,0,1)]">
                         <div className="flex justify-between items-center mb-6">
                             <h3 className="text-xs font-black uppercase tracking-widest text-black flex items-center">
-                                <Sparkles className="w-4 h-4 mr-2 text-retro-red" />
                                 Professional Skills
                             </h3>
                             <span className="bg-retro-sand text-black border-2 border-black text-[10px] px-2 py-0.5 rounded font-black">
