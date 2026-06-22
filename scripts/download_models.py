@@ -14,28 +14,32 @@ def download():
     
     print(f"📁 Cache folder set to: {MODEL_CACHE}")
     
-    # 1. Download sentence-transformers model (Embedding)
+    # 1. Read model configurations from environment
+    EMBEDDING_MODEL_NAME = os.getenv("EMBEDDING_MODEL_NAME", "all-MiniLM-L6-v2")
+    PARSER_LLM_MODEL_NAME = os.getenv("PARSER_LLM_MODEL_NAME", "TinyLlama/TinyLlama-1.1B-Chat-v1.0")
+    
+    # 2. Download sentence-transformers model (Embedding)
     try:
         from sentence_transformers import SentenceTransformer
-        print("\n📥 Downloading SentenceTransformer ('all-MiniLM-L6-v2')...")
-        _ = SentenceTransformer('all-MiniLM-L6-v2', cache_folder=MODEL_CACHE)
-        print("✅ SentenceTransformer model downloaded successfully!")
+        print(f"\n📥 Downloading SentenceTransformer ('{EMBEDDING_MODEL_NAME}')...")
+        _ = SentenceTransformer(EMBEDDING_MODEL_NAME, cache_folder=MODEL_CACHE)
+        print(f"✅ SentenceTransformer model '{EMBEDDING_MODEL_NAME}' downloaded successfully!")
     except Exception as e:
-        print(f"❌ Failed to download SentenceTransformer: {e}")
+        print(f"❌ Failed to download SentenceTransformer '{EMBEDDING_MODEL_NAME}': {e}")
         
-    # 2. Download TinyLlama model (LLM Parsing)
+    # 3. Download LLM parser model (LLM Parsing)
     try:
         from transformers import pipeline
-        print("\n📥 Downloading TinyLlama ('TinyLlama/TinyLlama-1.1B-Chat-v1.0')...")
+        print(f"\n📥 Downloading Local LLM ('{PARSER_LLM_MODEL_NAME}')...")
         _ = pipeline(
             "text-generation", 
-            model="TinyLlama/TinyLlama-1.1B-Chat-v1.0", 
+            model=PARSER_LLM_MODEL_NAME, 
             device="cpu",
             model_kwargs={"cache_dir": MODEL_CACHE}
         )
-        print("✅ TinyLlama model downloaded successfully!")
+        print(f"✅ Local LLM model '{PARSER_LLM_MODEL_NAME}' downloaded successfully!")
     except Exception as e:
-        print(f"❌ Failed to download TinyLlama: {e}")
+        print(f"❌ Failed to download Local LLM '{PARSER_LLM_MODEL_NAME}': {e}")
 
     print("\n🎉 Local models are fully cached and ready to use offline!")
 
