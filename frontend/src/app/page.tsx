@@ -215,7 +215,12 @@ export default function Home() {
             icon={<Target className="w-6 h-6" />} 
             label="Hunt"
             active={view === 'hunt'} 
-            onClick={() => setView('hunt')} 
+            onClick={() => {
+              setView('hunt');
+              if (parsedData?.embedding) {
+                fetchMatches(parsedData.embedding, selectedWorkplaceTypes);
+              }
+            }} 
           />
           <NavItem 
             icon={<Layout className="w-6 h-6" />} 
