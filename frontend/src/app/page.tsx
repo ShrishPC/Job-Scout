@@ -200,9 +200,9 @@ export default function Home() {
   };
 
   return (
-    <main className="min-h-screen bg-retro-cream text-retro-black flex overflow-hidden font-sans">
+    <main className="h-screen bg-retro-cream text-retro-black flex overflow-hidden font-sans">
       {/* Sidebar Navigation */}
-      <nav className="w-24 bg-retro-mint border-r-4 border-black flex flex-col items-center py-8 space-y-10 z-20 relative text-black">
+      <nav className="w-24 bg-retro-mint border-r-4 border-black flex flex-col items-center py-8 space-y-10 z-20 relative text-black overflow-y-auto overflow-x-hidden custom-scrollbar">
         <div 
           onClick={() => setView('radar')}
           className="w-14 h-14 bg-retro-yellow text-black border-3 border-black shadow-[3px_3px_0px_0px_rgba(0,0,0,1)] hover:translate-x-[1px] hover:translate-y-[1px] hover:shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] active:translate-x-[3px] active:translate-y-[3px] active:shadow-none flex items-center justify-center rounded-xl cursor-pointer transition-all duration-100"
