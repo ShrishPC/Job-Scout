@@ -190,51 +190,51 @@ const AITailorView = () => {
     );
 
     return (
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 min-h-[calc(100vh-12rem)] bg-retro-cream p-1">
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 min-h-[calc(100vh-12rem)] bg-retro-cream dark:bg-zinc-950 p-1 text-black dark:text-white">
             {/* Left Column: Form & Configuration */}
             <div className="lg:col-span-5 flex flex-col space-y-6">
                 
                 {/* Active Resume Status Card */}
-                <div className="bg-white border-3 border-black rounded-xl p-5 shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] relative overflow-hidden">
-                    <div className="absolute right-0 top-0 bg-retro-mint border-b-3 border-l-3 border-black text-black text-[9px] font-black uppercase tracking-wider px-3 py-1.5 shadow-none">
+                <div className="bg-white dark:bg-zinc-900 border-3 border-black dark:border-white rounded-xl p-5 shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] dark:shadow-[4px_4px_0px_0px_#ffffff] relative overflow-hidden text-black dark:text-white">
+                    <div className="absolute right-0 top-0 bg-retro-mint dark:bg-zinc-800 border-b-3 border-l-3 border-black dark:border-white text-black dark:text-retro-yellow text-[9px] font-black uppercase tracking-wider px-3 py-1.5 shadow-none">
                         Active Profile
                     </div>
-                    <h3 className="text-xs font-black uppercase tracking-widest text-black/60 mb-3 flex items-center">
-                        <User className="w-3.5 h-3.5 mr-1.5 text-black" />
+                    <h3 className="text-xs font-black uppercase tracking-widest text-black/60 dark:text-white/60 mb-3 flex items-center">
+                        <User className="w-3.5 h-3.5 mr-1.5 text-black dark:text-white" />
                         Target Resume Source
                     </h3>
                     {activeResume ? (
                         <div>
-                            <p className="font-extrabold text-black text-sm truncate">{activeResume.filename}</p>
-                            <p className="text-retro-green text-xs font-black mt-0.5">
+                            <p className="font-extrabold text-black dark:text-white text-sm truncate">{activeResume.filename}</p>
+                            <p className="text-retro-green dark:text-retro-mint text-xs font-black mt-0.5">
                                 {activeResume.parsed_json?.full_name || 'Anonymous User'}
                             </p>
                         </div>
                     ) : (
-                        <div className="bg-retro-pink/20 border-2 border-black border-dashed p-3 rounded-lg text-center">
+                        <div className="bg-retro-pink/20 dark:bg-retro-pink/10 border-2 border-black dark:border-white border-dashed p-3 rounded-lg text-center">
                             <p className="text-xs font-black text-retro-red uppercase tracking-wider">No Active Resume Detected!</p>
-                            <p className="text-[10px] font-bold text-black/60 mt-1">Please upload a resume in the Resume Vault tab first.</p>
+                            <p className="text-[10px] font-bold text-black/60 dark:text-white/60 mt-1">Please upload a resume in the Resume Vault tab first.</p>
                         </div>
                     )}
                 </div>
 
                 {/* Generator Configuration */}
-                <div className="bg-white border-3 border-black rounded-xl p-6 shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] flex-1 flex flex-col justify-between">
+                <div className="bg-white dark:bg-zinc-900 border-3 border-black dark:border-white rounded-xl p-6 shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] dark:shadow-[4px_4px_0px_0px_#ffffff] flex flex-col text-black dark:text-white">
                     <div className="space-y-5">
-                        <h3 className="text-xs font-black uppercase tracking-widest text-black/60 border-b-2 border-black/10 pb-2 flex items-center">
+                        <h3 className="text-xs font-black uppercase tracking-widest text-black/60 dark:text-white/60 border-b-2 border-black/10 dark:border-white/10 pb-2 flex items-center">
                             <Sparkles className="w-4 h-4 mr-2 text-retro-red" />
                             Local LLM Parameters
                         </h3>
 
                         {/* Mode Selection Toggles */}
-                        <div className="flex border-2 border-black rounded-lg overflow-hidden bg-retro-cream p-1 gap-1">
+                        <div className="flex border-2 border-black dark:border-white rounded-lg overflow-hidden bg-retro-cream dark:bg-zinc-950 p-1 gap-1">
                             <button
                                 type="button"
                                 onClick={() => setMode('tailor')}
                                 className={`flex-1 py-2 text-[10px] font-black uppercase tracking-wider rounded-md border-2 border-transparent transition-all
                                     ${mode === 'tailor' 
-                                        ? 'bg-retro-yellow text-black border-black shadow-[2px_2px_0px_0px_rgba(0,0,0,1)]' 
-                                        : 'text-black/60 hover:text-black hover:bg-white/50'
+                                        ? 'bg-retro-yellow text-black border-black dark:border-white shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] dark:shadow-[2px_2px_0px_0px_#ffffff]' 
+                                        : 'text-black/60 dark:text-white/60 hover:text-black dark:hover:text-white hover:bg-white/50 dark:hover:bg-zinc-800'
                                     }`}
                             >
                                 Resume Tailor
@@ -244,8 +244,8 @@ const AITailorView = () => {
                                 onClick={() => setMode('cover_letter')}
                                 className={`flex-1 py-2 text-[10px] font-black uppercase tracking-wider rounded-md border-2 border-transparent transition-all
                                     ${mode === 'cover_letter' 
-                                        ? 'bg-retro-yellow text-black border-black shadow-[2px_2px_0px_0px_rgba(0,0,0,1)]' 
-                                        : 'text-black/60 hover:text-black hover:bg-white/50'
+                                        ? 'bg-retro-yellow text-black border-black dark:border-white shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] dark:shadow-[2px_2px_0px_0px_#ffffff]' 
+                                        : 'text-black/60 dark:text-white/60 hover:text-black dark:hover:text-white hover:bg-white/50 dark:hover:bg-zinc-800'
                                     }`}
                             >
                                 Cover Letter
@@ -253,7 +253,7 @@ const AITailorView = () => {
                         </div>
 
                         {/* Custom Job Switcher */}
-                        <div className="flex items-center space-x-2 bg-retro-cream/40 p-3 rounded-lg border-2 border-black border-dashed">
+                        <div className="flex items-center space-x-2 bg-retro-cream/40 dark:bg-zinc-950/40 p-3 rounded-lg border-2 border-black dark:border-white border-dashed">
                             <input
                                 type="checkbox"
                                 id="customJobCheck"
@@ -262,9 +262,9 @@ const AITailorView = () => {
                                     setIsCustomJob(e.target.checked);
                                     setError(null);
                                 }}
-                                className="w-4 h-4 accent-black cursor-pointer rounded border-2 border-black"
+                                className="w-4 h-4 accent-black cursor-pointer rounded border-2 border-black dark:border-white"
                             />
-                            <label htmlFor="customJobCheck" className="text-xs font-black text-black cursor-pointer select-none">
+                            <label htmlFor="customJobCheck" className="text-xs font-black text-black dark:text-white cursor-pointer select-none">
                                 Use Custom Job Details (Manual Paste)
                             </label>
                         </div>
@@ -272,11 +272,11 @@ const AITailorView = () => {
                         {/* Job Details Forms */}
                         {!isCustomJob ? (
                             <div className="space-y-2">
-                                <label className="block text-[10px] font-black uppercase tracking-widest text-black/60">
+                                <label className="block text-[10px] font-black uppercase tracking-widest text-black/60 dark:text-white/60">
                                     Select Job from Pipeline
                                 </label>
                                 {loadingJobs ? (
-                                    <div className="flex items-center space-x-2 text-xs font-bold text-black/50 py-2">
+                                    <div className="flex items-center space-x-2 text-xs font-bold text-black/50 dark:text-white/50 py-2">
                                         <Loader2 className="w-4 h-4 animate-spin" />
                                         <span>Loading pipeline...</span>
                                     </div>
@@ -288,35 +288,35 @@ const AITailorView = () => {
                                             <button
                                                 type="button"
                                                 onClick={() => setDropdownOpen(!dropdownOpen)}
-                                                className="w-full flex items-center justify-between bg-white border-2 border-black rounded-lg p-3 text-xs font-bold text-black shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] hover:translate-x-[0.5px] hover:translate-y-[0.5px] hover:shadow-[1.5px_1.5px_0px_0px_rgba(0,0,0,1)] active:translate-x-[2px] active:translate-y-[2px] active:shadow-none transition-all cursor-pointer focus:outline-none"
+                                                className="w-full flex items-center justify-between bg-white dark:bg-zinc-900 border-2 border-black dark:border-white rounded-lg p-3 text-xs font-bold text-black dark:text-white shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] dark:shadow-[2px_2px_0px_0px_#ffffff] hover:translate-x-[0.5px] hover:translate-y-[0.5px] hover:shadow-[1.5px_1.5px_0px_0px_rgba(0,0,0,1)] dark:hover:shadow-[1.5px_1.5px_0px_0px_#ffffff] active:translate-x-[2px] active:translate-y-[2px] active:shadow-none transition-all cursor-pointer focus:outline-none"
                                             >
                                                 <span className="flex items-center space-x-2 truncate">
-                                                    <Briefcase className="w-4 h-4 text-black shrink-0" />
+                                                    <Briefcase className="w-4 h-4 text-black dark:text-white shrink-0" />
                                                     <span className="truncate">
                                                         {selectedJob ? `${selectedJob.title} @ ${selectedJob.company}` : 'Select a tracked job...'}
                                                     </span>
                                                 </span>
-                                                {dropdownOpen ? <ChevronUp className="w-4 h-4 text-black shrink-0 ml-2" /> : <ChevronDown className="w-4 h-4 text-black shrink-0 ml-2" />}
+                                                {dropdownOpen ? <ChevronUp className="w-4 h-4 text-black dark:text-white shrink-0 ml-2" /> : <ChevronDown className="w-4 h-4 text-black dark:text-white shrink-0 ml-2" />}
                                             </button>
 
                                             {/* Dropdown Options */}
                                             {dropdownOpen && (
-                                                <div className="absolute z-50 left-0 right-0 mt-2 bg-retro-cream border-2 border-black rounded-lg shadow-[3px_3px_0px_0px_rgba(0,0,0,1)] overflow-hidden flex flex-col max-h-72">
+                                                <div className="absolute z-50 left-0 right-0 mt-2 bg-retro-cream dark:bg-zinc-950 border-2 border-black dark:border-white rounded-lg shadow-[3px_3px_0px_0px_rgba(0,0,0,1)] dark:shadow-[3px_3px_0px_0px_#ffffff] overflow-hidden flex flex-col max-h-none">
                                                     {/* Search Input */}
-                                                    <div className="p-2 border-b-2 border-black bg-white flex items-center space-x-2">
-                                                        <Search className="w-3.5 h-3.5 text-black/50 shrink-0" />
+                                                    <div className="p-2 border-b-2 border-black dark:border-white bg-white dark:bg-zinc-900 flex items-center space-x-2">
+                                                        <Search className="w-3.5 h-3.5 text-black/50 dark:text-white/50 shrink-0" />
                                                         <input
                                                             type="text"
                                                             value={searchQuery}
                                                             onChange={(e) => setSearchQuery(e.target.value)}
                                                             placeholder="Search tracked jobs..."
-                                                            className="w-full bg-transparent text-xs font-bold text-black focus:outline-none"
+                                                            className="w-full bg-transparent text-xs font-bold text-black dark:text-white focus:outline-none"
                                                             onClick={(e) => e.stopPropagation()}
                                                         />
                                                     </div>
                                                     
                                                     {/* Options List */}
-                                                    <div className="overflow-y-auto custom-scrollbar bg-white divide-y divide-black/10">
+                                                    <div className="overflow-y-auto custom-scrollbar bg-white dark:bg-zinc-900 divide-y divide-black/10 dark:divide-white/10">
                                                         {filteredJobs.length > 0 ? (
                                                             filteredJobs.map((job) => {
                                                                 const isSelected = job.id.toString() === selectedJobId;
@@ -330,12 +330,12 @@ const AITailorView = () => {
                                                                             setDropdownOpen(false);
                                                                         }}
                                                                         className={`w-full flex items-center justify-between px-3 py-2.5 text-xs font-bold text-left cursor-pointer transition-colors focus:outline-none
-                                                                            ${isSelected ? 'bg-retro-yellow text-black' : 'text-black hover:bg-retro-sand/20'}
+                                                                            ${isSelected ? 'bg-retro-yellow dark:bg-retro-yellow text-black dark:text-black' : 'text-black dark:text-white hover:bg-retro-sand/20 dark:hover:bg-zinc-800'}
                                                                         `}
                                                                     >
                                                                         <span className="flex flex-col truncate pr-2">
                                                                             <span className="truncate font-black">{job.title}</span>
-                                                                            <span className="truncate text-[10px] text-black/60 font-bold flex items-center">
+                                                                            <span className="truncate text-[10px] text-black/60 dark:text-white/60 font-bold flex items-center">
                                                                                 <Building className="w-3.5 h-3.5 mr-1 opacity-70" />
                                                                                 {job.company}
                                                                             </span>
@@ -350,7 +350,7 @@ const AITailorView = () => {
                                                                 );
                                                             })
                                                         ) : (
-                                                            <div className="p-3 text-xs font-bold text-black/50 text-center italic bg-white">
+                                                            <div className="p-3 text-xs font-bold text-black/50 dark:text-white/50 text-center italic bg-white dark:bg-zinc-900">
                                                                 No matching jobs found
                                                             </div>
                                                         )}
@@ -361,9 +361,9 @@ const AITailorView = () => {
 
                                         {/* Warning if selected job has no description */}
                                         {selectedJob && (!selectedJob.description || !selectedJob.description.trim()) && (
-                                            <div className="mt-2 bg-retro-pink/20 border-2 border-retro-red p-3 rounded-lg flex items-start space-x-2.5 shadow-[1.5px_1.5px_0px_0px_rgba(0,0,0,1)]">
+                                            <div className="mt-2 bg-retro-pink/20 dark:bg-retro-pink/10 border-2 border-retro-red p-3 rounded-lg flex items-start space-x-2.5 shadow-[1.5px_1.5px_0px_0px_rgba(0,0,0,1)] dark:shadow-[1.5px_1.5px_0px_0px_#ffffff]">
                                                 <AlertCircle className="w-4 h-4 text-retro-red shrink-0 mt-0.5" />
-                                                <p className="text-[10px] font-bold text-black leading-tight">
+                                                <p className="text-[10px] font-bold text-black dark:text-white leading-tight">
                                                     <strong>No Description Saved:</strong> This job listing has no description in the database. Please click the checkbox above to enter the job details manually, or add a description on the Kanban board.
                                                 </p>
                                             </div>
@@ -379,7 +379,7 @@ const AITailorView = () => {
                             <div className="space-y-4">
                                 <div className="grid grid-cols-2 gap-3">
                                     <div className="space-y-2">
-                                        <label className="block text-[10px] font-black uppercase tracking-widest text-black/60">
+                                        <label className="block text-[10px] font-black uppercase tracking-widest text-black/60 dark:text-white/60">
                                             Job Title
                                         </label>
                                         <input
@@ -387,11 +387,11 @@ const AITailorView = () => {
                                             value={customTitle}
                                             onChange={(e) => setCustomTitle(e.target.value)}
                                             placeholder="e.g. Frontend Engineer"
-                                            className="w-full bg-white border-2 border-black rounded-lg p-2.5 text-xs font-bold text-black shadow-[1.5px_1.5px_0px_0px_rgba(0,0,0,1)] focus:outline-none"
+                                            className="w-full bg-white dark:bg-zinc-900 border-2 border-black dark:border-white rounded-lg p-2.5 text-xs font-bold text-black dark:text-white shadow-[1.5px_1.5px_0px_0px_rgba(0,0,0,1)] dark:shadow-[1.5px_1.5px_0px_0px_#ffffff] focus:outline-none"
                                         />
                                     </div>
                                     <div className="space-y-2">
-                                        <label className="block text-[10px] font-black uppercase tracking-widest text-black/60">
+                                        <label className="block text-[10px] font-black uppercase tracking-widest text-black/60 dark:text-white/60">
                                             Company
                                         </label>
                                         <input
@@ -399,12 +399,12 @@ const AITailorView = () => {
                                             value={customCompany}
                                             onChange={(e) => setCustomCompany(e.target.value)}
                                             placeholder="e.g. OpenAI"
-                                            className="w-full bg-white border-2 border-black rounded-lg p-2.5 text-xs font-bold text-black shadow-[1.5px_1.5px_0px_0px_rgba(0,0,0,1)] focus:outline-none"
+                                            className="w-full bg-white dark:bg-zinc-900 border-2 border-black dark:border-white rounded-lg p-2.5 text-xs font-bold text-black dark:text-white shadow-[1.5px_1.5px_0px_0px_rgba(0,0,0,1)] dark:shadow-[1.5px_1.5px_0px_0px_#ffffff] focus:outline-none"
                                         />
                                     </div>
                                 </div>
                                 <div className="space-y-2">
-                                    <label className="block text-[10px] font-black uppercase tracking-widest text-black/60">
+                                    <label className="block text-[10px] font-black uppercase tracking-widest text-black/60 dark:text-white/60">
                                         Job Description / Requirements
                                     </label>
                                     <textarea
@@ -412,18 +412,18 @@ const AITailorView = () => {
                                         onChange={(e) => setCustomDesc(e.target.value)}
                                         placeholder="Paste target job responsibilities and key requirements..."
                                         rows={6}
-                                        className="w-full bg-white border-2 border-black rounded-lg p-3 text-xs font-bold text-black shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] focus:outline-none custom-scrollbar"
+                                        className="w-full bg-white dark:bg-zinc-900 border-2 border-black dark:border-white rounded-lg p-3 text-xs font-bold text-black dark:text-white shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] dark:shadow-[2px_2px_0px_0px_#ffffff] focus:outline-none custom-scrollbar"
                                     />
                                 </div>
                             </div>
                         )}
                     </div>
 
-                    <div className="pt-6 border-t-2 border-black/10 mt-6 space-y-4">
+                    <div className="pt-6 border-t-2 border-black/10 dark:border-white/10 mt-6 space-y-4">
                         {error && (
-                            <div className="bg-retro-pink/20 border-2 border-black p-3 rounded-lg flex items-start space-x-2.5">
+                            <div className="bg-retro-pink/20 dark:bg-retro-pink/10 border-2 border-black dark:border-white p-3 rounded-lg flex items-start space-x-2.5">
                                 <AlertCircle className="w-4 h-4 text-retro-red shrink-0 mt-0.5" />
-                                <span className="text-[10px] font-black text-black leading-normal">{error}</span>
+                                <span className="text-[10px] font-black text-black dark:text-white leading-normal">{error}</span>
                             </div>
                         )}
 
@@ -431,7 +431,7 @@ const AITailorView = () => {
                             type="button"
                             onClick={handleGenerate}
                             disabled={generating || !activeResume}
-                            className="w-full bg-retro-red text-white py-4 rounded-xl font-black text-xs uppercase tracking-widest border-3 border-black shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] hover:translate-x-[1px] hover:translate-y-[1px] hover:shadow-[3px_3px_0px_0px_rgba(0,0,0,1)] active:translate-x-[3px] active:translate-y-[3px] active:shadow-none transition-all disabled:opacity-50 disabled:pointer-events-none flex items-center justify-center space-x-2"
+                            className="w-full bg-retro-red text-white py-4 rounded-xl font-black text-xs uppercase tracking-widest border-3 border-black dark:border-white shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] dark:shadow-[4px_4px_0px_0px_#ffffff] hover:translate-x-[1px] hover:translate-y-[1px] hover:shadow-[3px_3px_0px_0px_rgba(0,0,0,1)] dark:hover:shadow-[3px_3px_0px_0px_#ffffff] active:translate-x-[3px] active:translate-y-[3px] active:shadow-none transition-all disabled:opacity-50 disabled:pointer-events-none flex items-center justify-center space-x-2"
                         >
                             {generating ? (
                                 <>
@@ -451,47 +451,47 @@ const AITailorView = () => {
 
             {/* Right Column: Output Viewer */}
             <div className="lg:col-span-7 flex flex-col h-full">
-                <div className="bg-white border-3 border-black rounded-xl p-6 shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] flex-1 flex flex-col h-full min-h-[50vh] lg:min-h-0 relative">
-                    <div className="flex justify-between items-center pb-4 border-b-2 border-black/10 mb-4 shrink-0">
-                        <h3 className="text-xs font-black uppercase tracking-widest text-black/60 flex items-center">
-                            <FileText className="w-4 h-4 mr-2 text-retro-green" />
+                <div className="bg-white dark:bg-zinc-900 border-3 border-black dark:border-white rounded-xl p-6 shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] dark:shadow-[4px_4px_0px_0px_#ffffff] flex-1 flex flex-col h-full min-h-[50vh] lg:min-h-0 relative text-black dark:text-white">
+                    <div className="flex justify-between items-center pb-4 border-b-2 border-black/10 dark:border-white/10 mb-4 shrink-0">
+                        <h3 className="text-xs font-black uppercase tracking-widest text-black/60 dark:text-white/60 flex items-center">
+                            <FileText className="w-4 h-4 mr-2 text-retro-green dark:text-retro-mint" />
                             {mode === 'tailor' ? 'Resume Tailoring suggestions' : 'Generated Cover Letter'}
                         </h3>
                         {result && (
                             <div className="flex space-x-2">
                                 <button
                                     onClick={handleCopy}
-                                    className="p-2 border-2 border-black bg-white rounded-lg text-black hover:bg-retro-yellow shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] hover:translate-x-[0.5px] hover:translate-y-[0.5px] hover:shadow-[1.5px_1.5px_0px_0px_rgba(0,0,0,1)] active:translate-x-[2px] active:translate-y-[2px] active:shadow-none transition-all"
+                                    className="p-2 border-2 border-black dark:border-white bg-white dark:bg-zinc-800 rounded-lg text-black dark:text-white hover:bg-retro-yellow dark:hover:text-black shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] dark:shadow-[2px_2px_0px_0px_#ffffff] hover:translate-x-[0.5px] hover:translate-y-[0.5px] hover:shadow-[1.5px_1.5px_0px_0px_rgba(0,0,0,1)] dark:hover:shadow-[1.5px_1.5px_0px_0px_#ffffff] active:translate-x-[2px] active:translate-y-[2px] active:shadow-none transition-all"
                                     title="Copy to Clipboard"
                                 >
-                                    {copied ? <Check className="w-4 h-4 text-retro-green" /> : <Copy className="w-4 h-4" />}
+                                    {copied ? <Check className="w-4 h-4 text-retro-green dark:text-retro-mint" /> : <Copy className="w-4 h-4 text-black dark:text-white" />}
                                 </button>
                                 <button
                                     onClick={handleDownload}
-                                    className="p-2 border-2 border-black bg-white rounded-lg text-black hover:bg-retro-mint shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] hover:translate-x-[0.5px] hover:translate-y-[0.5px] hover:shadow-[1.5px_1.5px_0px_0px_rgba(0,0,0,1)] active:translate-x-[2px] active:translate-y-[2px] active:shadow-none transition-all"
+                                    className="p-2 border-2 border-black dark:border-white bg-white dark:bg-zinc-800 rounded-lg text-black dark:text-white hover:bg-retro-mint dark:hover:text-black shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] dark:shadow-[2px_2px_0px_0px_#ffffff] hover:translate-x-[0.5px] hover:translate-y-[0.5px] hover:shadow-[1.5px_1.5px_0px_0px_rgba(0,0,0,1)] dark:hover:shadow-[1.5px_1.5px_0px_0px_#ffffff] active:translate-x-[2px] active:translate-y-[2px] active:shadow-none transition-all"
                                     title="Save to File"
                                 >
-                                    <Download className="w-4 h-4" />
+                                    <Download className="w-4 h-4 text-black dark:text-white" />
                                 </button>
                             </div>
                         )}
                     </div>
 
-                    <div className="flex-1 min-h-[40vh] rounded-lg border-2 border-black/10 bg-retro-cream/20 overflow-hidden flex flex-col">
-                        <div className="flex-1 overflow-y-auto overflow-x-hidden p-4 rounded-[inherit] custom-scrollbar font-mono text-xs leading-relaxed text-black/90">
+                    <div className="flex-1 min-h-[40vh] rounded-lg border-2 border-black/10 dark:border-white/10 bg-retro-cream/20 dark:bg-zinc-950/20 overflow-hidden flex flex-col">
+                        <div className="flex-1 overflow-y-auto overflow-x-hidden p-4 rounded-[inherit] custom-scrollbar font-mono text-xs leading-relaxed text-black/90 dark:text-white/90">
                             {generating ? (
                                 <div className="h-full flex flex-col items-center justify-center py-20 text-center">
-                                    <Loader2 className="w-8 h-8 animate-spin text-retro-red mb-4" />
-                                    <p className="text-[10px] font-black uppercase tracking-widest text-black/60 animate-pulse">Running Local AI...</p>
-                                    <p className="text-[9px] font-bold text-black/40 mt-1 max-w-[250px]">Please stand by. Local generation is 100% free but takes a few seconds on CPU.</p>
+                                    <Loader2 className="w-8 h-8 animate-spin text-retro-red dark:text-retro-yellow mb-4" />
+                                    <p className="text-[10px] font-black uppercase tracking-widest text-black/60 dark:text-white/60 animate-pulse">Running Local AI...</p>
+                                    <p className="text-[9px] font-bold text-black/40 dark:text-white/40 mt-1 max-w-[250px]">Please stand by. Local generation is 100% free but takes a few seconds on CPU.</p>
                                 </div>
                             ) : result ? (
                                 <pre className="whitespace-pre-wrap break-words">{result}</pre>
                             ) : (
                                 <div className="h-full flex flex-col items-center justify-center text-center py-20 opacity-30 select-none">
-                                    <Sparkles className="w-10 h-10 mb-3 text-black" />
-                                    <p className="text-[10px] font-black uppercase tracking-widest text-black">Awaiting generation parameters</p>
-                                    <p className="text-[9px] font-bold text-black/70 mt-1 max-w-[200px]">Fill configuration on the left and click generate.</p>
+                                    <Sparkles className="w-10 h-10 mb-3 text-black dark:text-white" />
+                                    <p className="text-[10px] font-black uppercase tracking-widest text-black dark:text-white">Awaiting generation parameters</p>
+                                    <p className="text-[9px] font-bold text-black/70 dark:text-white/70 mt-1 max-w-[200px]">Fill configuration on the left and click generate.</p>
                                 </div>
                             )}
                         </div>
