@@ -350,6 +350,7 @@ export default function Home() {
                   <div className="flex items-center px-4">
                     <Search className="w-4 h-4 text-black mr-2" />
                     <input 
+                      suppressHydrationWarning
                       type="text" 
                       placeholder="Filter by Role" 
                       className="bg-transparent border-none focus:ring-0 text-xs w-48 text-black placeholder-gray-500 font-extrabold"
@@ -366,6 +367,7 @@ export default function Home() {
                   <div className="flex items-center px-4 relative">
                     <MapPin className="w-4 h-4 text-black mr-2" />
                     <input 
+                      suppressHydrationWarning
                       type="text" 
                       placeholder="Location" 
                       className="bg-transparent border-none focus:ring-0 text-xs w-36 text-black placeholder-gray-500 font-extrabold"
@@ -418,6 +420,7 @@ export default function Home() {
                   </div>
               </div>
               <button 
+                suppressHydrationWarning
                 onClick={triggerScrape}
                 disabled={scraping}
                 className="h-12 bg-retro-red text-white px-8 rounded-xl text-[11px] font-black uppercase tracking-widest flex items-center border-3 border-black shadow-[3px_3px_0px_0px_rgba(0,0,0,1)] hover:translate-x-[1px] hover:translate-y-[1px] hover:shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] active:translate-x-[3px] active:translate-y-[3px] active:shadow-none transition-all disabled:opacity-50 disabled:translate-x-0 disabled:translate-y-0 disabled:shadow-[3px_3px_0px_0px_rgba(0,0,0,1)]"
@@ -444,6 +447,7 @@ export default function Home() {
                       </div>
                       {parsedData && (
                         <button 
+                          suppressHydrationWarning
                           onClick={handleDeleteProfile}
                           className="p-2 bg-white border-2 border-black rounded-lg text-black hover:bg-retro-red hover:text-white transition-all shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] hover:translate-x-[0.5px] hover:translate-y-[0.5px] hover:shadow-[1.5px_1.5px_0px_0px_rgba(0,0,0,1)] active:translate-x-[2px] active:translate-y-[2px] active:shadow-none"
                           title="Delete Stored Profile"
@@ -503,6 +507,7 @@ export default function Home() {
                     </div>
                     <div className="flex space-x-3">
                       <button 
+                        suppressHydrationWarning
                         onClick={() => setShowFilters(!showFilters)}
                         className={`px-4 py-2.5 rounded-xl border-3 border-black flex items-center space-x-2 transition-all font-black text-xs ${showFilters ? 'bg-retro-yellow text-black shadow-none translate-x-[2px] translate-y-[2px]' : 'bg-white text-black shadow-[3px_3px_0px_0px_rgba(0,0,0,1)] hover:translate-x-[1px] hover:translate-y-[1px] hover:shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] active:translate-x-[3px] active:translate-y-[3px] active:shadow-none'}`}
                       >
@@ -510,6 +515,7 @@ export default function Home() {
                         <span>Filter & Sort</span>
                       </button>
                       <button 
+                        suppressHydrationWarning
                         onClick={() => parsedData?.embedding && fetchMatches(parsedData.embedding, selectedWorkplaceTypes)}
                         className="p-3 bg-white border-3 border-black rounded-xl shadow-[3px_3px_0px_0px_rgba(0,0,0,1)] hover:translate-x-[1px] hover:translate-y-[1px] hover:shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] active:translate-x-[3px] active:translate-y-[3px] active:shadow-none transition-all"
                         title="Refresh Matches"
