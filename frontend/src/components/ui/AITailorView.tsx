@@ -347,7 +347,7 @@ const AITailorView = () => {
                             {generating ? (
                                 <div className="h-full flex flex-col items-center justify-center py-20 text-center">
                                     <Loader2 className="w-8 h-8 animate-spin text-retro-red mb-4" />
-                                    <p className="text-[10px] font-black uppercase tracking-widest text-black/60 animate-pulse">Running TinyLlama locally...</p>
+                                    <p className="text-[10px] font-black uppercase tracking-widest text-black/60 animate-pulse">Running Local AI...</p>
                                     <p className="text-[9px] font-bold text-black/40 mt-1 max-w-[250px]">Please stand by. Local generation is 100% free but takes a few seconds on CPU.</p>
                                 </div>
                             ) : result ? (

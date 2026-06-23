@@ -48,13 +48,13 @@ if (-Not (Test-Path "frontend/node_modules")) {
 }
 
 # 6. Pre-cache Local AI Models
-$TINYLLAMA_CACHE = "models/models--TinyLlama--TinyLlama-1.1B-Chat-v1.0"
+$LLAMA3_CACHE = "models/models--unsloth--Llama-3.2-3B-Instruct"
 $MINILM_CACHE = "models/models--sentence-transformers--all-MiniLM-L6-v2"
-if ((-Not (Test-Path $TINYLLAMA_CACHE)) -or (-Not (Test-Path $MINILM_CACHE))) {
+if ((-Not (Test-Path $LLAMA3_CACHE)) -or (-Not (Test-Path $MINILM_CACHE))) {
     Write-Host "[Setup] Cache folders for local models not found. Pre-downloading models..." -ForegroundColor Cyan
     & .\backend\venv\Scripts\python.exe scripts/download_models.py
 } else {
-    Write-Host "[OK] Local AI models (TinyLlama & MiniLM) are already cached locally." -ForegroundColor Green
+    Write-Host "[OK] Local AI models (Llama 3.2 & MiniLM) are already cached locally." -ForegroundColor Green
 }
 
 Write-Host "[DONE] Bootstrapping complete! Launching services..." -ForegroundColor Green
