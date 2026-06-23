@@ -11,6 +11,21 @@ Job Scout is a modern, privacy-focused, full-stack job discovery and application
 
 ---
 
+## 🎨 Visual Showcase
+
+| 🌟 Warm Cream Light Theme | 📋 Kanban Board Tracker |
+|:---:|:---:|
+| ![Light Theme](assets/light_mode.png) | ![Pipeline Tracker](assets/pipeline.png) |
+
+| 📂 Resume Vault | 👤 Neural Candidate Profile |
+|:---:|:---:|
+| ![Resume Vault](assets/vault.png) | ![Profile Details](assets/profile.png) |
+
+### 🎥 Theme Sync Demo (Light / Dark Mode Transition)
+<video src="assets/theme_c.mp4" width="100%" controls muted autoplay loop></video>
+
+---
+
 ## ✨ Key Features
 
 *   **🧠 Neural Matching (Semantic Search)**: Generates high-dimensional vector embeddings of your resume. Uses PostgreSQL's `pgvector` extension to rank and match jobs based on semantic relevance instead of rigid keyword matching.
