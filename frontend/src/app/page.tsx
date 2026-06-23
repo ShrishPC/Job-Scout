@@ -224,7 +224,7 @@ export default function Home() {
   };
 
   return (
-    <main className="h-screen bg-retro-cream text-retro-black flex overflow-hidden font-sans">
+    <main className="h-dvh bg-retro-cream text-retro-black flex overflow-hidden font-sans">
       {/* Sidebar Navigation */}
       <nav className="w-24 bg-retro-mint border-r-4 border-black flex flex-col items-center py-8 space-y-10 z-20 relative text-black overflow-y-auto overflow-x-hidden custom-scrollbar">
         <div 
@@ -285,7 +285,7 @@ export default function Home() {
       </nav>
 
       {/* Main Container */}
-      <div className="flex-1 flex flex-col h-screen overflow-hidden">
+      <div className="flex-1 flex flex-col h-dvh overflow-hidden">
         {/* Header */}
         <header className="h-24 bg-retro-cream border-b-4 border-black flex items-center justify-between px-10 flex-shrink-0 z-10">
           <div className="flex items-center space-x-3">
