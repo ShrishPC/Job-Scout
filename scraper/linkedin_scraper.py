@@ -12,18 +12,32 @@ async def get_job_links(keyword: str, location: str, limit: int = 10):
     safe_location = urllib.parse.quote(location)
     url = f"https://www.linkedin.com/jobs/search?keywords={safe_keyword}&location={safe_location}&f_TPR=r86400"
 
-    
     async with async_playwright() as p:
-        browser = await p.chromium.launch(headless=True)
+        browser = await p.chromium.launch(
+            headless=True,
+            args=["--disable-blink-features=AutomationControlled"]
+        )
         context = await browser.new_context(
-            user_agent="Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/122.0.0.0 Safari/537.36"
+            user_agent="Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/122.0.0.0 Safari/537.36",
+            viewport={"width": 1280, "height": 800},
+            locale="en-US",
+            timezone_id="America/New_York",
+            extra_http_headers={
+                "Accept-Language": "en-US,en;q=0.9",
+                "Referer": "https://www.google.com/"
+            }
         )
         page = await context.new_page()
         
         print(f"Searching for {keyword} in {location}...")
         try:
-            await page.goto(url, wait_until="networkidle", timeout=60000)
+            await page.goto(url, wait_until="domcontentloaded", timeout=20000)
             
+            # Wait for job cards to render
+            try:
+                await page.wait_for_selector(".base-card", timeout=8000)
+            except: pass
+
             # Load more jobs
             for _ in range(1):
                 await page.evaluate("window.scrollTo(0, document.body.scrollHeight)")
@@ -70,8 +84,13 @@ async def fetch_single_description(browser_context, job_info: dict):
     url = job_info['job_url']
     try:
         print(f"  -> Fetching: {job_info['title']} @ {job_info['company']}")
-        await page.goto(url, wait_until="networkidle", timeout=30000)
+        await page.goto(url, wait_until="domcontentloaded", timeout=20000)
         
+        # Wait for description or other details
+        try:
+            await page.wait_for_selector('.show-more-less-html__markup', timeout=5000)
+        except: pass
+
         # Public view sometimes has a "Show more" button
         try:
             show_more_button = await page.wait_for_selector('button.show-more-less-html__button--more', timeout=2000)
@@ -81,7 +100,24 @@ async def fetch_single_description(browser_context, job_info: dict):
 
         content = await page.content()
         soup = BeautifulSoup(content, 'html.parser')
-        desc_div = soup.find('div', class_='show-more-less-html__markup')
+        
+        desc_div = None
+        selectors = [
+            '.show-more-less-html__markup',
+            '.description__text',
+            '.job-description',
+            '.jobs-description-content__text',
+            '.jobs-box__html-content',
+            '[data-job-description]'
+        ]
+        for sel in selectors:
+            desc_div = soup.select_one(sel)
+            if desc_div:
+                break
+                
+        if not desc_div:
+            desc_div = soup.find('div', class_='show-more-less-html__markup')
+            
         job_info['description'] = desc_div.get_text(separator='\n').strip() if desc_div else ""
     except Exception as e:
         print(f"    Error on {url}: {e}")
@@ -97,9 +133,19 @@ async def enrich_jobs_with_descriptions(jobs_list: list):
     if not jobs_list: return []
     
     async with async_playwright() as p:
-        browser = await p.chromium.launch(headless=True)
+        browser = await p.chromium.launch(
+            headless=True,
+            args=["--disable-blink-features=AutomationControlled"]
+        )
         context = await browser.new_context(
-            user_agent="Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/122.0.0.0 Safari/537.36"
+            user_agent="Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/122.0.0.0 Safari/537.36",
+            viewport={"width": 1280, "height": 800},
+            locale="en-US",
+            timezone_id="America/New_York",
+            extra_http_headers={
+                "Accept-Language": "en-US,en;q=0.9",
+                "Referer": "https://www.google.com/"
+            }
         )
         
         # Parallel fetch with a concurrency limit
@@ -118,3 +164,4 @@ if __name__ == "__main__":
     links = asyncio.run(get_job_links("Data Analyst", "India", limit=3))
     results = asyncio.run(enrich_jobs_with_descriptions(links))
     print(json.dumps(results, indent=2))
+
