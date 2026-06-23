@@ -88,7 +88,8 @@ def get_board(db: Session = Depends(get_db)):
                 "location": job.location,
                 "status": status,
                 "job_url": job.job_url,
-                "date_posted": job.date_posted or "Recent"
+                "date_posted": job.date_posted or "Recent",
+                "description": job.description or ""
             })
         return board
     except Exception as e:

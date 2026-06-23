@@ -10,6 +10,7 @@ interface BoardJob {
     company: string;
     location: string;
     status: string;
+    description?: string;
 }
 
 interface ActiveResume {
@@ -47,8 +48,8 @@ const AITailorView = () => {
         try {
             // Fetch Board Jobs
             const jobsRes = await axios.get(`${apiHost}/jobs/board`);
-            // filter out rejected/archived jobs
-            const activeJobs = jobsRes.data.filter((j: BoardJob) => j.status !== 'rejected');
+            // filter out rejected/archived jobs and jobs with empty descriptions
+            const activeJobs = jobsRes.data.filter((j: BoardJob) => j.status !== 'rejected' && j.description && j.description.trim() !== '');
             setJobs(activeJobs);
             if (activeJobs.length > 0) {
                 setSelectedJobId(activeJobs[0].id.toString());
