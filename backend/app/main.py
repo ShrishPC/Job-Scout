@@ -1,7 +1,15 @@
 from fastapi import FastAPI, UploadFile, File, HTTPException, BackgroundTasks, Depends
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.responses import StreamingResponse
 from app.services.resume_service import parse_resume_to_markdown
-from app.services.llm_service import parse_markdown_with_llm, generate_embedding, generate_tailored_resume_service, generate_cover_letter_service
+from app.services.llm_service import (
+    parse_markdown_with_llm, 
+    generate_embedding, 
+    generate_tailored_resume_service, 
+    generate_cover_letter_service,
+    generate_tailored_resume_stream,
+    generate_cover_letter_stream
+)
 from app.services.matching_service import get_job_matches
 from app.core.database import get_db
 from sqlalchemy.orm import Session
@@ -374,7 +382,7 @@ class AIGenerateRequest(BaseModel):
 @app.post("/ai/generate")
 def generate_ai(request: AIGenerateRequest, db: Session = Depends(get_db)):
     """
-    Generates a tailored resume recommendation or a custom cover letter locally using Llama-3.2-3B with caching.
+    Generates a tailored resume recommendation or a custom cover letter locally using Llama-3.2-3B with caching and streaming.
     """
     try:
         # 1. Fetch Resume
@@ -414,38 +422,39 @@ def generate_ai(request: AIGenerateRequest, db: Session = Depends(get_db)):
         cache_entry = db.query(AIGenerationCache).filter(AIGenerationCache.cache_key == cache_key).first()
         if cache_entry:
             print(f"Cache hit for key {cache_key}!")
-            return {
-                "mode": request.mode,
-                "job_title": job_title,
-                "company": company,
-                "result": cache_entry.response_text,
-                "cached": True
-            }
+            def stream_cached():
+                yield cache_entry.response_text
+            return StreamingResponse(stream_cached(), media_type="text/plain")
             
-        # 3. Generate if not cached
-        if request.mode == "tailor":
-            result = generate_tailored_resume_service(resume_text, job_title, job_desc, db=db)
-        elif request.mode == "cover_letter":
-            result = generate_cover_letter_service(resume_text, job_title, company, job_desc, db=db)
-        else:
-            raise HTTPException(status_code=400, detail="Invalid generation mode. Choose 'tailor' or 'cover_letter'.")
+        # Define generator for streaming and caching
+        def event_generator():
+            accumulated_response = []
             
-        # Store in Cache
-        try:
-            new_cache = AIGenerationCache(cache_key=cache_key, response_text=result)
-            db.add(new_cache)
-            db.commit()
-        except Exception as cache_err:
-            db.rollback()
-            print(f"Failed to cache generation: {cache_err}")
+            if request.mode == "tailor":
+                stream = generate_tailored_resume_stream(resume_text, job_title, job_desc, db=db)
+            elif request.mode == "cover_letter":
+                stream = generate_cover_letter_stream(resume_text, job_title, company, job_desc, db=db)
+            else:
+                raise HTTPException(status_code=400, detail="Invalid generation mode. Choose 'tailor' or 'cover_letter'.")
+                
+            for chunk in stream:
+                accumulated_response.append(chunk)
+                yield chunk
+                
+            full_response = "".join(accumulated_response).strip()
             
-        return {
-            "mode": request.mode,
-            "job_title": job_title,
-            "company": company,
-            "result": result,
-            "cached": False
-        }
+            # Store in Cache
+            if full_response:
+                try:
+                    new_cache = AIGenerationCache(cache_key=cache_key, response_text=full_response)
+                    db.add(new_cache)
+                    db.commit()
+                except Exception as cache_err:
+                    db.rollback()
+                    print(f"Failed to cache generation inside stream: {cache_err}")
+                    
+        return StreamingResponse(event_generator(), media_type="text/plain")
+        
     except HTTPException as he:
         raise he
     except Exception as e:

@@ -2,9 +2,10 @@ import os
 import json
 import re
 import torch
+from threading import Thread
+from transformers import pipeline, TextIteratorStreamer
 from app.services.llm_fallback import extract_structured_data_fallback, generate_embedding_fallback
 from sentence_transformers import SentenceTransformer
-from transformers import pipeline
 
 # Optimized Local Model Storage (Ensures portability across machines)
 PROJECT_ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "..", ".."))
@@ -435,5 +436,93 @@ def generate_cover_letter_service(resume_text: str, job_title: str, company: str
         print(f"Local LLM Error during cover letter generation: {e}")
         return "Could not generate cover letter with the local AI."
 
+def generate_tailored_resume_stream(resume_text: str, job_title: str, job_desc: str, db: Session = None):
+    """
+    Generates a tailored Professional Summary and suggested resume edits using local LLM and RAG as a stream.
+    """
+    truncated_resume = resume_text[:2000] if resume_text else ""
+    truncated_job = job_desc[:1500] if job_desc else ""
+    
+    rag_context = retrieve_rag_context(resume_text, job_desc, db=db)
+    
+    system_prompt = (
+        f"You are an expert resume coach and recruiter. Analyze the candidate's resume and the job description for the {job_title} role.\n"
+        f"Use the retrieved relevant candidate history and reference jobs (RAG context) below to make the output highly accurate and keyword-optimized:\n"
+        f"{rag_context}\n\n"
+        f"CRITICAL: Do NOT invent, assume, or hallucinate any facts, metrics, projects, dates, or credentials. Use ONLY the candidate's actual history from the provided resume text.\n\n"
+        f"Tasks to perform:\n"
+        f"1. Write a tailored 'Professional Summary' (2-3 sentences) from the candidate's perspective ('I'). Begin directly with impact and core credentials, aligning with the job description keywords. Avoid clichés like 'Highly motivated professional'.\n"
+        f"2. Suggest exactly 3 bullet points for experience. Each bullet point MUST showcase measurable results or metrics based on the candidate's history, align with required job skills, and use strong action verbs (e.g. Optimized, Automated, Spearheaded).\n"
+        f"Respond ONLY with: 1) the summary, and 2) the bullet point suggestions. Do not add intro/outro remarks or conversational filler."
+    )
+    user_prompt = f"Candidate Resume:\n{truncated_resume}\n\nJob Description:\n{truncated_job}"
+    prompt = format_prompt(system_prompt, user_prompt)
+    
+    try:
+        llm = get_local_llm()
+        tokenizer = llm.tokenizer
+        streamer = TextIteratorStreamer(tokenizer, skip_prompt=True, clean_up_tokenization_spaces=False)
+        
+        generation_kwargs = dict(
+            max_new_tokens=200,
+            streamer=streamer,
+            repetition_penalty=1.2,
+            do_sample=False
+        )
+        thread = Thread(target=llm, args=(prompt,), kwargs=generation_kwargs)
+        thread.start()
+        
+        for chunk in streamer:
+            yield chunk
+        thread.join()
+    except Exception as e:
+        print(f"Local LLM streaming error during resume tailoring: {e}")
+        yield "Could not generate resume tailoring recommendations with the local AI."
 
-
+def generate_cover_letter_stream(resume_text: str, job_title: str, company: str, job_desc: str, db: Session = None):
+    """
+    Generates a cover letter tailored to a job description using the local LLM and RAG as a stream.
+    """
+    truncated_resume = resume_text[:2000] if resume_text else ""
+    truncated_job = job_desc[:1500] if job_desc else ""
+    
+    rag_context = retrieve_rag_context(resume_text, job_desc, db=db)
+    
+    system_prompt = (
+        f"You are a professional resume writer. Write a custom, impact-driven cover letter from the candidate's perspective ('I') to the hiring manager for the role of {job_title} at {company}.\n"
+        f"Use the retrieved relevant candidate history and reference jobs (RAG context) below to connect the candidate's achievements directly to the job needs:\n"
+        f"{rag_context}\n\n"
+        f"CRITICAL: Do NOT invent, assume, or hallucinate any facts, metrics, projects, dates, or credentials. Use ONLY the candidate's actual history from the provided resume text.\n\n"
+        f"Instructions:\n"
+        f"- Do NOT use clichés like 'I am writing to express my interest.' Hook the reader immediately with an accomplishment or core value proposition.\n"
+        f"- Highlight matching specific skills and projects from the candidate's history that align with the role requirements.\n"
+        f"- Keep the length under 180 words.\n"
+        f"Format:\n"
+        f"Dear Hiring Manager,\n\n"
+        f"[Body Paragraphs]\n\n"
+        f"Best regards,\n"
+        f"[Candidate Name]"
+    )
+    user_prompt = f"Candidate Resume:\n{truncated_resume}\n\nJob Description:\n{truncated_job}"
+    prompt = format_prompt(system_prompt, user_prompt)
+    
+    try:
+        llm = get_local_llm()
+        tokenizer = llm.tokenizer
+        streamer = TextIteratorStreamer(tokenizer, skip_prompt=True, clean_up_tokenization_spaces=False)
+        
+        generation_kwargs = dict(
+            max_new_tokens=180,
+            streamer=streamer,
+            repetition_penalty=1.2,
+            do_sample=False
+        )
+        thread = Thread(target=llm, args=(prompt,), kwargs=generation_kwargs)
+        thread.start()
+        
+        for chunk in streamer:
+            yield chunk
+        thread.join()
+    except Exception as e:
+        print(f"Local LLM streaming error during cover letter generation: {e}")
+        yield "Could not generate cover letter with the local AI."

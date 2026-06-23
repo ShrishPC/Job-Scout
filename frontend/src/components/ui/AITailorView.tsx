@@ -103,11 +103,40 @@ const AITailorView = () => {
         }
 
         try {
-            const response = await axios.post(`${apiHost}/ai/generate`, payload);
-            setResult(response.data.result);
+            const response = await fetch(`${apiHost}/ai/generate`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify(payload)
+            });
+
+            if (!response.ok) {
+                const errData = await response.json().catch(() => ({ detail: "Unknown error occurred" }));
+                throw new Error(errData.detail || `Response error status: ${response.status}`);
+            }
+
+            const reader = response.body?.getReader();
+            if (!reader) {
+                throw new Error("Failed to initialize response reader.");
+            }
+
+            const decoder = new TextDecoder();
+            let done = false;
+            let accumulated = '';
+
+            while (!done) {
+                const { value, done: doneReading } = await reader.read();
+                done = doneReading;
+                if (value) {
+                    const chunk = decoder.decode(value, { stream: !done });
+                    accumulated += chunk;
+                    setResult(accumulated);
+                }
+            }
         } catch (err: any) {
             console.error("Failed to generate AI assets:", err);
-            setError(err.response?.data?.detail || "Local AI Generation failed. Ensure you have an active resume uploaded in the Vault.");
+            setError(err.message || "Local AI Generation failed. Ensure you have an active resume uploaded in the Vault.");
         } finally {
             setGenerating(false);
         }
