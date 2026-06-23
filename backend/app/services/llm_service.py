@@ -13,42 +13,68 @@ os.makedirs(MODEL_CACHE, exist_ok=True)
 EMBEDDING_MODEL_NAME = os.getenv("EMBEDDING_MODEL_NAME", "all-MiniLM-L6-v2")
 PARSER_LLM_MODEL_NAME = os.getenv("PARSER_LLM_MODEL_NAME", "TinyLlama/TinyLlama-1.1B-Chat-v1.0")
 
-# 1. Local Embeddings (Fast, small, offline)
-try:
-    print(f"Initializing Embedding Model ({EMBEDDING_MODEL_NAME}) from {MODEL_CACHE}...")
-    embedding_model = SentenceTransformer(EMBEDDING_MODEL_NAME, cache_folder=MODEL_CACHE)
-except Exception as e:
-    print(f"Failed to load sentence-transformers model {EMBEDDING_MODEL_NAME}: {e}")
-    try:
-        print("Attempting fallback initialization with all-MiniLM-L6-v2...")
-        embedding_model = SentenceTransformer('all-MiniLM-L6-v2', cache_folder=MODEL_CACHE)
-    except Exception as fallback_err:
-        print(f"Fallback model failed: {fallback_err}")
-        embedding_model = None
+# 1. Local Embeddings & Hardware Device Tracking
+AI_DEVICE = "cpu"
+CURRENT_DEVICE = "cpu"
+embedding_model = None
 
-# 2. Local LLM (For Parsing)
+def load_embedding_model(device="cpu"):
+    global embedding_model, CURRENT_DEVICE
+    try:
+        print(f"Initializing Embedding Model ({EMBEDDING_MODEL_NAME}) on {device} from {MODEL_CACHE}...")
+        embedding_model = SentenceTransformer(EMBEDDING_MODEL_NAME, cache_folder=MODEL_CACHE, device=device)
+        CURRENT_DEVICE = device
+    except Exception as e:
+        print(f"Failed to load sentence-transformers model {EMBEDDING_MODEL_NAME} on {device}: {e}")
+        try:
+            print(f"Attempting fallback initialization with all-MiniLM-L6-v2 on {device}...")
+            embedding_model = SentenceTransformer('all-MiniLM-L6-v2', cache_folder=MODEL_CACHE, device=device)
+            CURRENT_DEVICE = device
+        except Exception as fallback_err:
+            print(f"Fallback model failed: {fallback_err}")
+            embedding_model = None
+
+# Initialize on startup
+load_embedding_model("cpu")
+
+# 2. Local LLM (For Parsing & Generation)
 local_llm = None
-def get_local_llm():
-    global local_llm
-    if local_llm is None:
-        print(f"Loading Local AI Model ({PARSER_LLM_MODEL_NAME}) from {MODEL_CACHE}...")
+LLM_DEVICE = "cpu"
+
+def get_local_llm(device=None):
+    global local_llm, LLM_DEVICE, AI_DEVICE
+    if device is None:
+        device = AI_DEVICE
+        
+    if local_llm is None or LLM_DEVICE != device:
+        print(f"Loading Local AI Model ({PARSER_LLM_MODEL_NAME}) on {device} from {MODEL_CACHE}...")
         try:
             local_llm = pipeline(
                 "text-generation", 
                 model=PARSER_LLM_MODEL_NAME, 
-                device="cpu",
+                device=0 if device == "cuda" else -1,
                 model_kwargs={"cache_dir": MODEL_CACHE}
             )
+            LLM_DEVICE = device
         except Exception as e:
-            print(f"Failed to load {PARSER_LLM_MODEL_NAME}: {e}")
-            print("Attempting fallback to TinyLlama/TinyLlama-1.1B-Chat-v1.0...")
+            print(f"Failed to load {PARSER_LLM_MODEL_NAME} on {device}: {e}")
+            print(f"Attempting fallback to TinyLlama/TinyLlama-1.1B-Chat-v1.0 on {device}...")
             local_llm = pipeline(
                 "text-generation", 
                 model="TinyLlama/TinyLlama-1.1B-Chat-v1.0", 
-                device="cpu",
+                device=0 if device == "cuda" else -1,
                 model_kwargs={"cache_dir": MODEL_CACHE}
             )
+            LLM_DEVICE = device
     return local_llm
+
+def set_ai_device(device: str):
+    global AI_DEVICE
+    if device not in ["cpu", "cuda"]:
+        raise ValueError("Device must be 'cpu' or 'cuda'")
+    AI_DEVICE = device
+    load_embedding_model(device)
+
 
 def format_prompt(system_prompt: str, user_prompt: str) -> str:
     model_lower = PARSER_LLM_MODEL_NAME.lower()
@@ -143,5 +169,44 @@ def extract_experience_from_job(description: str, **kwargs):
     except Exception as e:
         print(f"Local LLM Error during experience extraction: {e}")
         return 0
+
+def generate_tailored_resume_service(resume_text: str, job_title: str, job_desc: str) -> str:
+    """
+    Generates a tailored Professional Summary and suggested resume edits using the local LLM.
+    """
+    truncated_resume = resume_text[:2000] if resume_text else ""
+    truncated_job = job_desc[:1500] if job_desc else ""
+    
+    system_prompt = f"You are an expert career consultant. Analyze the resume and the job description for a {job_title} role. Generate: 1) A tailored 'Professional Summary' (2-3 sentences) optimized for this job. 2) A list of specific skill adjustments or resume bullet points to emphasize. Respond ONLY with the tailored summary and suggestions. Do not add intro/outro remarks or conversational filler."
+    user_prompt = f"Candidate Resume:\n{truncated_resume}\n\nJob Description:\n{truncated_job}"
+    prompt = format_prompt(system_prompt, user_prompt)
+    
+    try:
+        llm = get_local_llm()
+        res = llm(prompt, max_new_tokens=400, return_full_text=False)
+        return res[0]['generated_text'].strip()
+    except Exception as e:
+        print(f"Local LLM Error during resume tailoring: {e}")
+        return "Could not generate resume tailoring recommendations with the local AI."
+
+def generate_cover_letter_service(resume_text: str, job_title: str, company: str, job_desc: str) -> str:
+    """
+    Generates a cover letter tailored to a job description using the local LLM.
+    """
+    truncated_resume = resume_text[:2000] if resume_text else ""
+    truncated_job = job_desc[:1500] if job_desc else ""
+    
+    system_prompt = f"You are an expert career consultant. Write a professional, personalized cover letter for the role of {job_title} at {company} based on the candidate's resume. Keep it concise (around 150-200 words), highlighting matching skills. Output ONLY the cover letter text, no explanations, no introduction/outro conversational filler."
+    user_prompt = f"Candidate Resume:\n{truncated_resume}\n\nJob Description:\n{truncated_job}"
+    prompt = format_prompt(system_prompt, user_prompt)
+    
+    try:
+        llm = get_local_llm()
+        res = llm(prompt, max_new_tokens=400, return_full_text=False)
+        return res[0]['generated_text'].strip()
+    except Exception as e:
+        print(f"Local LLM Error during cover letter generation: {e}")
+        return "Could not generate cover letter with the local AI."
+
 
 

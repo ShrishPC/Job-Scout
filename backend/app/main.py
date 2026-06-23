@@ -1,7 +1,7 @@
 from fastapi import FastAPI, UploadFile, File, HTTPException, BackgroundTasks, Depends
 from fastapi.middleware.cors import CORSMiddleware
 from app.services.resume_service import parse_resume_to_markdown
-from app.services.llm_service import parse_markdown_with_llm, generate_embedding
+from app.services.llm_service import parse_markdown_with_llm, generate_embedding, generate_tailored_resume_service, generate_cover_letter_service
 from app.services.matching_service import get_job_matches
 from app.core.database import get_db
 from sqlalchemy.orm import Session
@@ -360,6 +360,92 @@ def reset_resume(db: Session = Depends(get_db)):
         return {"status": "success", "message": "Profile data cleared."}
     except Exception as e:
         db.rollback()
+        raise HTTPException(status_code=500, detail=str(e))
+
+class AIGenerateRequest(BaseModel):
+    job_id: int | None = None
+    custom_job_description: str | None = None
+    custom_job_title: str | None = None
+    custom_company: str | None = None
+    resume_id: int | None = None
+    mode: str  # 'tailor' or 'cover_letter'
+
+@app.post("/ai/generate")
+def generate_ai(request: AIGenerateRequest, db: Session = Depends(get_db)):
+    """
+    Generates a tailored resume recommendation or a custom cover letter locally using TinyLlama.
+    """
+    try:
+        # 1. Fetch Resume
+        if request.resume_id:
+            resume = db.query(Resume).filter(Resume.id == request.resume_id).first()
+        else:
+            resume = db.query(Resume).filter(Resume.is_active == True).first()
+            
+        if not resume:
+            raise HTTPException(status_code=404, detail="No resume found. Please upload one first.")
+            
+        resume_text = resume.resume_markdown or ""
+        if not resume_text:
+            raise HTTPException(status_code=400, detail="Resume content is empty.")
+            
+        # 2. Fetch Job Details
+        job_title = request.custom_job_title or "Target Role"
+        company = request.custom_company or "Target Company"
+        job_desc = request.custom_job_description or ""
+        
+        if request.job_id:
+            job = db.query(Job).filter(Job.id == request.job_id).first()
+            if job:
+                job_title = job.title
+                company = job.company
+                job_desc = job.description or ""
+                
+        if not job_desc.strip():
+            raise HTTPException(status_code=400, detail="Job description is required for generation.")
+            
+        # 3. Generate
+        if request.mode == "tailor":
+            result = generate_tailored_resume_service(resume_text, job_title, job_desc)
+        elif request.mode == "cover_letter":
+            result = generate_cover_letter_service(resume_text, job_title, company, job_desc)
+        else:
+            raise HTTPException(status_code=400, detail="Invalid generation mode. Choose 'tailor' or 'cover_letter'.")
+            
+        return {
+            "mode": request.mode,
+            "job_title": job_title,
+            "company": company,
+            "result": result
+        }
+    except HTTPException as he:
+        raise he
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+class AIConfigRequest(BaseModel):
+    device: str  # 'cpu' or 'cuda'
+
+@app.get("/ai/config")
+def get_ai_config():
+    """
+    Returns the current AI hardware execution device.
+    """
+    from app.services.llm_service import AI_DEVICE
+    return {"device": AI_DEVICE}
+
+@app.post("/ai/config")
+def update_ai_config(request: AIConfigRequest):
+    """
+    Dynamically switches AI execution backend between CPU and CUDA (GPU).
+    """
+    from app.services.llm_service import set_ai_device
+    try:
+        set_ai_device(request.device)
+        return {"status": "success", "device": request.device}
+    except ValueError as ve:
+        raise HTTPException(status_code=400, detail=str(ve))
+    except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 
 if __name__ == "__main__":
