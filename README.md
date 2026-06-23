@@ -221,6 +221,21 @@ CORS_ALLOWED_ORIGINS=http://localhost:3000,http://127.0.0.1:3000
 
 ---
 
+## 👤 About
+
+Job Scout was built to solve a real problem: the modern job hunt is noisy, repetitive, and privacy-invasive. Most AI job tools send your resume to third-party APIs (OpenAI, Anthropic) and lock insights behind paywalls.
+
+This project takes a different approach:
+
+- **Everything runs locally.** Your resume, your embeddings, your generated cover letters — all processed on your own CPU or GPU. Nothing leaves your machine.
+- **AI that actually knows you.** The RAG pipeline reads your active resume semantically, finds the most relevant parts of your experience for each job, and injects them into the LLM prompt — so the output sounds like *you*, not a generic template.
+- **Built for real job hunters.** From a Kanban board to track applications, to a Market Radar that maps your skills against live postings, to a one-command boot script that sets everything up — Job Scout is designed to be used daily, not just demoed.
+- **Open and extensible.** The model, embedding dimensions, scraper targets, and hardware device (CPU/GPU) are all configurable via environment variables and the in-app Config panel.
+
+> Built with Next.js 15, FastAPI, PostgreSQL + pgvector, Celery, Playwright, and Llama-3.2-3B-Instruct.
+
+---
+
 ## 📄 License
 
 This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
