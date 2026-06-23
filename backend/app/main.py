@@ -373,7 +373,7 @@ class AIGenerateRequest(BaseModel):
 @app.post("/ai/generate")
 def generate_ai(request: AIGenerateRequest, db: Session = Depends(get_db)):
     """
-    Generates a tailored resume recommendation or a custom cover letter locally using TinyLlama with caching.
+    Generates a tailored resume recommendation or a custom cover letter locally using Llama-3.2-3B with caching.
     """
     try:
         # 1. Fetch Resume
