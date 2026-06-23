@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
-import { Sparkles, Loader2, Copy, FileText, Download, Check, AlertCircle, RefreshCw, Briefcase, Plus, User, Laptop } from 'lucide-react';
+import { Sparkles, Loader2, Copy, FileText, Download, Check, AlertCircle, RefreshCw, Briefcase, Plus, User, Laptop, ChevronDown, ChevronUp, Search, Building } from 'lucide-react';
 
 interface BoardJob {
     id: number;
@@ -34,6 +34,22 @@ const AITailorView = () => {
     const [customDesc, setCustomDesc] = useState('');
     const [mode, setMode] = useState<'tailor' | 'cover_letter'>('tailor');
     
+    const [dropdownOpen, setDropdownOpen] = useState(false);
+    const [searchQuery, setSearchQuery] = useState('');
+    const dropdownRef = React.useRef<HTMLDivElement>(null);
+
+    useEffect(() => {
+        const handleClickOutside = (event: MouseEvent) => {
+            if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
+                setDropdownOpen(false);
+            }
+        };
+        document.addEventListener("mousedown", handleClickOutside);
+        return () => {
+            document.removeEventListener("mousedown", handleClickOutside);
+        };
+    }, []);
+    
     // Output states
     const [generating, setGenerating] = useState(false);
     const [result, setResult] = useState<string>('');
@@ -48,8 +64,8 @@ const AITailorView = () => {
         try {
             // Fetch Board Jobs
             const jobsRes = await axios.get(`${apiHost}/jobs/board`);
-            // filter out rejected/archived jobs and jobs with empty descriptions
-            const activeJobs = jobsRes.data.filter((j: BoardJob) => j.status !== 'rejected' && j.description && j.description.trim() !== '');
+            // filter out only rejected/archived jobs
+            const activeJobs = jobsRes.data.filter((j: BoardJob) => j.status !== 'rejected');
             setJobs(activeJobs);
             if (activeJobs.length > 0) {
                 setSelectedJobId(activeJobs[0].id.toString());
@@ -96,6 +112,12 @@ const AITailorView = () => {
         } else {
             if (!selectedJobId) {
                 setError("Please select a job from the list or check 'Use Custom Job'.");
+                setGenerating(false);
+                return;
+            }
+            const selectedJob = jobs.find(j => j.id.toString() === selectedJobId);
+            if (!selectedJob || !selectedJob.description || !selectedJob.description.trim()) {
+                setError("The selected job does not have a description in the database. Please click the checkbox above to enter the job details manually, or add a description in the Kanban board.");
                 setGenerating(false);
                 return;
             }
@@ -160,6 +182,12 @@ const AITailorView = () => {
         element.click();
         document.body.removeChild(element);
     };
+
+    const selectedJob = jobs.find(j => j.id.toString() === selectedJobId);
+    const filteredJobs = jobs.filter(job => 
+        job.title.toLowerCase().includes(searchQuery.toLowerCase()) || 
+        job.company.toLowerCase().includes(searchQuery.toLowerCase())
+    );
 
     return (
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 min-h-[calc(100vh-12rem)] bg-retro-cream p-1">
@@ -253,17 +281,94 @@ const AITailorView = () => {
                                         <span>Loading pipeline...</span>
                                     </div>
                                 ) : jobs.length > 0 ? (
-                                    <select
-                                        value={selectedJobId}
-                                        onChange={(e) => setSelectedJobId(e.target.value)}
-                                        className="w-full bg-white border-2 border-black rounded-lg p-3 text-xs font-bold text-black shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] focus:outline-none"
-                                    >
-                                        {jobs.map((job) => (
-                                            <option key={job.id} value={job.id}>
-                                                {job.title} @ {job.company}
-                                            </option>
-                                        ))}
-                                    </select>
+                                    <>
+                                        {/* Custom Search Dropdown */}
+                                        <div className="relative" ref={dropdownRef}>
+                                            {/* Toggle Button */}
+                                            <button
+                                                type="button"
+                                                onClick={() => setDropdownOpen(!dropdownOpen)}
+                                                className="w-full flex items-center justify-between bg-white border-2 border-black rounded-lg p-3 text-xs font-bold text-black shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] hover:translate-x-[0.5px] hover:translate-y-[0.5px] hover:shadow-[1.5px_1.5px_0px_0px_rgba(0,0,0,1)] active:translate-x-[2px] active:translate-y-[2px] active:shadow-none transition-all cursor-pointer focus:outline-none"
+                                            >
+                                                <span className="flex items-center space-x-2 truncate">
+                                                    <Briefcase className="w-4 h-4 text-black shrink-0" />
+                                                    <span className="truncate">
+                                                        {selectedJob ? `${selectedJob.title} @ ${selectedJob.company}` : 'Select a tracked job...'}
+                                                    </span>
+                                                </span>
+                                                {dropdownOpen ? <ChevronUp className="w-4 h-4 text-black shrink-0 ml-2" /> : <ChevronDown className="w-4 h-4 text-black shrink-0 ml-2" />}
+                                            </button>
+
+                                            {/* Dropdown Options */}
+                                            {dropdownOpen && (
+                                                <div className="absolute z-50 left-0 right-0 mt-2 bg-retro-cream border-2 border-black rounded-lg shadow-[3px_3px_0px_0px_rgba(0,0,0,1)] overflow-hidden flex flex-col max-h-72">
+                                                    {/* Search Input */}
+                                                    <div className="p-2 border-b-2 border-black bg-white flex items-center space-x-2">
+                                                        <Search className="w-3.5 h-3.5 text-black/50 shrink-0" />
+                                                        <input
+                                                            type="text"
+                                                            value={searchQuery}
+                                                            onChange={(e) => setSearchQuery(e.target.value)}
+                                                            placeholder="Search tracked jobs..."
+                                                            className="w-full bg-transparent text-xs font-bold text-black focus:outline-none"
+                                                            onClick={(e) => e.stopPropagation()}
+                                                        />
+                                                    </div>
+                                                    
+                                                    {/* Options List */}
+                                                    <div className="overflow-y-auto custom-scrollbar bg-white divide-y divide-black/10">
+                                                        {filteredJobs.length > 0 ? (
+                                                            filteredJobs.map((job) => {
+                                                                const isSelected = job.id.toString() === selectedJobId;
+                                                                const hasNoDesc = !job.description || !job.description.trim();
+                                                                return (
+                                                                    <button
+                                                                        key={job.id}
+                                                                        type="button"
+                                                                        onClick={() => {
+                                                                            setSelectedJobId(job.id.toString());
+                                                                            setDropdownOpen(false);
+                                                                        }}
+                                                                        className={`w-full flex items-center justify-between px-3 py-2.5 text-xs font-bold text-left cursor-pointer transition-colors focus:outline-none
+                                                                            ${isSelected ? 'bg-retro-yellow text-black' : 'text-black hover:bg-retro-sand/20'}
+                                                                        `}
+                                                                    >
+                                                                        <span className="flex flex-col truncate pr-2">
+                                                                            <span className="truncate font-black">{job.title}</span>
+                                                                            <span className="truncate text-[10px] text-black/60 font-bold flex items-center">
+                                                                                <Building className="w-3.5 h-3.5 mr-1 opacity-70" />
+                                                                                {job.company}
+                                                                            </span>
+                                                                        </span>
+                                                                        {hasNoDesc && (
+                                                                            <span className="bg-retro-pink/40 text-retro-red border border-retro-red text-[8px] font-black uppercase tracking-wider px-1.5 py-0.5 rounded shrink-0 flex items-center">
+                                                                                <AlertCircle className="w-2.5 h-2.5 mr-0.5" />
+                                                                                No Desc
+                                                                            </span>
+                                                                        )}
+                                                                    </button>
+                                                                );
+                                                            })
+                                                        ) : (
+                                                            <div className="p-3 text-xs font-bold text-black/50 text-center italic bg-white">
+                                                                No matching jobs found
+                                                            </div>
+                                                        )}
+                                                    </div>
+                                                </div>
+                                            )}
+                                        </div>
+
+                                        {/* Warning if selected job has no description */}
+                                        {selectedJob && (!selectedJob.description || !selectedJob.description.trim()) && (
+                                            <div className="mt-2 bg-retro-pink/20 border-2 border-retro-red p-3 rounded-lg flex items-start space-x-2.5 shadow-[1.5px_1.5px_0px_0px_rgba(0,0,0,1)]">
+                                                <AlertCircle className="w-4 h-4 text-retro-red shrink-0 mt-0.5" />
+                                                <p className="text-[10px] font-bold text-black leading-tight">
+                                                    <strong>No Description Saved:</strong> This job listing has no description in the database. Please click the checkbox above to enter the job details manually, or add a description on the Kanban board.
+                                                </p>
+                                            </div>
+                                        )}
+                                    </>
                                 ) : (
                                     <p className="text-xs font-bold text-retro-red italic bg-retro-pink/10 p-3 border-2 border-retro-pink border-dashed rounded-lg">
                                         No jobs tracked yet. Switch to custom inputs or add jobs to Kanban.
