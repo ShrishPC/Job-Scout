@@ -237,9 +237,9 @@ def extract_experience_heuristics(text: str) -> int | None:
                 continue
     return None
 
-def extract_experience_from_job(description: str, **kwargs):
+def extract_experience_from_job(description: str, use_llm: bool = False, **kwargs):
     """
-    Uses rule-based heuristics first for speed, falling back to local LLM only if needed.
+    Uses rule-based heuristics first for speed, falling back to local LLM only if explicitly requested.
     """
     if not description:
         return 0
@@ -247,6 +247,9 @@ def extract_experience_from_job(description: str, **kwargs):
     heuristic_val = extract_experience_heuristics(description)
     if heuristic_val is not None:
         return heuristic_val
+        
+    if not use_llm:
+        return 0
         
     truncated_desc = description[:2000]
     
