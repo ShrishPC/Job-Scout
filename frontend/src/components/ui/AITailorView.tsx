@@ -290,18 +290,15 @@ const AITailorView = () => {
                                                 onClick={() => setDropdownOpen(!dropdownOpen)}
                                                 className="w-full flex items-center justify-between bg-white border-2 border-black rounded-lg p-3 text-xs font-bold text-black shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] hover:translate-x-[0.5px] hover:translate-y-[0.5px] hover:shadow-[1.5px_1.5px_0px_0px_rgba(0,0,0,1)] active:translate-x-[2px] active:translate-y-[2px] active:shadow-none transition-all cursor-pointer focus:outline-none"
                                             >
-                                                <span className="flex items-center space-x-2 truncate">
-                                                    <Briefcase className="w-4 h-4 text-black shrink-0" />
-                                                    <span className="truncate">
-                                                        {selectedJob ? `${selectedJob.title} @ ${selectedJob.company}` : 'Select a tracked job...'}
-                                                    </span>
+                                                <span className="truncate">
+                                                    {selectedJob ? `${selectedJob.title} @ ${selectedJob.company}` : 'Select a tracked job...'}
                                                 </span>
                                                 {dropdownOpen ? <ChevronUp className="w-4 h-4 text-black shrink-0 ml-2" /> : <ChevronDown className="w-4 h-4 text-black shrink-0 ml-2" />}
                                             </button>
 
                                             {/* Dropdown Options */}
                                             {dropdownOpen && (
-                                                <div className="absolute z-50 left-0 right-0 mt-2 bg-retro-cream border-2 border-black rounded-lg shadow-[3px_3px_0px_0px_rgba(0,0,0,1)] overflow-hidden flex flex-col max-h-72">
+                                                <div className="absolute z-50 left-0 right-0 mt-2 bg-retro-cream border-2 border-black rounded-lg shadow-[3px_3px_0px_0px_rgba(0,0,0,1)] overflow-hidden flex flex-col max-h-none">
                                                     {/* Search Input */}
                                                     <div className="p-2 border-b-2 border-black bg-white flex items-center space-x-2">
                                                         <Search className="w-3.5 h-3.5 text-black/50 shrink-0" />
@@ -316,7 +313,7 @@ const AITailorView = () => {
                                                     </div>
                                                     
                                                     {/* Options List */}
-                                                    <div className="overflow-y-auto custom-scrollbar bg-white divide-y divide-black/10">
+                                                    <div className="overflow-y-auto max-h-[110px] custom-scrollbar bg-white divide-y divide-black/10">
                                                         {filteredJobs.length > 0 ? (
                                                             filteredJobs.map((job) => {
                                                                 const isSelected = job.id.toString() === selectedJobId;
@@ -335,8 +332,7 @@ const AITailorView = () => {
                                                                     >
                                                                         <span className="flex flex-col truncate pr-2">
                                                                             <span className="truncate font-black">{job.title}</span>
-                                                                            <span className="truncate text-[10px] text-black/60 font-bold flex items-center">
-                                                                                <Building className="w-3.5 h-3.5 mr-1 opacity-70" />
+                                                                            <span className="truncate text-[10px] text-black/60 font-bold">
                                                                                 {job.company}
                                                                             </span>
                                                                         </span>
