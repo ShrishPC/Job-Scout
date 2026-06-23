@@ -342,22 +342,24 @@ const AITailorView = () => {
                         )}
                     </div>
 
-                    <div className="flex-1 overflow-y-auto min-h-[40vh] custom-scrollbar rounded-lg border-2 border-black/10 bg-retro-cream/20 p-4 font-mono text-xs leading-relaxed text-black/90">
-                        {generating ? (
-                            <div className="h-full flex flex-col items-center justify-center py-20 text-center">
-                                <Loader2 className="w-8 h-8 animate-spin text-retro-red mb-4" />
-                                <p className="text-[10px] font-black uppercase tracking-widest text-black/60 animate-pulse">Running TinyLlama locally...</p>
-                                <p className="text-[9px] font-bold text-black/40 mt-1 max-w-[250px]">Please stand by. Local generation is 100% free but takes a few seconds on CPU.</p>
-                            </div>
-                        ) : result ? (
-                            <pre className="whitespace-pre-wrap break-words">{result}</pre>
-                        ) : (
-                            <div className="h-full flex flex-col items-center justify-center text-center py-20 opacity-30 select-none">
-                                <Sparkles className="w-10 h-10 mb-3 text-black" />
-                                <p className="text-[10px] font-black uppercase tracking-widest text-black">Awaiting generation parameters</p>
-                                <p className="text-[9px] font-bold text-black/70 mt-1 max-w-[200px]">Fill configuration on the left and click generate.</p>
-                            </div>
-                        )}
+                    <div className="flex-1 min-h-[40vh] rounded-lg border-2 border-black/10 bg-retro-cream/20 overflow-hidden flex flex-col">
+                        <div className="flex-1 overflow-y-auto overflow-x-hidden p-4 rounded-[inherit] custom-scrollbar font-mono text-xs leading-relaxed text-black/90">
+                            {generating ? (
+                                <div className="h-full flex flex-col items-center justify-center py-20 text-center">
+                                    <Loader2 className="w-8 h-8 animate-spin text-retro-red mb-4" />
+                                    <p className="text-[10px] font-black uppercase tracking-widest text-black/60 animate-pulse">Running TinyLlama locally...</p>
+                                    <p className="text-[9px] font-bold text-black/40 mt-1 max-w-[250px]">Please stand by. Local generation is 100% free but takes a few seconds on CPU.</p>
+                                </div>
+                            ) : result ? (
+                                <pre className="whitespace-pre-wrap break-words">{result}</pre>
+                            ) : (
+                                <div className="h-full flex flex-col items-center justify-center text-center py-20 opacity-30 select-none">
+                                    <Sparkles className="w-10 h-10 mb-3 text-black" />
+                                    <p className="text-[10px] font-black uppercase tracking-widest text-black">Awaiting generation parameters</p>
+                                    <p className="text-[9px] font-bold text-black/70 mt-1 max-w-[200px]">Fill configuration on the left and click generate.</p>
+                                </div>
+                            )}
+                        </div>
                     </div>
                 </div>
             </div>

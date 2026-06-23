@@ -202,10 +202,12 @@ const ProfileView: React.FC<ProfileViewProps> = ({ parsedData }) => {
                                 </button>
                             </div>
                             
-                            <div className="bg-retro-cream border-2 border-black rounded-lg p-6 max-h-[300px] overflow-y-auto custom-scrollbar">
-                                <pre className="text-[11px] font-mono text-black whitespace-pre-wrap leading-relaxed select-text">
-                                    {resume_markdown}
-                                </pre>
+                            <div className="bg-retro-cream border-2 border-black rounded-lg max-h-[300px] overflow-hidden flex flex-col">
+                                <div className="flex-1 overflow-y-auto overflow-x-hidden p-6 rounded-[inherit] custom-scrollbar">
+                                    <pre className="text-[11px] font-mono text-black whitespace-pre-wrap leading-relaxed select-text">
+                                        {resume_markdown}
+                                    </pre>
+                                </div>
                             </div>
                         </div>
                     )}
