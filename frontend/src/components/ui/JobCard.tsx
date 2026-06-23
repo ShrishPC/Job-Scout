@@ -136,7 +136,7 @@ const JobCard: React.FC<JobCardProps> = ({ job, onApply, onReject }) => {
         )}
       </div>
 
-      <p className="text-black/80 text-xs leading-relaxed line-clamp-3 mb-6 font-bold bg-retro-cream/40 p-3 border-2 border-black border-dashed rounded-lg">
+      <p className="text-black/80 text-xs leading-relaxed line-clamp-3 overflow-hidden mb-6 font-bold bg-retro-cream/40 p-3 border-2 border-black border-dashed rounded-lg">
         "{job.description}"
       </p>
 
