@@ -225,10 +225,10 @@ export default function Home() {
     setScraping(true);
     const apiHost = typeof window !== 'undefined' ? `${window.location.protocol}//${window.location.hostname}:8000` : 'http://127.0.0.1:8000';
     const scrapeKw = searchParams.keyword.trim() || 'Software Engineer';
-    const scrapeLoc = searchParams.location.trim() || 'Remote';
+    const scrapeLoc = searchParams.location.trim();
     try {
       await axios.post(`${apiHost}/jobs/scrape?keyword=${scrapeKw}&location=${scrapeLoc}&limit=15`);
-      alert(`Search initiated for ${scrapeKw} in ${scrapeLoc}.`);
+      alert(`Search initiated for ${scrapeKw} in ${scrapeLoc || 'All Locations'}.`);
     } catch (err) {
       console.error("Failed to start scraping:", err);
     } finally {

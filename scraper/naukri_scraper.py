@@ -56,10 +56,13 @@ async def scrape_naukri_jobs(keyword: str, location: str, limit: int = 10):
     clean_keyword = re.sub(r'[^a-zA-Z0-9\s-]', '', keyword)
     search_slug = re.sub(r'\s+', '-', clean_keyword.lower().strip())
     
-    clean_location = re.sub(r'[^a-zA-Z0-9\s-]', '', location)
-    location_slug = re.sub(r'\s+', '-', clean_location.lower().strip())
+    clean_location = re.sub(r'[^a-zA-Z0-9\s-]', '', location) if location else ""
+    location_slug = re.sub(r'\s+', '-', clean_location.lower().strip()) if clean_location else ""
     
-    url = f"https://www.naukri.com/{search_slug}-jobs-in-{location_slug}"
+    if location_slug:
+        url = f"https://www.naukri.com/{search_slug}-jobs-in-{location_slug}"
+    else:
+        url = f"https://www.naukri.com/{search_slug}-jobs"
 
     async with async_playwright() as p:
         browser = await p.chromium.launch(
