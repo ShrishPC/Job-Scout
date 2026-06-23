@@ -8,7 +8,7 @@ from sqlalchemy.orm import Session
 from pydantic import BaseModel, field_validator
 from celery import Celery
 import os
-from app.models.models import Job, UserJobMatch, Resume
+from app.models.models import Job, UserJobMatch, Resume, AIGenerationCache
 from app.core.config import settings
 
 app = FastAPI(title="Job Scout API")
@@ -373,7 +373,7 @@ class AIGenerateRequest(BaseModel):
 @app.post("/ai/generate")
 def generate_ai(request: AIGenerateRequest, db: Session = Depends(get_db)):
     """
-    Generates a tailored resume recommendation or a custom cover letter locally using TinyLlama.
+    Generates a tailored resume recommendation or a custom cover letter locally using Llama-3.2-3B with caching.
     """
     try:
         # 1. Fetch Resume
@@ -404,24 +404,159 @@ def generate_ai(request: AIGenerateRequest, db: Session = Depends(get_db)):
         if not job_desc.strip():
             raise HTTPException(status_code=400, detail="Job description is required for generation.")
             
-        # 3. Generate
+        # Generate Cache Key based on inputs
+        import hashlib
+        inputs_str = f"resume_{resume.id}_job_{request.job_id or 'custom'}_{job_title}_{company}_{job_desc}_{request.mode}"
+        cache_key = hashlib.sha256(inputs_str.encode('utf-8')).hexdigest()
+        
+        # Check Cache
+        cache_entry = db.query(AIGenerationCache).filter(AIGenerationCache.cache_key == cache_key).first()
+        if cache_entry:
+            print(f"Cache hit for key {cache_key}!")
+            return {
+                "mode": request.mode,
+                "job_title": job_title,
+                "company": company,
+                "result": cache_entry.response_text,
+                "cached": True
+            }
+            
+        # 3. Generate if not cached
         if request.mode == "tailor":
-            result = generate_tailored_resume_service(resume_text, job_title, job_desc)
+            result = generate_tailored_resume_service(resume_text, job_title, job_desc, db=db)
         elif request.mode == "cover_letter":
-            result = generate_cover_letter_service(resume_text, job_title, company, job_desc)
+            result = generate_cover_letter_service(resume_text, job_title, company, job_desc, db=db)
         else:
             raise HTTPException(status_code=400, detail="Invalid generation mode. Choose 'tailor' or 'cover_letter'.")
+            
+        # Store in Cache
+        try:
+            new_cache = AIGenerationCache(cache_key=cache_key, response_text=result)
+            db.add(new_cache)
+            db.commit()
+        except Exception as cache_err:
+            db.rollback()
+            print(f"Failed to cache generation: {cache_err}")
             
         return {
             "mode": request.mode,
             "job_title": job_title,
             "company": company,
-            "result": result
+            "result": result,
+            "cached": False
         }
     except HTTPException as he:
         raise he
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
+
+@app.post("/ai/cache/clear")
+@app.delete("/ai/cache")
+def clear_ai_cache(db: Session = Depends(get_db)):
+    """
+    Clears all cached AI generation responses.
+    """
+    try:
+        db.query(AIGenerationCache).delete()
+        db.commit()
+        return {"status": "success", "message": "AI generation cache cleared successfully."}
+    except Exception as e:
+        db.rollback()
+        raise HTTPException(status_code=500, detail=str(e))
+
+class AIConfigRequest(BaseModel):
+    device: str  # 'cpu' or 'cuda'
+
+@app.get("/ai/config")
+def get_ai_config():
+    """
+    Returns the current AI hardware execution device.
+    """
+    from app.services.llm_service import AI_DEVICE
+    return {"device": AI_DEVICE}
+
+@app.post("/ai/config")
+def update_ai_config(request: AIConfigRequest):
+    """
+    Dynamically switches AI execution backend between CPU and CUDA (GPU).
+    """
+    from app.services.llm_service import set_ai_device
+    try:
+        set_ai_device(request.device)
+        return {"status": "success", "device": request.device}
+    except ValueError as ve:
+        raise HTTPException(status_code=400, detail=str(ve))
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+@app.post("/system/shutdown")
+def shutdown_system():
+    """
+    Triggers an application shutdown sequence.
+    """
+    import os
+    import signal
+    import time
+    import threading
+    import platform
+    import subprocess
+
+    def perform_shutdown():
+        time.sleep(0.5)
+        if platform.system() == "Windows":
+            cmd = (
+                "powershell -Command \""
+                "try { Stop-Process -Id (Get-NetTCPConnection -LocalPort 3000 -ErrorAction SilentlyContinue).OwningProcess -Force } catch {}; "
+                "Get-Process | Where-Object { $_.CommandLine -like '*celery*' } | Stop-Process -Force; "
+                "Stop-Process -Id (Get-NetTCPConnection -LocalPort 8000 -ErrorAction SilentlyContinue).OwningProcess -Force"
+                "\""
+            )
+            subprocess.Popen(cmd, shell=True)
+        else:
+            # macOS and Linux
+            os.kill(os.getppid(), signal.SIGINT)
+        
+    threading.Thread(target=perform_shutdown).start()
+    return {"status": "success", "message": "System shutdown initiated."}
+
+@app.post("/system/restart")
+def restart_system():
+    """
+    Triggers a reboot sequence of the Job Scout stack.
+    """
+    import os
+    import signal
+    import subprocess
+    import time
+    import threading
+    import platform
+    
+    # Dynamically resolve project root (3 levels up from this file)
+    backend_app_dir = os.path.dirname(os.path.abspath(__file__))
+    backend_dir = os.path.dirname(backend_app_dir)
+    project_root = os.path.dirname(backend_dir)
+
+    def reboot():
+        time.sleep(0.5)
+        if platform.system() == "Windows":
+            cmd = (
+                "powershell -Command \""
+                "try { Stop-Process -Id (Get-NetTCPConnection -LocalPort 3000 -ErrorAction SilentlyContinue).OwningProcess -Force } catch {}; "
+                "Get-Process | Where-Object { $_.CommandLine -like '*celery*' } | Stop-Process -Force; "
+                "Start-Process powershell -ArgumentList '-ExecutionPolicy Bypass -File run.ps1' -WorkingDirectory '" + project_root + "'; "
+                "Stop-Process -Id (Get-NetTCPConnection -LocalPort 8000 -ErrorAction SilentlyContinue).OwningProcess -Force"
+                "\""
+            )
+            subprocess.Popen(cmd, shell=True)
+        else:
+            # macOS and Linux
+            parent_pid = os.getppid()
+            cmd = f"while kill -0 {parent_pid} 2>/dev/null; do sleep 0.1; done; cd {project_root} && nohup bash run.sh > /dev/null 2>&1 &"
+            subprocess.Popen(["bash", "-c", cmd], start_new_session=True)
+            os.kill(parent_pid, signal.SIGINT)
+
+    threading.Thread(target=reboot).start()
+    return {"status": "success", "message": "System restart initiated."}
 
 if __name__ == "__main__":
     import uvicorn

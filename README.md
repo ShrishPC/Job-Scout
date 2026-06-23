@@ -6,8 +6,24 @@
 [![Docker](https://img.shields.io/badge/Docker-Containerized-2496ED?style=for-the-badge&logo=docker&logoColor=white)](https://www.docker.com/)
 [![Celery](https://img.shields.io/badge/Celery-Distributed-37814A?style=for-the-badge&logo=celery&logoColor=white)](https://docs.celeryq.dev/)
 [![License](https://img.shields.io/badge/License-MIT-yellow.svg?style=for-the-badge)](LICENSE)
+[![Llama](https://img.shields.io/badge/Llama-3.2--3B-blueviolet?style=for-the-badge&logo=meta&logoColor=white)](https://huggingface.co/unsloth/Llama-3.2-3B-Instruct)
 
-Job Scout is a modern, privacy-focused, full-stack job discovery and application tracking system. By leveraging local AI models (**SentenceTransformers** and **TinyLlama**), Job Scout matches your resume with real-time web-scraped job postings using vector similarity, providing a "Tinder-like" swipe-and-track dashboard for your career hunt.
+Job Scout is a modern, **100% local**, privacy-focused, full-stack job discovery and application tracking system. It uses a dual-track **Retrieval-Augmented Generation (RAG)** pipeline powered by `Llama-3.2-3B-Instruct` and `SentenceTransformers` to semantically match your resume with real-time web-scraped job postings — and generate tailored resumes and cover letters entirely on your own hardware. No cloud APIs. No data leaks.
+
+---
+
+## 👤 About
+
+Job Scout was built to solve a real problem: the modern job hunt is noisy, repetitive, and privacy-invasive. Most AI job tools send your resume to third-party APIs (OpenAI, Anthropic) and lock insights behind paywalls.
+
+This project takes a different approach:
+
+- **Everything runs locally.** Your resume, your embeddings, your generated cover letters — all processed on your own CPU or GPU. Nothing leaves your machine.
+- **AI that actually knows you.** The RAG pipeline reads your active resume semantically, finds the most relevant parts of your experience for each job, and injects them into the LLM prompt — so the output sounds like *you*, not a generic template.
+- **Built for real job hunters.** From a Kanban board to track applications, to a Market Radar that maps your skills against live postings, to a one-command boot script that sets everything up — Job Scout is designed to be used daily, not just demoed.
+- **Open and extensible.** The model, embedding dimensions, scraper targets, and hardware device (CPU/GPU) are all configurable via environment variables and the in-app Config panel.
+
+> Built with Next.js 15, FastAPI, PostgreSQL + pgvector, Celery, Playwright, and Llama-3.2-3B-Instruct.
 
 ---
 
@@ -28,15 +44,19 @@ Job Scout is a modern, privacy-focused, full-stack job discovery and application
 
 ## ✨ Key Features
 
-*   **🧠 Neural Matching (Semantic Search)**: Generates high-dimensional vector embeddings of your resume. Uses PostgreSQL's `pgvector` extension to rank and match jobs based on semantic relevance instead of rigid keyword matching.
-*   **📂 Resume Vault**: Store, activate, and manage multiple resume profiles. Switching active resumes instantly updates your job matching scores across the platform.
-*   **🤖 Local AI Parser**: Automatically extracts candidate names, contact details, skills, education, and work history from resumes locally on your CPU.
+*   **🧠 Neural Matching (Semantic Search)**: Generates high-dimensional vector embeddings of your resume using `all-MiniLM-L6-v2`. Uses PostgreSQL's `pgvector` extension to rank and match jobs by semantic relevance instead of rigid keyword matching.
+*   **🤖 AI Copilot — Resume Tailoring & Cover Letters**: A full-screen AI Copilot panel powered by `Llama-3.2-3B-Instruct`. Select any scraped job listing (or paste a custom description), choose a generation mode, and receive a tailored resume or personalised cover letter generated entirely on-device.
+*   **🔍 Dual-Track RAG Pipeline**: Before generating, the system semantically retrieves the top 6 most relevant bullets from your active resume *and* the top 3 similar market job listings from the database — injecting this context into the LLM prompt to ground outputs in your real experience and current market language.
+*   **⚡ AI Generation Cache**: SHA-256 hashed cache layer backed by PostgreSQL. Identical requests return instantly from cache (marked `"cached": true`). Cache can be cleared from the Config panel.
+*   **🖥️ Dynamic Hardware Selector**: Switch AI inference between CPU and CUDA (GPU) at runtime via the Config panel — no restart required.
+*   **📂 Resume Vault**: Store, activate, and manage multiple resume profiles. Switching active resumes instantly updates all matching scores across the platform.
 *   **🕷️ Automated Scraping Pipeline**: Celery background tasks trigger Playwright scrapers in parallel to pull fresh postings from LinkedIn, Indeed, Naukri, RemoteOK, and We Work Remotely.
 *   **📋 Kanban Board**: Move jobs through a visual application pipeline (Interested ➔ Applied ➔ Interviewing ➔ Offer).
 *   **📊 Market Radar & Insights**: Highlights target roles, preferred locations, and matches your skill set against real-time market demands using interactive radar charts.
-*   **🎨 Neo-Brutalist Responsive Theme System**: Stark, vibrant Neo-Brutalist design that dynamically toggles between a colorful warm-cream Light mode and a deep Midnight-Indigo Cyberpunk Dark mode (`#090a0f`) with a glowing violet grid paper effect (`rgba(99, 102, 241, 0.08)`). Thick black outlines and offsets are preserved globally.
-*   **⚙️ System Config & Diagnostics Panel**: Access settings directly from the navigation bar. Toggle visual interface mode (Light, Dark, or System-preferred sync) and check server diagnostics (Backend API connection status, pgvector engine activation, environment parameters) in real-time.
-*   **🔒 Privacy First**: 100% offline resume parsing and embedding generation—no data leaves your machine or goes to external paid APIs (like OpenAI or Anthropic).
+*   **🎨 Neo-Brutalist Responsive Theme System**: Stark, vibrant design toggling between warm-cream Light mode and deep Midnight-Indigo Cyberpunk Dark mode with a glowing violet grid paper effect. Thick black outlines and shadow offsets preserved globally.
+*   **⚙️ System Config & Diagnostics Panel**: Toggle Light/Dark/System theme, switch AI device, clear AI cache, check backend connectivity and pgvector status in real-time.
+*   **🔌 System Control**: Shut down or restart the entire Job Scout stack from the UI Exit modal — no terminal required.
+*   **🔒 Privacy First**: 100% offline — resume parsing, vector embeddings, and LLM generation all run locally. Nothing is sent to external APIs.
 
 ---
 
@@ -44,8 +64,10 @@ Job Scout is a modern, privacy-focused, full-stack job discovery and application
 
 ![System Architecture](assets/system_architecture.jpg)
 
-*   **Embeddings Model**: `all-MiniLM-L6-v2` (384-dimensional vector padded to 768d for schema compatibility, running locally).
-*   **Text Generator Model**: `TinyLlama-1.1B-Chat-v1.0` (Local resume extraction on CPU).
+*   **Embeddings Model**: `all-MiniLM-L6-v2` (384-dimensional vector padded to 768d for schema compatibility, running locally via `sentence-transformers`).
+*   **Text Generator Model**: `unsloth/Llama-3.2-3B-Instruct` (Local inference on CPU or CUDA. Falls back to `TinyLlama-1.1B` if resources are insufficient).
+*   **Vector Store**: PostgreSQL with the `pgvector` extension and HNSW index for O(log n) approximate nearest-neighbour search.
+*   **Generation Strategy**: Deterministic greedy decoding (`do_sample=False`) with `repetition_penalty=1.2` to prevent hallucinations and ensure reproducible outputs.
 
 ---
 

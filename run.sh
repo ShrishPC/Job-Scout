@@ -59,13 +59,13 @@ fi
 
 # 6. Pre-cache Local AI Models (Free, local embeddings & parser)
 # Check if cached files exist. If not, pre-download to avoid API/web request timeouts.
-TINYLLAMA_CACHE="models/models--TinyLlama--TinyLlama-1.1B-Chat-v1.0"
+LLAMA3_CACHE="models/models--unsloth--Llama-3.2-3B-Instruct"
 MINILM_CACHE="models/models--sentence-transformers--all-MiniLM-L6-v2"
-if [ ! -d "$TINYLLAMA_CACHE" ] || [ ! -d "$MINILM_CACHE" ]; then
+if [ ! -d "$LLAMA3_CACHE" ] || [ ! -d "$MINILM_CACHE" ]; then
     echo -e "${BLUE}[Setup] Cache folders for local models not found. Pre-downloading models...${NC}"
     backend/venv/bin/python scripts/download_models.py
 else
-    echo -e "${GREEN}✓ Local AI models (TinyLlama & MiniLM) are already cached locally.${NC}"
+    echo -e "${GREEN}✓ Local AI models (Llama 3.2 & MiniLM) are already cached locally.${NC}"
 fi
 
 echo -e "${GREEN}✨ Bootstrapping complete! Launching services...${NC}"

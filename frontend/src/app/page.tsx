@@ -28,6 +28,80 @@ export default function Home() {
   const [showFilters, setShowFilters] = useState(false);
   const [showLocationSuggestions, setShowLocationSuggestions] = useState(false);
   const [selectedWorkplaceTypes, setSelectedWorkplaceTypes] = useState<string[]>([]);
+  const [device, setDevice] = useState<'cpu' | 'cuda'>('cpu');
+
+  useEffect(() => {
+    const fetchAIDevice = async () => {
+      const apiHost = typeof window !== 'undefined' ? `${window.location.protocol}//${window.location.hostname}:8000` : 'http://127.0.0.1:8000';
+      try {
+        const res = await axios.get(`${apiHost}/ai/config`);
+        setDevice(res.data.device);
+      } catch (err) {
+        console.error("Failed to load AI device config:", err);
+      }
+    };
+    fetchAIDevice();
+  }, []);
+
+  const handleDeviceChange = async (newDevice: 'cpu' | 'cuda') => {
+    const apiHost = typeof window !== 'undefined' ? `${window.location.protocol}//${window.location.hostname}:8000` : 'http://127.0.0.1:8000';
+    try {
+      await axios.post(`${apiHost}/ai/config`, { device: newDevice });
+      setDevice(newDevice);
+    } catch (err) {
+      console.error("Failed to update AI device config:", err);
+    }
+  };
+
+  const [clearingCache, setClearingCache] = useState(false);
+  const [cacheCleared, setCacheCleared] = useState(false);
+
+  const handleClearCache = async () => {
+    const apiHost = typeof window !== 'undefined' ? `${window.location.protocol}//${window.location.hostname}:8000` : 'http://127.0.0.1:8000';
+    setClearingCache(true);
+    setCacheCleared(false);
+    try {
+      await axios.post(`${apiHost}/ai/cache/clear`);
+      setCacheCleared(true);
+      setTimeout(() => setCacheCleared(false), 3000);
+    } catch (err) {
+      console.error("Failed to clear AI cache:", err);
+    } finally {
+      setClearingCache(false);
+    }
+  };
+
+  const [exitModalOpen, setExitModalOpen] = useState(false);
+  const [systemActionInProgress, setSystemActionInProgress] = useState(false);
+
+  const handleShutdown = async () => {
+    const apiHost = typeof window !== 'undefined' ? `${window.location.protocol}//${window.location.hostname}:8000` : 'http://127.0.0.1:8000';
+    setSystemActionInProgress(true);
+    try {
+      await axios.post(`${apiHost}/system/shutdown`);
+    } catch (err) {
+      console.error("Failed to shutdown system:", err);
+    } finally {
+      setExitModalOpen(false);
+      setSystemActionInProgress(false);
+    }
+  };
+
+  const handleRestart = async () => {
+    const apiHost = typeof window !== 'undefined' ? `${window.location.protocol}//${window.location.hostname}:8000` : 'http://127.0.0.1:8000';
+    setSystemActionInProgress(true);
+    try {
+      await axios.post(`${apiHost}/system/restart`);
+      setTimeout(() => {
+        setExitModalOpen(false);
+        setSystemActionInProgress(false);
+        window.location.reload();
+      }, 3000);
+    } catch (err) {
+      console.error("Failed to restart system:", err);
+      setSystemActionInProgress(false);
+    }
+  };
 
   const filteredJobs = useMemo(() => {
     let result = jobs.filter(job => {
@@ -202,16 +276,16 @@ export default function Home() {
   return (
     <main className="h-dvh bg-retro-cream text-retro-black flex overflow-hidden font-sans">
       {/* Sidebar Navigation */}
-      <nav className="w-24 bg-retro-mint border-r-4 border-black flex flex-col items-center py-8 space-y-10 z-20 relative text-black overflow-y-auto overflow-x-hidden custom-scrollbar">
+      <nav className="w-24 bg-retro-mint border-r-4 border-black flex flex-col items-center py-4 space-y-6 z-20 relative text-black overflow-y-auto overflow-x-hidden custom-scrollbar">
         <div 
           onClick={() => setView('radar')}
-          className="w-14 h-14 bg-retro-yellow text-black border-3 border-black shadow-[3px_3px_0px_0px_rgba(0,0,0,1)] hover:translate-x-[1px] hover:translate-y-[1px] hover:shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] active:translate-x-[3px] active:translate-y-[3px] active:shadow-none flex items-center justify-center rounded-xl cursor-pointer transition-all duration-100"
+          className="w-12 h-12 bg-retro-yellow text-black border-3 border-black shadow-[3px_3px_0px_0px_rgba(0,0,0,1)] hover:translate-x-[1px] hover:translate-y-[1px] hover:shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] active:translate-x-[3px] active:translate-y-[3px] active:shadow-none flex items-center justify-center rounded-xl cursor-pointer transition-all duration-100"
           title="Market Intelligence Radar"
         >
-          <Radar className="w-8 h-8" />
+          <Radar className="w-6 h-6" />
         </div>
         
-        <div className="flex-1 flex flex-col space-y-8">
+        <div className="flex-1 flex flex-col space-y-4">
           <NavItem 
             icon={<Target className="w-6 h-6" />} 
             label="Hunt"
@@ -249,14 +323,14 @@ export default function Home() {
           />
         </div>
 
-        <div className="pt-6 border-t-3 border-black w-full flex flex-col items-center space-y-8">
+        <div className="pt-4 border-t-3 border-black w-full flex flex-col items-center space-y-4">
             <NavItem 
               icon={<SettingsIcon className="w-6 h-6" />} 
               label="Config" 
               active={showConfig}
               onClick={() => setShowConfig(true)} 
             />
-            <NavItem icon={<LogOut className="w-6 h-6 text-retro-red" />} label="Exit" />
+            <NavItem icon={<LogOut className="w-6 h-6 text-retro-red" />} label="Exit" onClick={() => setExitModalOpen(true)} />
         </div>
       </nav>
 
@@ -688,10 +762,44 @@ export default function Home() {
               </div>
 
               <div className="border-t-2 border-black/10 dark:border-white/10 pt-4">
+                <label className="text-xs font-black text-black/60 dark:text-white/60 uppercase tracking-[0.2em] block mb-3">
+                  Local AI Hardware Acceleration
+                </label>
+                <div className="grid grid-cols-2 gap-3">
+                  <button
+                    onClick={() => handleDeviceChange('cpu')}
+                    className={`px-4 py-3 border-2 border-black rounded-xl font-black text-xs uppercase tracking-wider transition-all flex items-center justify-center space-x-2 cursor-pointer ${
+                      device === 'cpu'
+                        ? 'bg-retro-yellow text-black shadow-none translate-x-[2px] translate-y-[2px]'
+                        : 'bg-white text-black shadow-[3px_3px_0px_0px_rgba(0,0,0,1)] hover:translate-x-[1px] hover:translate-y-[1px]'
+                    }`}
+                  >
+                    <span>💻 CPU</span>
+                  </button>
+
+                  <button
+                    onClick={() => handleDeviceChange('cuda')}
+                    className={`px-4 py-3 border-2 border-black rounded-xl font-black text-xs uppercase tracking-wider transition-all flex items-center justify-center space-x-2 cursor-pointer ${
+                      device === 'cuda'
+                        ? 'bg-retro-green text-white shadow-none translate-x-[2px] translate-y-[2px]'
+                        : 'bg-white text-black shadow-[3px_3px_0px_0px_rgba(0,0,0,1)] hover:translate-x-[1px] hover:translate-y-[1px]'
+                    }`}
+                  >
+                    <span>⚡ GPU (CUDA)</span>
+                  </button>
+                </div>
+                <p className="text-[10px] text-black/50 dark:text-white/50 font-bold mt-3 uppercase tracking-wide">
+                  {device === 'cuda' 
+                    ? 'GPU mode active (Requires CUDA compatible graphics card & drivers).' 
+                    : 'Running in standard CPU execution mode.'}
+                </p>
+              </div>
+
+              <div className="border-t-2 border-black/10 dark:border-white/10 pt-4">
                 <label className="text-xs font-black text-black/60 dark:text-white/60 uppercase tracking-[0.2em] block mb-2">
                   System Diagnostics
                 </label>
-                <div className="bg-white dark:bg-black/30 border-2 border-black rounded-lg p-3 text-[10px] font-mono text-black dark:text-white space-y-1.5 shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] dark:shadow-[2px_2px_0px_0px_#ffffff]">
+                <div className="bg-white dark:bg-black/30 border-2 border-black rounded-lg p-3 text-[10px] font-mono text-black dark:text-white space-y-1.5 shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] dark:shadow-[2px_2px_0px_0px_#ffffff] mb-4">
                   <div className="flex justify-between">
                     <span className="font-extrabold uppercase">Backend Server:</span>
                     <span className="text-retro-green font-black">ONLINE (8000)</span>
@@ -705,6 +813,15 @@ export default function Home() {
                     <span className="text-retro-red font-black">DEVELOPMENT</span>
                   </div>
                 </div>
+                
+                <button
+                  onClick={handleClearCache}
+                  disabled={clearingCache}
+                  className="w-full py-2.5 bg-retro-red text-white font-black text-xs uppercase tracking-wider rounded-xl border-3 border-black shadow-[3px_3px_0px_0px_rgba(0,0,0,1)] hover:translate-x-[1px] hover:translate-y-[1px] hover:shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] active:translate-x-[3px] active:translate-y-[3px] active:shadow-none transition-all disabled:opacity-50 flex items-center justify-center space-x-2 cursor-pointer"
+                >
+                  {clearingCache ? <Loader2 className="w-4 h-4 animate-spin" /> : "🗑️"}
+                  <span>{clearingCache ? "Clearing Cache..." : cacheCleared ? "Cache Cleared!" : "Clear AI Cache"}</span>
+                </button>
               </div>
             </div>
 
@@ -719,17 +836,76 @@ export default function Home() {
           </div>
         </div>
       )}
+
+      {/* Exit Confirmation Modal */}
+      {exitModalOpen && (
+        <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4 animate-in fade-in duration-200">
+          <div className="bg-retro-cream border-4 border-black rounded-xl p-8 max-w-md w-full shadow-[8px_8px_0px_0px_rgba(0,0,0,1)] animate-in zoom-in-95 duration-200 text-black">
+            <div className="flex justify-between items-center mb-6 pb-4 border-b-3 border-black bg-retro-red -mx-8 -mt-8 p-6 rounded-t-lg text-white">
+              <div className="flex items-center space-x-2">
+                <LogOut className="w-6 h-6" />
+                <h3 className="text-xl font-black uppercase tracking-tight italic">SYSTEM EXIT PENDING</h3>
+              </div>
+              <button 
+                onClick={() => setExitModalOpen(false)}
+                className="p-1.5 border-2 border-black bg-white rounded-lg text-black hover:bg-retro-pink shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] hover:translate-x-[0.5px] hover:translate-y-[0.5px] active:translate-x-[2px] active:translate-y-[2px] active:shadow-none transition-all cursor-pointer"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+
+            <div className="space-y-6">
+              <p className="text-sm font-bold text-black/80">
+                Are you sure you want to exit the Job Scout workspace? Select your next action below.
+              </p>
+
+              <div className="flex flex-col space-y-3.5">
+                <button
+                  onClick={handleShutdown}
+                  disabled={systemActionInProgress}
+                  className="w-full py-3.5 bg-retro-red text-white font-black text-xs uppercase tracking-wider rounded-xl border-3 border-black shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] hover:translate-x-[1px] hover:translate-y-[1px] hover:shadow-[3px_3px_0px_0px_rgba(0,0,0,1)] active:translate-x-[4px] active:translate-y-[4px] active:shadow-none transition-all disabled:opacity-50 flex items-center justify-center space-x-2 cursor-pointer"
+                >
+                  <span>Shut Down & Exit Program</span>
+                </button>
+
+                <button
+                  onClick={handleRestart}
+                  disabled={systemActionInProgress}
+                  className="w-full py-3.5 bg-retro-yellow text-black font-black text-xs uppercase tracking-wider rounded-xl border-3 border-black shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] hover:translate-x-[1px] hover:translate-y-[1px] hover:shadow-[3px_3px_0px_0px_rgba(0,0,0,1)] active:translate-x-[4px] active:translate-y-[4px] active:shadow-none transition-all disabled:opacity-50 flex items-center justify-center space-x-2 cursor-pointer"
+                >
+                  <span>Restart the Stack</span>
+                </button>
+
+                <button
+                  onClick={() => setExitModalOpen(false)}
+                  disabled={systemActionInProgress}
+                  className="w-full py-3.5 bg-white text-black font-black text-xs uppercase tracking-wider rounded-xl border-3 border-black shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] hover:translate-x-[1px] hover:translate-y-[1px] hover:shadow-[3px_3px_0px_0px_rgba(0,0,0,1)] active:translate-x-[4px] active:translate-y-[4px] active:shadow-none transition-all disabled:opacity-50 flex items-center justify-center space-x-2 cursor-pointer"
+                >
+                  <span>Cancel</span>
+                </button>
+              </div>
+
+              {systemActionInProgress && (
+                <div className="flex items-center justify-center space-x-2 text-xs font-bold text-retro-red animate-pulse mt-2">
+                  <Loader2 className="w-4 h-4 animate-spin" />
+                  <span>Processing request...</span>
+                </div>
+              )}
+            </div>
+          </div>
+        </div>
+      )}
     </main>
   );
 }
 
 function NavItem({ icon, label, active = false, onClick }: { icon: React.ReactNode, label: string, active?: boolean, onClick?: () => void }) {
   return (
-    <div className="flex flex-col items-center space-y-1.5 group">
+    <div className="flex flex-col items-center space-y-1 group">
       <div 
         onClick={onClick}
         className={`
-          w-13 h-13 rounded-xl cursor-pointer flex items-center justify-center transition-all duration-100 border-3 border-black
+          w-12 h-12 rounded-xl cursor-pointer flex items-center justify-center transition-all duration-100 border-3 border-black
           ${active 
             ? 'bg-retro-sand text-black shadow-none translate-x-[2px] translate-y-[2px]' 
             : 'bg-white text-black shadow-[3px_3px_0px_0px_rgba(0,0,0,1)] hover:translate-x-[1px] hover:translate-y-[1px] hover:shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] active:translate-x-[3px] active:translate-y-[3px] active:shadow-none'
@@ -738,7 +914,7 @@ function NavItem({ icon, label, active = false, onClick }: { icon: React.ReactNo
       >
         {icon}
       </div>
-      <span className={`text-[10px] font-black uppercase tracking-tight transition-colors ${active ? 'text-black font-extrabold' : 'text-black/60 group-hover:text-black'}`}>
+      <span className={`text-[10px] font-black uppercase tracking-tighter transition-colors ${active ? 'text-black font-extrabold' : 'text-black/60 group-hover:text-black'}`}>
         {label}
       </span>
     </div>
