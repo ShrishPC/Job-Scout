@@ -498,12 +498,25 @@ def shutdown_system():
     import signal
     import time
     import threading
+    import platform
+    import subprocess
 
-    def kill_parent():
+    def perform_shutdown():
         time.sleep(0.5)
-        os.kill(os.getppid(), signal.SIGINT)
+        if platform.system() == "Windows":
+            cmd = (
+                "powershell -Command \""
+                "try { Stop-Process -Id (Get-NetTCPConnection -LocalPort 3000 -ErrorAction SilentlyContinue).OwningProcess -Force } catch {}; "
+                "Get-Process | Where-Object { $_.CommandLine -like '*celery*' } | Stop-Process -Force; "
+                "Stop-Process -Id (Get-NetTCPConnection -LocalPort 8000 -ErrorAction SilentlyContinue).OwningProcess -Force"
+                "\""
+            )
+            subprocess.Popen(cmd, shell=True)
+        else:
+            # macOS and Linux
+            os.kill(os.getppid(), signal.SIGINT)
         
-    threading.Thread(target=kill_parent).start()
+    threading.Thread(target=perform_shutdown).start()
     return {"status": "success", "message": "System shutdown initiated."}
 
 @app.post("/system/restart")
@@ -516,14 +529,31 @@ def restart_system():
     import subprocess
     import time
     import threading
+    import platform
     
+    # Dynamically resolve project root (3 levels up from this file)
+    backend_app_dir = os.path.dirname(os.path.abspath(__file__))
+    backend_dir = os.path.dirname(backend_app_dir)
+    project_root = os.path.dirname(backend_dir)
+
     def reboot():
         time.sleep(0.5)
-        parent_pid = os.getppid()
-        project_root = "/home/rishav/job-scout"
-        cmd = f"while kill -0 {parent_pid} 2>/dev/null; do sleep 0.1; done; cd {project_root} && nohup bash run.sh > /dev/null 2>&1 &"
-        subprocess.Popen(["bash", "-c", cmd], start_new_session=True)
-        os.kill(parent_pid, signal.SIGINT)
+        if platform.system() == "Windows":
+            cmd = (
+                "powershell -Command \""
+                "try { Stop-Process -Id (Get-NetTCPConnection -LocalPort 3000 -ErrorAction SilentlyContinue).OwningProcess -Force } catch {}; "
+                "Get-Process | Where-Object { $_.CommandLine -like '*celery*' } | Stop-Process -Force; "
+                "Start-Process powershell -ArgumentList '-ExecutionPolicy Bypass -File run.ps1' -WorkingDirectory '" + project_root + "'; "
+                "Stop-Process -Id (Get-NetTCPConnection -LocalPort 8000 -ErrorAction SilentlyContinue).OwningProcess -Force"
+                "\""
+            )
+            subprocess.Popen(cmd, shell=True)
+        else:
+            # macOS and Linux
+            parent_pid = os.getppid()
+            cmd = f"while kill -0 {parent_pid} 2>/dev/null; do sleep 0.1; done; cd {project_root} && nohup bash run.sh > /dev/null 2>&1 &"
+            subprocess.Popen(["bash", "-c", cmd], start_new_session=True)
+            os.kill(parent_pid, signal.SIGINT)
 
     threading.Thread(target=reboot).start()
     return {"status": "success", "message": "System restart initiated."}
