@@ -489,6 +489,44 @@ def update_ai_config(request: AIConfigRequest):
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 
+@app.post("/system/shutdown")
+def shutdown_system():
+    """
+    Triggers an application shutdown sequence.
+    """
+    import os
+    import signal
+    import time
+    import threading
+
+    def kill_parent():
+        time.sleep(0.5)
+        os.kill(os.getppid(), signal.SIGINT)
+        
+    threading.Thread(target=kill_parent).start()
+    return {"status": "success", "message": "System shutdown initiated."}
+
+@app.post("/system/restart")
+def restart_system():
+    """
+    Triggers a reboot sequence of the Job Scout stack.
+    """
+    import os
+    import signal
+    import subprocess
+    import time
+    import threading
+    
+    def reboot():
+        time.sleep(0.5)
+        parent_pid = os.getppid()
+        cmd = f"while kill -0 {parent_pid} 2>/dev/null; do sleep 0.1; done; nohup bash run.sh > /dev/null 2>&1 &"
+        subprocess.Popen(["bash", "-c", cmd], start_new_session=True)
+        os.kill(parent_pid, signal.SIGINT)
+
+    threading.Thread(target=reboot).start()
+    return {"status": "success", "message": "System restart initiated."}
+
 if __name__ == "__main__":
     import uvicorn
     uvicorn.run(app, host="0.0.0.0", port=8000)

@@ -71,6 +71,38 @@ export default function Home() {
     }
   };
 
+  const [exitModalOpen, setExitModalOpen] = useState(false);
+  const [systemActionInProgress, setSystemActionInProgress] = useState(false);
+
+  const handleShutdown = async () => {
+    const apiHost = typeof window !== 'undefined' ? `${window.location.protocol}//${window.location.hostname}:8000` : 'http://127.0.0.1:8000';
+    setSystemActionInProgress(true);
+    try {
+      await axios.post(`${apiHost}/system/shutdown`);
+    } catch (err) {
+      console.error("Failed to shutdown system:", err);
+    } finally {
+      setExitModalOpen(false);
+      setSystemActionInProgress(false);
+    }
+  };
+
+  const handleRestart = async () => {
+    const apiHost = typeof window !== 'undefined' ? `${window.location.protocol}//${window.location.hostname}:8000` : 'http://127.0.0.1:8000';
+    setSystemActionInProgress(true);
+    try {
+      await axios.post(`${apiHost}/system/restart`);
+      setTimeout(() => {
+        setExitModalOpen(false);
+        setSystemActionInProgress(false);
+        window.location.reload();
+      }, 3000);
+    } catch (err) {
+      console.error("Failed to restart system:", err);
+      setSystemActionInProgress(false);
+    }
+  };
+
   const filteredJobs = useMemo(() => {
     let result = jobs.filter(job => {
       const kw = searchParams.keyword.toLowerCase();
@@ -298,7 +330,7 @@ export default function Home() {
               active={showConfig}
               onClick={() => setShowConfig(true)} 
             />
-            <NavItem icon={<LogOut className="w-6 h-6 text-retro-red" />} label="Exit" />
+            <NavItem icon={<LogOut className="w-6 h-6 text-retro-red" />} label="Exit" onClick={() => setExitModalOpen(true)} />
         </div>
       </nav>
 
@@ -800,6 +832,65 @@ export default function Home() {
               >
                 Close Settings
               </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Exit Confirmation Modal */}
+      {exitModalOpen && (
+        <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4 animate-in fade-in duration-200">
+          <div className="bg-retro-cream border-4 border-black rounded-xl p-8 max-w-md w-full shadow-[8px_8px_0px_0px_rgba(0,0,0,1)] animate-in zoom-in-95 duration-200 text-black">
+            <div className="flex justify-between items-center mb-6 pb-4 border-b-3 border-black bg-retro-red -mx-8 -mt-8 p-6 rounded-t-lg text-white">
+              <div className="flex items-center space-x-2">
+                <LogOut className="w-6 h-6" />
+                <h3 className="text-xl font-black uppercase tracking-tight italic">SYSTEM EXIT PENDING</h3>
+              </div>
+              <button 
+                onClick={() => setExitModalOpen(false)}
+                className="p-1.5 border-2 border-black bg-white rounded-lg text-black hover:bg-retro-pink shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] hover:translate-x-[0.5px] hover:translate-y-[0.5px] active:translate-x-[2px] active:translate-y-[2px] active:shadow-none transition-all cursor-pointer"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+
+            <div className="space-y-6">
+              <p className="text-sm font-bold text-black/80">
+                Are you sure you want to exit the Job Scout workspace? Select your next action below.
+              </p>
+
+              <div className="flex flex-col space-y-3.5">
+                <button
+                  onClick={handleShutdown}
+                  disabled={systemActionInProgress}
+                  className="w-full py-3.5 bg-retro-red text-white font-black text-xs uppercase tracking-wider rounded-xl border-3 border-black shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] hover:translate-x-[1px] hover:translate-y-[1px] hover:shadow-[3px_3px_0px_0px_rgba(0,0,0,1)] active:translate-x-[4px] active:translate-y-[4px] active:shadow-none transition-all disabled:opacity-50 flex items-center justify-center space-x-2 cursor-pointer"
+                >
+                  <span>Shut Down & Exit Program</span>
+                </button>
+
+                <button
+                  onClick={handleRestart}
+                  disabled={systemActionInProgress}
+                  className="w-full py-3.5 bg-retro-yellow text-black font-black text-xs uppercase tracking-wider rounded-xl border-3 border-black shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] hover:translate-x-[1px] hover:translate-y-[1px] hover:shadow-[3px_3px_0px_0px_rgba(0,0,0,1)] active:translate-x-[4px] active:translate-y-[4px] active:shadow-none transition-all disabled:opacity-50 flex items-center justify-center space-x-2 cursor-pointer"
+                >
+                  <span>Restart the Stack</span>
+                </button>
+
+                <button
+                  onClick={() => setExitModalOpen(false)}
+                  disabled={systemActionInProgress}
+                  className="w-full py-3.5 bg-white text-black font-black text-xs uppercase tracking-wider rounded-xl border-3 border-black shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] hover:translate-x-[1px] hover:translate-y-[1px] hover:shadow-[3px_3px_0px_0px_rgba(0,0,0,1)] active:translate-x-[4px] active:translate-y-[4px] active:shadow-none transition-all disabled:opacity-50 flex items-center justify-center space-x-2 cursor-pointer"
+                >
+                  <span>Cancel</span>
+                </button>
+              </div>
+
+              {systemActionInProgress && (
+                <div className="flex items-center justify-center space-x-2 text-xs font-bold text-retro-red animate-pulse mt-2">
+                  <Loader2 className="w-4 h-4 animate-spin" />
+                  <span>Processing request...</span>
+                </div>
+              )}
             </div>
           </div>
         </div>
