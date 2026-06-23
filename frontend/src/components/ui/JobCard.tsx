@@ -175,10 +175,11 @@ const JobCard: React.FC<JobCardProps> = ({ job, onApply, onReject }) => {
     {isExpanded && (
       <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60" onClick={() => setIsExpanded(false)}>
         <div 
-          className="bg-retro-cream border-4 border-black rounded-xl p-8 max-w-2xl w-full max-h-[85vh] overflow-y-auto shadow-[8px_8px_0px_0px_rgba(0,0,0,1)] custom-scrollbar"
+          className="bg-retro-cream border-4 border-black rounded-xl max-w-2xl w-full max-h-[85vh] flex flex-col shadow-[8px_8px_0px_0px_rgba(0,0,0,1)] overflow-hidden"
           onClick={(e) => e.stopPropagation()}
         >
-          <div className="flex justify-between items-start mb-6">
+          <div className="flex-1 overflow-y-auto overflow-x-hidden p-8 rounded-[inherit] custom-scrollbar">
+            <div className="flex justify-between items-start mb-6">
             <div>
               <h2 className="text-2xl font-black text-black">{job.title}</h2>
               <p className="text-retro-green font-black mt-1 text-sm">{job.company}</p>
@@ -246,6 +247,7 @@ const JobCard: React.FC<JobCardProps> = ({ job, onApply, onReject }) => {
               <Eye className="w-4 h-4" />
               <span>Original Post</span>
             </a>
+          </div>
           </div>
         </div>
       </div>
