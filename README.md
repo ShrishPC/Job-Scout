@@ -24,11 +24,11 @@ Job Scout is a modern, **100% local**, privacy-focused, full-stack job discovery
 
 | 🤖 AI Copilot (Dark Mode) | 📊 Market Radar & Skills |
 |:---:|:---:|
-| ![AI Copilot](assets/copilot.png) | ![Market Radar](assets/radar.png) |
+| ![AI Copilot](assets/copilot.png) | ![Market Radar](assets/exit_modal.png) |
 
 | ⚙️ Config & System Diagnostics | 🔌 Exit & Shutdown Control |
 |:---:|:---:|
-| ![System Config](assets/config.png) | ![Exit Modal](assets/exit_modal.png) |
+| ![System Config](assets/radar.png) | ![Exit Modal](assets/config.png) |
 
 ### 🎥 Theme Sync Demo (Light / Dark Mode Transition)
 <video src="assets/theme_c.mp4" width="100%" controls muted autoplay loop></video>
