@@ -37,6 +37,14 @@ This project takes a different approach:
 |:---:|:---:|
 | ![Resume Vault](assets/vault.png) | ![Profile Details](assets/profile.png) |
 
+| 🤖 AI Copilot (Dark Mode) | 📊 Market Radar & Skills |
+|:---:|:---:|
+| ![AI Copilot](assets/copilot.png) | ![Market Radar](assets/radar.png) |
+
+| ⚙️ Config & System Diagnostics | 🔌 Exit & Shutdown Control |
+|:---:|:---:|
+| ![System Config](assets/config.png) | ![Exit Modal](assets/exit_modal.png) |
+
 ### 🎥 Theme Sync Demo (Light / Dark Mode Transition)
 <video src="assets/theme_c.mp4" width="100%" controls muted autoplay loop></video>
 
