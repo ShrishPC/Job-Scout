@@ -49,26 +49,63 @@ def get_local_llm(device=None):
         
     if local_llm is None or LLM_DEVICE != device:
         print(f"Loading Local AI Model ({PARSER_LLM_MODEL_NAME}) on {device} from {MODEL_CACHE}...")
+        
+        # CPU optimization: limit threads to avoid heavy context switching overhead
+        if device == "cpu":
+            try:
+                import multiprocessing
+                cpu_cores = multiprocessing.cpu_count()
+                optimal_threads = max(1, min(4, cpu_cores // 2))
+                torch.set_num_threads(optimal_threads)
+                print(f"Set PyTorch CPU threads to {optimal_threads} to avoid core contention.")
+            except Exception as thread_err:
+                print(f"Failed to limit CPU threads: {thread_err}")
+
+        # Configure loading precision
+        model_kwargs = {
+            "cache_dir": MODEL_CACHE,
+            "low_cpu_mem_usage": True
+        }
+        
+        if device == "cuda":
+            model_kwargs["torch_dtype"] = torch.float16
+        else:
+            model_kwargs["torch_dtype"] = torch.bfloat16  # bfloat16 is highly optimized for modern CPUs
+
         try:
             local_llm = pipeline(
                 "text-generation", 
                 model=PARSER_LLM_MODEL_NAME, 
                 device=0 if device == "cuda" else -1,
-                model_kwargs={"cache_dir": MODEL_CACHE}
+                model_kwargs=model_kwargs
             )
             LLM_DEVICE = device
             ACTIVE_LLM_MODEL_NAME = PARSER_LLM_MODEL_NAME
         except Exception as e:
             print(f"Failed to load {PARSER_LLM_MODEL_NAME} on {device}: {e}")
             print(f"Attempting fallback to TinyLlama/TinyLlama-1.1B-Chat-v1.0 on {device}...")
-            local_llm = pipeline(
-                "text-generation", 
-                model="TinyLlama/TinyLlama-1.1B-Chat-v1.0", 
-                device=0 if device == "cuda" else -1,
-                model_kwargs={"cache_dir": MODEL_CACHE}
-            )
-            LLM_DEVICE = device
-            ACTIVE_LLM_MODEL_NAME = "TinyLlama/TinyLlama-1.1B-Chat-v1.0"
+            
+            fallback_kwargs = {
+                "cache_dir": MODEL_CACHE,
+                "low_cpu_mem_usage": True
+            }
+            if device == "cuda":
+                fallback_kwargs["torch_dtype"] = torch.float16
+            else:
+                fallback_kwargs["torch_dtype"] = torch.bfloat16
+                
+            try:
+                local_llm = pipeline(
+                    "text-generation", 
+                    model="TinyLlama/TinyLlama-1.1B-Chat-v1.0", 
+                    device=0 if device == "cuda" else -1,
+                    model_kwargs=fallback_kwargs
+                )
+                LLM_DEVICE = device
+                ACTIVE_LLM_MODEL_NAME = "TinyLlama/TinyLlama-1.1B-Chat-v1.0"
+            except Exception as fallback_err:
+                print(f"Failed to load TinyLlama fallback: {fallback_err}")
+                raise fallback_err
     return local_llm
 
 def set_ai_device(device: str):
@@ -320,7 +357,7 @@ def generate_tailored_resume_service(resume_text: str, job_title: str, job_desc:
         llm = get_local_llm()
         res = llm(
             prompt, 
-            max_new_tokens=250, 
+            max_new_tokens=200, 
             return_full_text=False,
             repetition_penalty=1.2,
             do_sample=False
@@ -362,7 +399,7 @@ def generate_cover_letter_service(resume_text: str, job_title: str, company: str
         llm = get_local_llm()
         res = llm(
             prompt, 
-            max_new_tokens=250, 
+            max_new_tokens=180, 
             return_full_text=False,
             repetition_penalty=1.2,
             do_sample=False
