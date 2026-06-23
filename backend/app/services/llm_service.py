@@ -1,6 +1,7 @@
 import os
 import json
 import re
+import torch
 from app.services.llm_fallback import extract_structured_data_fallback, generate_embedding_fallback
 from sentence_transformers import SentenceTransformer
 from transformers import pipeline
