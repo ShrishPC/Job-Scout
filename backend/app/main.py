@@ -520,7 +520,8 @@ def restart_system():
     def reboot():
         time.sleep(0.5)
         parent_pid = os.getppid()
-        cmd = f"while kill -0 {parent_pid} 2>/dev/null; do sleep 0.1; done; nohup bash run.sh > /dev/null 2>&1 &"
+        project_root = "/home/rishav/job-scout"
+        cmd = f"while kill -0 {parent_pid} 2>/dev/null; do sleep 0.1; done; cd {project_root} && nohup bash run.sh > /dev/null 2>&1 &"
         subprocess.Popen(["bash", "-c", cmd], start_new_session=True)
         os.kill(parent_pid, signal.SIGINT)
 
