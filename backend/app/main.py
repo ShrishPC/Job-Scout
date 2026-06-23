@@ -406,9 +406,9 @@ def generate_ai(request: AIGenerateRequest, db: Session = Depends(get_db)):
             
         # 3. Generate
         if request.mode == "tailor":
-            result = generate_tailored_resume_service(resume_text, job_title, job_desc)
+            result = generate_tailored_resume_service(resume_text, job_title, job_desc, db=db)
         elif request.mode == "cover_letter":
-            result = generate_cover_letter_service(resume_text, job_title, company, job_desc)
+            result = generate_cover_letter_service(resume_text, job_title, company, job_desc, db=db)
         else:
             raise HTTPException(status_code=400, detail="Invalid generation mode. Choose 'tailor' or 'cover_letter'.")
             

@@ -16,7 +16,7 @@ def download():
     
     # 1. Read model configurations from environment
     EMBEDDING_MODEL_NAME = os.getenv("EMBEDDING_MODEL_NAME", "all-MiniLM-L6-v2")
-    PARSER_LLM_MODEL_NAME = os.getenv("PARSER_LLM_MODEL_NAME", "TinyLlama/TinyLlama-1.1B-Chat-v1.0")
+    PARSER_LLM_MODEL_NAME = os.getenv("PARSER_LLM_MODEL_NAME", "unsloth/Llama-3.2-3B-Instruct")
     
     # 2. Download sentence-transformers model (Embedding)
     try:
