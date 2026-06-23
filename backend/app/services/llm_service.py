@@ -307,6 +307,7 @@ def generate_tailored_resume_service(resume_text: str, job_title: str, job_desc:
         f"You are an expert resume coach and recruiter. Analyze the candidate's resume and the job description for the {job_title} role.\n"
         f"Use the retrieved relevant candidate history and reference jobs (RAG context) below to make the output highly accurate and keyword-optimized:\n"
         f"{rag_context}\n\n"
+        f"CRITICAL: Do NOT invent, assume, or hallucinate any facts, metrics, projects, dates, or credentials. Use ONLY the candidate's actual history from the provided resume text.\n\n"
         f"Tasks to perform:\n"
         f"1. Write a tailored 'Professional Summary' (2-3 sentences) from the candidate's perspective ('I'). Begin directly with impact and core credentials, aligning with the job description keywords. Avoid clichés like 'Highly motivated professional'.\n"
         f"2. Suggest exactly 3 bullet points for experience. Each bullet point MUST showcase measurable results or metrics based on the candidate's history, align with required job skills, and use strong action verbs (e.g. Optimized, Automated, Spearheaded).\n"
@@ -321,9 +322,8 @@ def generate_tailored_resume_service(resume_text: str, job_title: str, job_desc:
             prompt, 
             max_new_tokens=250, 
             return_full_text=False,
-            temperature=0.6,
             repetition_penalty=1.2,
-            do_sample=True
+            do_sample=False
         )
         return res[0]['generated_text'].strip()
     except Exception as e:
@@ -344,6 +344,7 @@ def generate_cover_letter_service(resume_text: str, job_title: str, company: str
         f"You are a professional resume writer. Write a custom, impact-driven cover letter from the candidate's perspective ('I') to the hiring manager for the role of {job_title} at {company}.\n"
         f"Use the retrieved relevant candidate history and reference jobs (RAG context) below to connect the candidate's achievements directly to the job needs:\n"
         f"{rag_context}\n\n"
+        f"CRITICAL: Do NOT invent, assume, or hallucinate any facts, metrics, projects, dates, or credentials. Use ONLY the candidate's actual history from the provided resume text.\n\n"
         f"Instructions:\n"
         f"- Do NOT use clichés like 'I am writing to express my interest.' Hook the reader immediately with an accomplishment or core value proposition.\n"
         f"- Highlight matching specific skills and projects from the candidate's history that align with the role requirements.\n"
@@ -363,9 +364,8 @@ def generate_cover_letter_service(resume_text: str, job_title: str, company: str
             prompt, 
             max_new_tokens=250, 
             return_full_text=False,
-            temperature=0.6,
             repetition_penalty=1.2,
-            do_sample=True
+            do_sample=False
         )
         return res[0]['generated_text'].strip()
     except Exception as e:
