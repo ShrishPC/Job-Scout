@@ -244,16 +244,16 @@ export default function Home() {
   return (
     <main className="h-dvh bg-retro-cream text-retro-black flex overflow-hidden font-sans">
       {/* Sidebar Navigation */}
-      <nav className="w-24 bg-retro-mint border-r-4 border-black flex flex-col items-center py-8 space-y-10 z-20 relative text-black overflow-y-auto overflow-x-hidden custom-scrollbar">
+      <nav className="w-24 bg-retro-mint border-r-4 border-black flex flex-col items-center py-4 space-y-6 z-20 relative text-black overflow-y-auto overflow-x-hidden custom-scrollbar">
         <div 
           onClick={() => setView('radar')}
-          className="w-14 h-14 bg-retro-yellow text-black border-3 border-black shadow-[3px_3px_0px_0px_rgba(0,0,0,1)] hover:translate-x-[1px] hover:translate-y-[1px] hover:shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] active:translate-x-[3px] active:translate-y-[3px] active:shadow-none flex items-center justify-center rounded-xl cursor-pointer transition-all duration-100"
+          className="w-12 h-12 bg-retro-yellow text-black border-3 border-black shadow-[3px_3px_0px_0px_rgba(0,0,0,1)] hover:translate-x-[1px] hover:translate-y-[1px] hover:shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] active:translate-x-[3px] active:translate-y-[3px] active:shadow-none flex items-center justify-center rounded-xl cursor-pointer transition-all duration-100"
           title="Market Intelligence Radar"
         >
-          <Radar className="w-8 h-8" />
+          <Radar className="w-6 h-6" />
         </div>
         
-        <div className="flex-1 flex flex-col space-y-8">
+        <div className="flex-1 flex flex-col space-y-4">
           <NavItem 
             icon={<Target className="w-6 h-6" />} 
             label="Hunt"
@@ -291,7 +291,7 @@ export default function Home() {
           />
         </div>
 
-        <div className="pt-6 border-t-3 border-black w-full flex flex-col items-center space-y-8">
+        <div className="pt-4 border-t-3 border-black w-full flex flex-col items-center space-y-4">
             <NavItem 
               icon={<SettingsIcon className="w-6 h-6" />} 
               label="Config" 
@@ -810,11 +810,11 @@ export default function Home() {
 
 function NavItem({ icon, label, active = false, onClick }: { icon: React.ReactNode, label: string, active?: boolean, onClick?: () => void }) {
   return (
-    <div className="flex flex-col items-center space-y-1.5 group">
+    <div className="flex flex-col items-center space-y-1 group">
       <div 
         onClick={onClick}
         className={`
-          w-13 h-13 rounded-xl cursor-pointer flex items-center justify-center transition-all duration-100 border-3 border-black
+          w-12 h-12 rounded-xl cursor-pointer flex items-center justify-center transition-all duration-100 border-3 border-black
           ${active 
             ? 'bg-retro-sand text-black shadow-none translate-x-[2px] translate-y-[2px]' 
             : 'bg-white text-black shadow-[3px_3px_0px_0px_rgba(0,0,0,1)] hover:translate-x-[1px] hover:translate-y-[1px] hover:shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] active:translate-x-[3px] active:translate-y-[3px] active:shadow-none'
@@ -823,7 +823,7 @@ function NavItem({ icon, label, active = false, onClick }: { icon: React.ReactNo
       >
         {icon}
       </div>
-      <span className={`text-[10px] font-black uppercase tracking-tight transition-colors ${active ? 'text-black font-extrabold' : 'text-black/60 group-hover:text-black'}`}>
+      <span className={`text-[10px] font-black uppercase tracking-tighter transition-colors ${active ? 'text-black font-extrabold' : 'text-black/60 group-hover:text-black'}`}>
         {label}
       </span>
     </div>
