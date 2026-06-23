@@ -196,7 +196,7 @@ const AITailorView = () => {
                 
                 {/* Active Resume Status Card */}
                 <div className="bg-white border-3 border-black rounded-xl p-5 shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] relative overflow-hidden">
-                    <div className="absolute right-0 top-0 bg-retro-mint border-b-3 border-l-3 border-black text-black dark:text-retro-yellow text-[9px] font-black uppercase tracking-wider px-3 py-1.5 shadow-none">
+                    <div className="absolute right-0 top-0 bg-retro-mint border-b-3 border-l-3 border-black active-profile-badge text-[9px] font-black uppercase tracking-wider px-3 py-1.5 shadow-none">
                         Active Profile
                     </div>
                     <h3 className="text-xs font-black uppercase tracking-widest text-black/60 mb-3 flex items-center">

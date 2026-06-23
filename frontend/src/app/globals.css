@@ -580,3 +580,11 @@ body {
 .dark .group:hover .group-hover\:text-black {
   color: var(--foreground) !important;
 }
+
+/* Custom Active Profile Badge text color mapping to prevent theme system conflicts */
+.active-profile-badge {
+  color: #000000 !important;
+}
+.dark .active-profile-badge {
+  color: var(--retro-yellow) !important;
+}
