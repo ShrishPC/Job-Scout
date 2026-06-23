@@ -8,7 +8,7 @@ from sqlalchemy.orm import Session
 from pydantic import BaseModel, field_validator
 from celery import Celery
 import os
-from app.models.models import Job, UserJobMatch, Resume
+from app.models.models import Job, UserJobMatch, Resume, AIGenerationCache
 from app.core.config import settings
 
 app = FastAPI(title="Job Scout API")
@@ -373,7 +373,7 @@ class AIGenerateRequest(BaseModel):
 @app.post("/ai/generate")
 def generate_ai(request: AIGenerateRequest, db: Session = Depends(get_db)):
     """
-    Generates a tailored resume recommendation or a custom cover letter locally using TinyLlama.
+    Generates a tailored resume recommendation or a custom cover letter locally using TinyLlama with caching.
     """
     try:
         # 1. Fetch Resume
@@ -404,7 +404,24 @@ def generate_ai(request: AIGenerateRequest, db: Session = Depends(get_db)):
         if not job_desc.strip():
             raise HTTPException(status_code=400, detail="Job description is required for generation.")
             
-        # 3. Generate
+        # Generate Cache Key based on inputs
+        import hashlib
+        inputs_str = f"resume_{resume.id}_job_{request.job_id or 'custom'}_{job_title}_{company}_{job_desc}_{request.mode}"
+        cache_key = hashlib.sha256(inputs_str.encode('utf-8')).hexdigest()
+        
+        # Check Cache
+        cache_entry = db.query(AIGenerationCache).filter(AIGenerationCache.cache_key == cache_key).first()
+        if cache_entry:
+            print(f"Cache hit for key {cache_key}!")
+            return {
+                "mode": request.mode,
+                "job_title": job_title,
+                "company": company,
+                "result": cache_entry.response_text,
+                "cached": True
+            }
+            
+        # 3. Generate if not cached
         if request.mode == "tailor":
             result = generate_tailored_resume_service(resume_text, job_title, job_desc, db=db)
         elif request.mode == "cover_letter":
@@ -412,15 +429,39 @@ def generate_ai(request: AIGenerateRequest, db: Session = Depends(get_db)):
         else:
             raise HTTPException(status_code=400, detail="Invalid generation mode. Choose 'tailor' or 'cover_letter'.")
             
+        # Store in Cache
+        try:
+            new_cache = AIGenerationCache(cache_key=cache_key, response_text=result)
+            db.add(new_cache)
+            db.commit()
+        except Exception as cache_err:
+            db.rollback()
+            print(f"Failed to cache generation: {cache_err}")
+            
         return {
             "mode": request.mode,
             "job_title": job_title,
             "company": company,
-            "result": result
+            "result": result,
+            "cached": False
         }
     except HTTPException as he:
         raise he
     except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+@app.post("/ai/cache/clear")
+@app.delete("/ai/cache")
+def clear_ai_cache(db: Session = Depends(get_db)):
+    """
+    Clears all cached AI generation responses.
+    """
+    try:
+        db.query(AIGenerationCache).delete()
+        db.commit()
+        return {"status": "success", "message": "AI generation cache cleared successfully."}
+    except Exception as e:
+        db.rollback()
         raise HTTPException(status_code=500, detail=str(e))
 
 class AIConfigRequest(BaseModel):

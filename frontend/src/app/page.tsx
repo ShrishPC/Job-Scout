@@ -53,6 +53,24 @@ export default function Home() {
     }
   };
 
+  const [clearingCache, setClearingCache] = useState(false);
+  const [cacheCleared, setCacheCleared] = useState(false);
+
+  const handleClearCache = async () => {
+    const apiHost = typeof window !== 'undefined' ? `${window.location.protocol}//${window.location.hostname}:8000` : 'http://127.0.0.1:8000';
+    setClearingCache(true);
+    setCacheCleared(false);
+    try {
+      await axios.post(`${apiHost}/ai/cache/clear`);
+      setCacheCleared(true);
+      setTimeout(() => setCacheCleared(false), 3000);
+    } catch (err) {
+      console.error("Failed to clear AI cache:", err);
+    } finally {
+      setClearingCache(false);
+    }
+  };
+
   const filteredJobs = useMemo(() => {
     let result = jobs.filter(job => {
       const kw = searchParams.keyword.toLowerCase();
@@ -749,7 +767,7 @@ export default function Home() {
                 <label className="text-xs font-black text-black/60 dark:text-white/60 uppercase tracking-[0.2em] block mb-2">
                   System Diagnostics
                 </label>
-                <div className="bg-white dark:bg-black/30 border-2 border-black rounded-lg p-3 text-[10px] font-mono text-black dark:text-white space-y-1.5 shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] dark:shadow-[2px_2px_0px_0px_#ffffff]">
+                <div className="bg-white dark:bg-black/30 border-2 border-black rounded-lg p-3 text-[10px] font-mono text-black dark:text-white space-y-1.5 shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] dark:shadow-[2px_2px_0px_0px_#ffffff] mb-4">
                   <div className="flex justify-between">
                     <span className="font-extrabold uppercase">Backend Server:</span>
                     <span className="text-retro-green font-black">ONLINE (8000)</span>
@@ -763,6 +781,15 @@ export default function Home() {
                     <span className="text-retro-red font-black">DEVELOPMENT</span>
                   </div>
                 </div>
+                
+                <button
+                  onClick={handleClearCache}
+                  disabled={clearingCache}
+                  className="w-full py-2.5 bg-retro-red text-white font-black text-xs uppercase tracking-wider rounded-xl border-3 border-black shadow-[3px_3px_0px_0px_rgba(0,0,0,1)] hover:translate-x-[1px] hover:translate-y-[1px] hover:shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] active:translate-x-[3px] active:translate-y-[3px] active:shadow-none transition-all disabled:opacity-50 flex items-center justify-center space-x-2 cursor-pointer"
+                >
+                  {clearingCache ? <Loader2 className="w-4 h-4 animate-spin" /> : "🗑️"}
+                  <span>{clearingCache ? "Clearing Cache..." : cacheCleared ? "Cache Cleared!" : "Clear AI Cache"}</span>
+                </button>
               </div>
             </div>
 
