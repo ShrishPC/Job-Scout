@@ -144,4 +144,43 @@ def extract_experience_from_job(description: str, **kwargs):
         print(f"Local LLM Error during experience extraction: {e}")
         return 0
 
+def generate_tailored_resume_service(resume_text: str, job_title: str, job_desc: str) -> str:
+    """
+    Generates a tailored Professional Summary and suggested resume edits using the local LLM.
+    """
+    truncated_resume = resume_text[:2000] if resume_text else ""
+    truncated_job = job_desc[:1500] if job_desc else ""
+    
+    system_prompt = f"You are an expert career consultant. Analyze the resume and the job description for a {job_title} role. Generate: 1) A tailored 'Professional Summary' (2-3 sentences) optimized for this job. 2) A list of specific skill adjustments or resume bullet points to emphasize. Respond ONLY with the tailored summary and suggestions. Do not add intro/outro remarks or conversational filler."
+    user_prompt = f"Candidate Resume:\n{truncated_resume}\n\nJob Description:\n{truncated_job}"
+    prompt = format_prompt(system_prompt, user_prompt)
+    
+    try:
+        llm = get_local_llm()
+        res = llm(prompt, max_new_tokens=400, return_full_text=False)
+        return res[0]['generated_text'].strip()
+    except Exception as e:
+        print(f"Local LLM Error during resume tailoring: {e}")
+        return "Could not generate resume tailoring recommendations with the local AI."
+
+def generate_cover_letter_service(resume_text: str, job_title: str, company: str, job_desc: str) -> str:
+    """
+    Generates a cover letter tailored to a job description using the local LLM.
+    """
+    truncated_resume = resume_text[:2000] if resume_text else ""
+    truncated_job = job_desc[:1500] if job_desc else ""
+    
+    system_prompt = f"You are an expert career consultant. Write a professional, personalized cover letter for the role of {job_title} at {company} based on the candidate's resume. Keep it concise (around 150-200 words), highlighting matching skills. Output ONLY the cover letter text, no explanations, no introduction/outro conversational filler."
+    user_prompt = f"Candidate Resume:\n{truncated_resume}\n\nJob Description:\n{truncated_job}"
+    prompt = format_prompt(system_prompt, user_prompt)
+    
+    try:
+        llm = get_local_llm()
+        res = llm(prompt, max_new_tokens=400, return_full_text=False)
+        return res[0]['generated_text'].strip()
+    except Exception as e:
+        print(f"Local LLM Error during cover letter generation: {e}")
+        return "Could not generate cover letter with the local AI."
+
+
 

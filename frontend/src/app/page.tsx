@@ -7,13 +7,14 @@ import KanbanBoard from '@/components/ui/KanbanBoard';
 import VaultView from '@/components/ui/VaultView';
 import ProfileView from '@/components/ui/ProfileView';
 import RadarView from '@/components/ui/RadarView';
+import AITailorView from '@/components/ui/AITailorView';
 import { Search, Briefcase, User, Settings as SettingsIcon, Play, Loader2, Sparkles, LogOut, Layout, Radar, Target, Database, RotateCw, Trash2, X, ChevronDown, SlidersHorizontal, MapPin } from 'lucide-react';
 import axios from 'axios';
 
 export default function Home() {
   const [parsedData, setParsedData] = useState<any>(null);
   const [jobs, setJobs] = useState<any[]>([]);
-  const [view, setView] = useState<'hunt' | 'board' | 'radar' | 'vault' | 'profile'>('hunt');
+  const [view, setView] = useState<'hunt' | 'board' | 'radar' | 'vault' | 'profile' | 'ai'>('hunt');
   const [theme, setTheme] = useState<'light' | 'dark' | 'system'>('system');
   const [showConfig, setShowConfig] = useState(false);
   const [scraping, setScraping] = useState(false);
@@ -239,6 +240,12 @@ export default function Home() {
             label="Profile" 
             active={view === 'profile'}
             onClick={() => setView('profile')}
+          />
+          <NavItem 
+            icon={<Sparkles className="w-6 h-6 text-retro-red" />} 
+            label="Copilot" 
+            active={view === 'ai'}
+            onClick={() => setView('ai')}
           />
         </div>
 
@@ -589,6 +596,16 @@ export default function Home() {
                  </div>
               </div>
               <ProfileView parsedData={parsedData} />
+            </div>
+          ) : view === 'ai' ? (
+            <div className="max-w-[1600px] mx-auto p-10 pb-20">
+              <div className="flex items-end justify-between mb-10 px-4">
+                 <div>
+                    <h2 className="text-3xl font-black text-black tracking-tighter uppercase italic">AI Copilot</h2>
+                    <p className="text-black/60 text-[11px] font-black uppercase tracking-[0.3em] mt-1">Local Resume Tailoring & Cover Letter Generator</p>
+                 </div>
+              </div>
+              <AITailorView />
             </div>
           ) : (
             <div className="max-w-[1600px] mx-auto p-10 pb-20">
