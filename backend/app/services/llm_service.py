@@ -155,11 +155,62 @@ def generate_embedding(text: str):
             
     return generate_embedding_fallback(text)
 
+def generate_embeddings_batch(texts: list[str]) -> list[list[float]]:
+    """
+    Generates vector embeddings for a list of texts in a single batch.
+    Much faster than encoding in a loop.
+    """
+    if not texts:
+        return []
+    if embedding_model:
+        try:
+            cleaned_texts = [t[:5000] if t else "" for t in texts]
+            embeddings = embedding_model.encode(cleaned_texts)
+            results = []
+            for emb in embeddings:
+                vec = [float(v) for v in emb]
+                if len(vec) < 768:
+                    vec.extend([0.0] * (768 - len(vec)))
+                results.append(vec[:768])
+            return results
+        except Exception as e:
+            print(f"Local Batch Embedding Error: {e}")
+            
+    return [generate_embedding(t) for t in texts]
+
+def extract_experience_heuristics(text: str) -> int | None:
+    if not text:
+        return None
+    text_lower = text.lower()
+    patterns = [
+        r'(\d+)\s*(?:-|to)\s*\d+\s*(?:years?|yrs?)\b.*experience',
+        r'(?:minimum|at least|req|requires?|required)\s*(\d+)\s*(?:years?|yrs?)\b',
+        r'(\d+)\s*(?:years?|yrs?)\b\s*(?:\+)?\s*(?:of)?\s*experience',
+        r'experience\s*(?:of|required)?\s*(\d+)\s*(?:years?|yrs?)'
+    ]
+    for pattern in patterns:
+        match = re.search(pattern, text_lower)
+        if match:
+            try:
+                val = int(match.group(1))
+                if 0 <= val <= 25:
+                    return val
+            except ValueError:
+                continue
+    return None
+
 def extract_experience_from_job(description: str, **kwargs):
     """
-    Uses local LLM to extract the minimum years of experience required.
+    Uses rule-based heuristics first for speed, falling back to local LLM only if needed.
     """
-    truncated_desc = description[:2000] if description else ""
+    if not description:
+        return 0
+        
+    heuristic_val = extract_experience_heuristics(description)
+    if heuristic_val is not None:
+        return heuristic_val
+        
+    truncated_desc = description[:2000]
     
     system_prompt = "You are a job parsing assistant. You must analyze the job description and output ONLY a single integer representing the minimum years of experience required. Do not output any other text, explanation, or units (e.g. write '3', not '3 years'). Default is 0."
     user_prompt = f"Job Description:\n{truncated_desc}"
@@ -198,10 +249,13 @@ def retrieve_rag_context(resume_text: str, job_desc: str, db: Session = None) ->
         
         if lines:
             job_embedding = generate_embedding(job_desc)
-            # Embed all lines and compute similarity
+            # Batch embed all lines and compute similarity
+            clean_texts = [clean for original, clean in lines]
+            line_embeddings = generate_embeddings_batch(clean_texts)
+            
             scored_lines = []
-            for original, clean in lines:
-                line_emb = generate_embedding(clean)
+            for idx, (original, clean) in enumerate(lines):
+                line_emb = line_embeddings[idx]
                 similarity = sum(a * b for a, b in zip(job_embedding[:384], line_emb[:384]))
                 scored_lines.append((similarity, original))
             
@@ -264,7 +318,7 @@ def generate_tailored_resume_service(resume_text: str, job_title: str, job_desc:
         llm = get_local_llm()
         res = llm(
             prompt, 
-            max_new_tokens=400, 
+            max_new_tokens=250, 
             return_full_text=False,
             temperature=0.6,
             repetition_penalty=1.2,
@@ -298,7 +352,7 @@ def generate_cover_letter_service(resume_text: str, job_title: str, company: str
         llm = get_local_llm()
         res = llm(
             prompt, 
-            max_new_tokens=400, 
+            max_new_tokens=250, 
             return_full_text=False,
             temperature=0.6,
             repetition_penalty=1.2,
