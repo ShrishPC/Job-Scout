@@ -18,9 +18,15 @@ interface ResumeListItem {
 
 interface VaultViewProps {
     onActiveProfileChanged: (profile: any) => void;
+    globalUploading?: boolean;
+    onStartUpload?: (file: File, onComplete?: (data: any) => void) => void;
 }
 
-const VaultView: React.FC<VaultViewProps> = ({ onActiveProfileChanged }) => {
+const VaultView: React.FC<VaultViewProps> = ({ 
+    onActiveProfileChanged,
+    globalUploading = false,
+    onStartUpload
+}) => {
     const [resumes, setResumes] = useState<ResumeListItem[]>([]);
     const [loading, setLoading] = useState(true);
     const [uploading, setUploading] = useState(false);
@@ -55,6 +61,15 @@ const VaultView: React.FC<VaultViewProps> = ({ onActiveProfileChanged }) => {
 
     const handleUpload = async () => {
         if (!uploadFile) return;
+
+        if (onStartUpload) {
+            onStartUpload(uploadFile, async (data) => {
+                setUploadFile(null);
+                await fetchResumes();
+            });
+            return;
+        }
+
         setUploading(true);
         setError(null);
 
@@ -208,16 +223,16 @@ const VaultView: React.FC<VaultViewProps> = ({ onActiveProfileChanged }) => {
 
                         <button
                             onClick={handleUpload}
-                            disabled={!uploadFile || uploading}
+                            disabled={!uploadFile || globalUploading || uploading}
                             className={`
                                 w-full py-3.5 rounded-lg font-black text-[11px] uppercase tracking-[0.2em] transition-all flex items-center justify-center space-x-2 border-3 border-black sync-profile-btn
-                                ${!uploadFile || uploading 
+                                ${!uploadFile || globalUploading || uploading 
                                     ? 'bg-gray-100 text-black/35 border-black/30 cursor-not-allowed shadow-none' 
                                     : 'bg-retro-yellow text-black shadow-[3px_3px_0px_0px_rgba(0,0,0,1)] hover:translate-x-[0.5px] hover:translate-y-[0.5px] hover:shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] active:translate-x-[2.5px] active:translate-y-[2.5px] active:shadow-none'
                                 }
                             `}
                         >
-                            {uploading ? (
+                            {(globalUploading || uploading) ? (
                                 <>
                                     <Loader2 className="w-4 h-4 animate-spin" />
                                     <span>Analyzing & Saving...</span>

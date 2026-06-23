@@ -8,7 +8,7 @@ import VaultView from '@/components/ui/VaultView';
 import ProfileView from '@/components/ui/ProfileView';
 import RadarView from '@/components/ui/RadarView';
 import AITailorView from '@/components/ui/AITailorView';
-import { Search, Briefcase, User, Settings as SettingsIcon, Play, Loader2, Sparkles, LogOut, Layout, Radar, Target, Database, RotateCw, Trash2, X, ChevronDown, SlidersHorizontal, MapPin } from 'lucide-react';
+import { Search, Briefcase, User, Settings as SettingsIcon, Play, Loader2, Sparkles, LogOut, Layout, Radar, Target, Database, RotateCw, Trash2, X, ChevronDown, SlidersHorizontal, MapPin, CheckCircle2, AlertCircle } from 'lucide-react';
 import axios from 'axios';
 
 export default function Home() {
@@ -29,6 +29,44 @@ export default function Home() {
   const [showLocationSuggestions, setShowLocationSuggestions] = useState(false);
   const [selectedWorkplaceTypes, setSelectedWorkplaceTypes] = useState<string[]>([]);
   const [device, setDevice] = useState<'cpu' | 'cuda'>('cpu');
+
+  // Global resume upload pipeline state
+  const [globalFile, setGlobalFile] = useState<File | null>(null);
+  const [globalUploading, setGlobalUploading] = useState(false);
+  const [globalUploadError, setGlobalUploadError] = useState<string | null>(null);
+  const [globalUploadSuccess, setGlobalUploadSuccess] = useState(false);
+
+  const startGlobalUpload = async (fileToUpload: File, onComplete?: (data: any) => void) => {
+    setGlobalFile(fileToUpload);
+    setGlobalUploading(true);
+    setGlobalUploadError(null);
+    setGlobalUploadSuccess(false);
+
+    const formData = new FormData();
+    formData.append('file', fileToUpload);
+
+    const apiHost = typeof window !== 'undefined' ? `${window.location.protocol}//${window.location.hostname}:8000` : 'http://127.0.0.1:8000';
+    try {
+      const response = await axios.post(`${apiHost}/resume/parse`, formData, {
+        headers: {
+          'Content-Type': 'multipart/form-data',
+        },
+      });
+      setGlobalUploadSuccess(true);
+      setGlobalUploading(false);
+      handleResumeSync(response.data);
+      if (onComplete) {
+        onComplete(response.data);
+      }
+      setTimeout(() => {
+        setGlobalFile(null);
+        setGlobalUploadSuccess(false);
+      }, 4000);
+    } catch (err: any) {
+      setGlobalUploadError(err.response?.data?.detail || 'Failed to upload and parse resume.');
+      setGlobalUploading(false);
+    }
+  };
 
   useEffect(() => {
     const fetchAIDevice = async () => {
@@ -456,7 +494,13 @@ export default function Home() {
                         </button>
                       )}
                     </div>
-                    <FileUpload onUploadSuccess={handleResumeSync} />
+                    <FileUpload 
+                      globalFile={globalFile}
+                      globalUploading={globalUploading}
+                      globalUploadError={globalUploadError}
+                      globalUploadSuccess={globalUploadSuccess}
+                      onStartUpload={startGlobalUpload}
+                    />
                   </section>
 
                   {parsedData && (
@@ -665,7 +709,11 @@ export default function Home() {
                     <p className="text-black/60 text-[11px] font-black uppercase tracking-[0.3em] mt-1">Manage your professional assets</p>
                  </div>
               </div>
-              <VaultView onActiveProfileChanged={handleResumeSync} />
+              <VaultView 
+                onActiveProfileChanged={handleResumeSync} 
+                globalUploading={globalUploading}
+                onStartUpload={(file, onComplete) => startGlobalUpload(file, onComplete)}
+              />
             </div>
           ) : view === 'profile' ? (
             <div className="max-w-[1600px] mx-auto p-10 pb-20">
@@ -899,6 +947,42 @@ export default function Home() {
               )}
             </div>
           </div>
+        </div>
+      )}
+      {/* Global Background Upload Progress Toast */}
+      {(globalUploading || globalUploadSuccess || globalUploadError) && (
+        <div className="fixed bottom-6 right-6 z-50 bg-white border-4 border-black p-4 rounded-xl shadow-[6px_6px_0px_0px_rgba(0,0,0,1)] animate-in slide-in-from-bottom-5 duration-300 w-80 max-w-sm flex items-center space-x-4">
+          <div className={`w-10 h-10 rounded-lg flex items-center justify-center border-2 border-black ${globalUploadSuccess ? 'bg-retro-green text-white' : globalUploadError ? 'bg-retro-red text-white' : 'bg-retro-yellow text-black'}`}>
+            {globalUploadSuccess ? (
+              <CheckCircle2 className="w-5 h-5" />
+            ) : globalUploadError ? (
+              <AlertCircle className="w-5 h-5" />
+            ) : (
+              <Loader2 className="w-5 h-5 animate-spin" />
+            )}
+          </div>
+          <div className="flex-1 min-w-0">
+            <h4 className="text-xs font-black uppercase tracking-wider text-black">
+              {globalUploadSuccess ? 'Analysis Complete' : globalUploadError ? 'Analysis Failed' : 'Analyzing Resume'}
+            </h4>
+            <p className="text-[10px] font-bold text-black/60 truncate mt-0.5">
+              {globalFile ? globalFile.name : 'Resume Document'}
+            </p>
+            {globalUploadError && (
+              <p className="text-[9px] font-black text-retro-red mt-1 truncate">{globalUploadError}</p>
+            )}
+          </div>
+          {globalUploadError && (
+            <button 
+              onClick={() => {
+                setGlobalFile(null);
+                setGlobalUploadError(null);
+              }}
+              className="text-[10px] font-black text-black/60 hover:text-retro-red uppercase tracking-wider border-2 border-black bg-retro-sand px-2 py-1 rounded"
+            >
+              Dismiss
+            </button>
+          )}
         </div>
       )}
     </main>
