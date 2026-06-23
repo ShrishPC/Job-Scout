@@ -216,6 +216,28 @@ def generate_embeddings_batch(texts: list[str]) -> list[list[float]]:
             
     return [generate_embedding(t) for t in texts]
 
+RESUME_LINE_EMBEDDING_CACHE = {}
+
+def get_cached_line_embeddings(clean_texts: list[str]) -> list[list[float]]:
+    """
+    Retrieves embeddings for a list of resume lines, using an in-memory cache to skip re-encoding.
+    """
+    global RESUME_LINE_EMBEDDING_CACHE
+    uncached_texts = []
+    
+    for text in clean_texts:
+        if text in RESUME_LINE_EMBEDDING_CACHE:
+            continue
+        uncached_texts.append(text)
+        
+    if uncached_texts:
+        print(f"RAG Cache: Encoding {len(uncached_texts)} new resume lines...")
+        new_embeddings = generate_embeddings_batch(uncached_texts)
+        for text, emb in zip(uncached_texts, new_embeddings):
+            RESUME_LINE_EMBEDDING_CACHE[text] = emb
+            
+    return [RESUME_LINE_EMBEDDING_CACHE[text] for text in clean_texts]
+
 def extract_experience_heuristics(text: str) -> int | None:
     if not text:
         return None
@@ -290,9 +312,9 @@ def retrieve_rag_context(resume_text: str, job_desc: str, db: Session = None) ->
         
         if lines:
             job_embedding = generate_embedding(job_desc)
-            # Batch embed all lines and compute similarity
+            # Batch embed all lines (using cache to avoid redundant CPU load) and compute similarity
             clean_texts = [clean for original, clean in lines]
-            line_embeddings = generate_embeddings_batch(clean_texts)
+            line_embeddings = get_cached_line_embeddings(clean_texts)
             
             scored_lines = []
             for idx, (original, clean) in enumerate(lines):
