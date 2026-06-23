@@ -304,11 +304,12 @@ def generate_tailored_resume_service(resume_text: str, job_title: str, job_desc:
     rag_context = retrieve_rag_context(resume_text, job_desc, db=db)
     
     system_prompt = (
-        f"You are an expert career coach. Analyze the candidate's resume and the job description for the {job_title} role.\n"
-        f"Use the following retrieved relevant candidate history and similar jobs (RAG context) to make your output highly accurate, tailored, and aligned with industry terminology:\n"
+        f"You are an expert resume coach and recruiter. Analyze the candidate's resume and the job description for the {job_title} role.\n"
+        f"Use the retrieved relevant candidate history and reference jobs (RAG context) below to make the output highly accurate and keyword-optimized:\n"
         f"{rag_context}\n\n"
-        f"Write a tailored 'Professional Summary' (2-3 sentences) from the candidate's perspective ('I'). "
-        f"Then, list 3 bullet point suggestions for resume experience bullet points based on the candidate's actual history and matching requirements.\n"
+        f"Tasks to perform:\n"
+        f"1. Write a tailored 'Professional Summary' (2-3 sentences) from the candidate's perspective ('I'). Begin directly with impact and core credentials, aligning with the job description keywords. Avoid clichés like 'Highly motivated professional'.\n"
+        f"2. Suggest exactly 3 bullet points for experience. Each bullet point MUST showcase measurable results or metrics based on the candidate's history, align with required job skills, and use strong action verbs (e.g. Optimized, Automated, Spearheaded).\n"
         f"Respond ONLY with: 1) the summary, and 2) the bullet point suggestions. Do not add intro/outro remarks or conversational filler."
     )
     user_prompt = f"Candidate Resume:\n{truncated_resume}\n\nJob Description:\n{truncated_job}"
@@ -340,10 +341,18 @@ def generate_cover_letter_service(resume_text: str, job_title: str, company: str
     rag_context = retrieve_rag_context(resume_text, job_desc, db=db)
     
     system_prompt = (
-        f"You are a professional resume writer. Write a custom cover letter from the candidate's perspective ('I') to the hiring manager for the role of {job_title} at {company}.\n"
-        f"Use the following retrieved relevant candidate history and similar jobs (RAG context) to write a highly specific, tailored cover letter:\n"
+        f"You are a professional resume writer. Write a custom, impact-driven cover letter from the candidate's perspective ('I') to the hiring manager for the role of {job_title} at {company}.\n"
+        f"Use the retrieved relevant candidate history and reference jobs (RAG context) below to connect the candidate's achievements directly to the job needs:\n"
         f"{rag_context}\n\n"
-        f"Keep the cover letter brief (under 150 words). Highlight matching skills from the resume. Respond ONLY with the cover letter body text, do not add conversational remarks, header, or extra text."
+        f"Instructions:\n"
+        f"- Do NOT use clichés like 'I am writing to express my interest.' Hook the reader immediately with an accomplishment or core value proposition.\n"
+        f"- Highlight matching specific skills and projects from the candidate's history that align with the role requirements.\n"
+        f"- Keep the length under 180 words.\n"
+        f"Format:\n"
+        f"Dear Hiring Manager,\n\n"
+        f"[Body Paragraphs]\n\n"
+        f"Best regards,\n"
+        f"[Candidate Name]"
     )
     user_prompt = f"Candidate Resume:\n{truncated_resume}\n\nJob Description:\n{truncated_job}"
     prompt = format_prompt(system_prompt, user_prompt)
