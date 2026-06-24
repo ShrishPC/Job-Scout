@@ -21,19 +21,50 @@ interface ActiveResume {
     };
 }
 
-const AITailorView = () => {
+interface AITailorViewProps {
+    generating: boolean;
+    result: string;
+    error: string | null;
+    setError: (error: string | null) => void;
+    selectedJobId: string;
+    setSelectedJobId: (id: string) => void;
+    isCustomJob: boolean;
+    setIsCustomJob: (isCustom: boolean) => void;
+    customTitle: string;
+    setCustomTitle: (title: string) => void;
+    customCompany: string;
+    setCustomCompany: (company: string) => void;
+    customDesc: string;
+    setCustomDesc: (desc: string) => void;
+    mode: 'tailor' | 'cover_letter';
+    setMode: (mode: 'tailor' | 'cover_letter') => void;
+    onGenerate: (payload: any) => Promise<void>;
+}
+
+const AITailorView: React.FC<AITailorViewProps> = ({
+    generating,
+    result,
+    error,
+    setError,
+    selectedJobId,
+    setSelectedJobId,
+    isCustomJob,
+    setIsCustomJob,
+    customTitle,
+    setCustomTitle,
+    customCompany,
+    setCustomCompany,
+    customDesc,
+    setCustomDesc,
+    mode,
+    setMode,
+    onGenerate
+}) => {
     const [jobs, setJobs] = useState<BoardJob[]>([]);
     const [activeResume, setActiveResume] = useState<ActiveResume | null>(null);
     const [loadingJobs, setLoadingJobs] = useState(true);
-    
-    // Form states
-    const [selectedJobId, setSelectedJobId] = useState<string>('');
-    const [isCustomJob, setIsCustomJob] = useState(false);
-    const [customTitle, setCustomTitle] = useState('');
-    const [customCompany, setCustomCompany] = useState('');
-    const [customDesc, setCustomDesc] = useState('');
-    const [mode, setMode] = useState<'tailor' | 'cover_letter'>('tailor');
-    
+    const [copied, setCopied] = useState(false);
+
     const [dropdownOpen, setDropdownOpen] = useState(false);
     const [searchQuery, setSearchQuery] = useState('');
     const dropdownRef = React.useRef<HTMLDivElement>(null);
@@ -49,12 +80,6 @@ const AITailorView = () => {
             document.removeEventListener("mousedown", handleClickOutside);
         };
     }, []);
-    
-    // Output states
-    const [generating, setGenerating] = useState(false);
-    const [result, setResult] = useState<string>('');
-    const [error, setError] = useState<string | null>(null);
-    const [copied, setCopied] = useState(false);
 
     const apiHost = typeof window !== 'undefined' ? `${window.location.protocol}//${window.location.hostname}:8000` : 'http://127.0.0.1:8000';
 
@@ -91,9 +116,7 @@ const AITailorView = () => {
     }, []);
 
     const handleGenerate = async () => {
-        setGenerating(true);
         setError(null);
-        setResult('');
         setCopied(false);
 
         const payload: any = {
@@ -103,7 +126,6 @@ const AITailorView = () => {
         if (isCustomJob) {
             if (!customTitle.trim() || !customDesc.trim()) {
                 setError("Please fill in the Job Title and Job Description.");
-                setGenerating(false);
                 return;
             }
             payload.custom_job_title = customTitle;
@@ -112,55 +134,20 @@ const AITailorView = () => {
         } else {
             if (!selectedJobId) {
                 setError("Please select a job from the list or check 'Use Custom Job'.");
-                setGenerating(false);
                 return;
             }
             const selectedJob = jobs.find(j => j.id.toString() === selectedJobId);
             if (!selectedJob || !selectedJob.description || !selectedJob.description.trim()) {
                 setError("The selected job does not have a description in the database. Please click the checkbox above to enter the job details manually, or add a description in the Kanban board.");
-                setGenerating(false);
                 return;
             }
             payload.job_id = parseInt(selectedJobId);
         }
 
         try {
-            const response = await fetch(`${apiHost}/ai/generate`, {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json'
-                },
-                body: JSON.stringify(payload)
-            });
-
-            if (!response.ok) {
-                const errData = await response.json().catch(() => ({ detail: "Unknown error occurred" }));
-                throw new Error(errData.detail || `Response error status: ${response.status}`);
-            }
-
-            const reader = response.body?.getReader();
-            if (!reader) {
-                throw new Error("Failed to initialize response reader.");
-            }
-
-            const decoder = new TextDecoder();
-            let done = false;
-            let accumulated = '';
-
-            while (!done) {
-                const { value, done: doneReading } = await reader.read();
-                done = doneReading;
-                if (value) {
-                    const chunk = decoder.decode(value, { stream: !done });
-                    accumulated += chunk;
-                    setResult(accumulated);
-                }
-            }
-        } catch (err: any) {
-            console.error("Failed to generate AI assets:", err);
-            setError(err.message || "Local AI Generation failed. Ensure you have an active resume uploaded in the Vault.");
-        } finally {
-            setGenerating(false);
+            await onGenerate(payload);
+        } catch (err) {
+            // Error is handled by onGenerate in the parent
         }
     };
 

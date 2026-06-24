@@ -36,6 +36,17 @@ export default function Home() {
   const [globalUploadError, setGlobalUploadError] = useState<string | null>(null);
   const [globalUploadSuccess, setGlobalUploadSuccess] = useState(false);
 
+  // Global AI Copilot generator state
+  const [aiGenerating, setAiGenerating] = useState(false);
+  const [aiResult, setAiResult] = useState('');
+  const [aiError, setAiError] = useState<string | null>(null);
+  const [aiMode, setAiMode] = useState<'tailor' | 'cover_letter'>('tailor');
+  const [aiSelectedJobId, setAiSelectedJobId] = useState<string>('');
+  const [aiIsCustomJob, setAiIsCustomJob] = useState(false);
+  const [aiCustomTitle, setAiCustomTitle] = useState('');
+  const [aiCustomCompany, setAiCustomCompany] = useState('');
+  const [aiCustomDesc, setAiCustomDesc] = useState('');
+
   const startGlobalUpload = async (fileToUpload: File, onComplete?: (data: any) => void) => {
     setGlobalFile(fileToUpload);
     setGlobalUploading(true);
@@ -65,6 +76,53 @@ export default function Home() {
     } catch (err: any) {
       setGlobalUploadError(err.response?.data?.detail || 'Failed to upload and parse resume.');
       setGlobalUploading(false);
+    }
+  };
+
+  const handleAIGenerate = async (payload: any) => {
+    setAiGenerating(true);
+    setAiError(null);
+    setAiResult('');
+
+    const apiHost = typeof window !== 'undefined' ? `${window.location.protocol}//${window.location.hostname}:8000` : 'http://127.0.0.1:8000';
+    try {
+      const response = await fetch(`${apiHost}/ai/generate`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify(payload)
+      });
+
+      if (!response.ok) {
+        const errData = await response.json().catch(() => ({ detail: "Unknown error occurred" }));
+        throw new Error(errData.detail || `Response error status: ${response.status}`);
+      }
+
+      const reader = response.body?.getReader();
+      if (!reader) {
+        throw new Error("Failed to initialize response reader.");
+      }
+
+      const decoder = new TextDecoder();
+      let done = false;
+      let accumulated = '';
+
+      while (!done) {
+        const { value, done: doneReading } = await reader.read();
+        done = doneReading;
+        if (value) {
+          const chunk = decoder.decode(value, { stream: !done });
+          accumulated += chunk;
+          setAiResult(accumulated);
+        }
+      }
+    } catch (err: any) {
+      console.error("Failed to generate AI assets:", err);
+      setAiError(err.message || "Local AI Generation failed. Ensure you have an active resume uploaded in the Vault.");
+      throw err;
+    } finally {
+      setAiGenerating(false);
     }
   };
 
@@ -733,7 +791,25 @@ export default function Home() {
                     <p className="text-black/60 text-[11px] font-black uppercase tracking-[0.3em] mt-1">Local Resume Tailoring & Cover Letter Generator</p>
                  </div>
               </div>
-              <AITailorView />
+              <AITailorView 
+                generating={aiGenerating}
+                result={aiResult}
+                error={aiError}
+                setError={setAiError}
+                mode={aiMode}
+                setMode={setAiMode}
+                selectedJobId={aiSelectedJobId}
+                setSelectedJobId={setAiSelectedJobId}
+                isCustomJob={aiIsCustomJob}
+                setIsCustomJob={setAiIsCustomJob}
+                customTitle={aiCustomTitle}
+                setCustomTitle={setAiCustomTitle}
+                customCompany={aiCustomCompany}
+                setCustomCompany={setAiCustomCompany}
+                customDesc={aiCustomDesc}
+                setCustomDesc={setAiCustomDesc}
+                onGenerate={handleAIGenerate}
+              />
             </div>
           ) : (
             <div className="max-w-[1600px] mx-auto p-10 pb-20">
