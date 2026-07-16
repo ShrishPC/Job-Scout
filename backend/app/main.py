@@ -1,4 +1,4 @@
-from fastapi import FastAPI, UploadFile, File, HTTPException, BackgroundTasks, Depends, Request
+from fastapi import FastAPI, UploadFile, File, HTTPException, BackgroundTasks, Depends, Request, Header
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import StreamingResponse
 from app.services.resume_service import parse_resume_to_markdown
@@ -51,6 +51,7 @@ app.add_middleware(
 class MatchRequest(BaseModel):
     embedding: list[float]
     limit: int = 10
+    skip: int = 0
     workplace_types: list[str] | None = None
 
     @field_validator('embedding')
@@ -127,7 +128,7 @@ def get_matches(request: MatchRequest, db: Session = Depends(get_db)):
     """
     print(f"Match request received. Embedding size: {len(request.embedding)}")
     try:
-        matches = get_job_matches(db, request.embedding, request.limit, request.workplace_types)
+        matches = get_job_matches(db, request.embedding, request.limit, request.skip, request.workplace_types)
         print(f"Returning {len(matches)} matches.")
         return matches
     except Exception as e:
@@ -634,9 +635,15 @@ def restart_system():
     threading.Thread(target=reboot).start()
     return {"status": "success", "message": "System restart initiated."}
 
+def verify_admin_key(x_admin_key: str | None = Header(None)):
+    expected_key = os.getenv("ADMIN_API_KEY", "supersecretadmin123")
+    if x_admin_key != expected_key:
+        raise HTTPException(status_code=403, detail="Invalid or missing Admin API Key")
+    return True
+
 @app.get("/api/admin/stats")
 @cache(expire=15)
-def get_admin_stats(db: Session = Depends(get_db)):
+def get_admin_stats(db: Session = Depends(get_db), authorized: bool = Depends(verify_admin_key)):
     """
     Returns high-level telemetry stats for the dashboard.
     """
