@@ -146,7 +146,8 @@ export default function AdminDashboard() {
         <div className={`w-full max-w-sm bg-black p-6 ${brutalBorder} shadow-[6px_6px_0px_0px_#FF5500]`}>
           <div className="flex flex-col items-center mb-6 border-b-2 border-white pb-4">
             <div className={`p-3 bg-[#FF5500] mb-3 border-2 border-white`}>
-              <Shield className="w-8 h-8 text-white" strokeWidth={3} />
+              {/* FIXED CONTRAST: Changed text-white to text-black on orange background */}
+              <Shield className="w-8 h-8 text-black" strokeWidth={3} />
             </div>
             <h1 className="text-2xl font-black text-white uppercase tracking-tight">Admin Gateway</h1>
           </div>
@@ -162,13 +163,14 @@ export default function AdminDashboard() {
                 autoFocus
               />
             </div>
-            {error && <p className="text-white bg-[#FF5500] p-2 font-bold uppercase text-xs text-center tracking-widest border-2 border-white">{error}</p>}
+            {/* FIXED CONTRAST: Changed text-white to text-black on orange background */}
+            {error && <p className="text-black bg-[#FF5500] p-2 font-bold uppercase text-xs text-center tracking-widest border-2 border-white">{error}</p>}
             <button 
               type="submit" 
               disabled={loading || !adminKey}
               className={`w-full bg-[#FFC900] text-black font-black py-3 px-3 uppercase tracking-widest text-sm border-2 border-white shadow-[4px_4px_0px_0px_#FFFFFF] ${getBrutalHover('#FFFFFF')} disabled:opacity-50 disabled:cursor-not-allowed flex justify-center items-center gap-2`}
             >
-              {loading ? <RefreshCw className="w-4 h-4 animate-spin" strokeWidth={3} /> : 'Unlock'}
+              {loading ? <RefreshCw className="w-4 h-4 animate-spin text-black" strokeWidth={3} /> : 'Unlock'}
             </button>
           </form>
         </div>
@@ -195,11 +197,12 @@ export default function AdminDashboard() {
                 <RefreshCw className="w-3 h-3 text-[#FF5500]" strokeWidth={3} /> {lastRefreshed.toLocaleTimeString()}
               </span>
             )}
+            {/* FIXED CONTRAST: Changed text-white to text-black on orange background */}
             <button 
               onClick={handleLogout}
-              className={`flex items-center gap-1.5 px-4 py-2 bg-[#FF5500] text-white uppercase font-black tracking-widest border-2 border-white shadow-[3px_3px_0px_0px_#FFFFFF] ${getBrutalHover('#FFFFFF')} text-xs`}
+              className={`flex items-center gap-1.5 px-4 py-2 bg-[#FF5500] text-black uppercase font-black tracking-widest border-2 border-white shadow-[3px_3px_0px_0px_#FFFFFF] ${getBrutalHover('#FFFFFF')} text-xs`}
             >
-              <LogOut className="w-3 h-3" strokeWidth={3} /> Exit
+              <LogOut className="w-3 h-3 text-black" strokeWidth={3} /> Exit
             </button>
           </div>
         </div>
@@ -270,7 +273,7 @@ export default function AdminDashboard() {
                     }}
                     className={`w-full bg-[#FF90E8] text-black font-black py-3 px-3 uppercase tracking-widest text-xs border-2 border-white shadow-[4px_4px_0px_0px_#FFFFFF] ${getBrutalHover('#FFFFFF')} flex justify-center items-center gap-2`}
                   >
-                    <RefreshCw className="w-4 h-4" strokeWidth={3} /> Clear Cache
+                    <RefreshCw className="w-4 h-4 text-black" strokeWidth={3} /> Clear Cache
                   </button>
                   <button 
                     onClick={async () => {
@@ -281,7 +284,7 @@ export default function AdminDashboard() {
                     }}
                     className={`w-full bg-[#FFC900] text-black font-black py-3 px-3 uppercase tracking-widest text-xs border-2 border-white shadow-[4px_4px_0px_0px_#FFFFFF] ${getBrutalHover('#FFFFFF')} flex justify-center items-center gap-2`}
                   >
-                    <Database className="w-4 h-4" strokeWidth={3} /> Scrape
+                    <Database className="w-4 h-4 text-black" strokeWidth={3} /> Scrape
                   </button>
                   <button 
                     onClick={async () => {
@@ -292,7 +295,7 @@ export default function AdminDashboard() {
                     }}
                     className={`w-full bg-[#23A094] text-black font-black py-3 px-3 uppercase tracking-widest text-xs border-2 border-white shadow-[4px_4px_0px_0px_#FFFFFF] ${getBrutalHover('#FFFFFF')} flex justify-center items-center gap-2`}
                   >
-                    <Cpu className="w-4 h-4" strokeWidth={3} /> GPU Mode
+                    <Cpu className="w-4 h-4 text-black" strokeWidth={3} /> GPU Mode
                   </button>
                 </div>
               </div>
