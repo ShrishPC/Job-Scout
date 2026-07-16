@@ -76,12 +76,13 @@ def generate_embedding_fallback(text: str):
     """
     if not nlp:
         # Final fallback: Return dummy vector
-        return [0.0] * 768
+        return [0.0] * 384
         
     doc = nlp(text[:10000]) # Limit to 10k chars
-    # Spacy sm model has 96 dimensions, we'll pad to 768 to match our DB schema
+    # Spacy sm model has 96 dimensions, we'll pad to 384 to match our DB schema
     # Convert numpy floats to native python floats for JSON serialization
     vec = [float(v) for v in doc.vector]
-    if len(vec) < 768:
-        vec.extend([0.0] * (768 - len(vec)))
-    return vec[:768]
+    if len(vec) < 384:
+        vec.extend([0.0] * (384 - len(vec)))
+    return vec[:384]
+

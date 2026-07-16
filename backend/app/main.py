@@ -46,9 +46,10 @@ class MatchRequest(BaseModel):
     def validate_embedding(cls, v):
         if not v:
             raise ValueError("Embedding list cannot be empty")
-        if len(v) != 768:
-            raise ValueError(f"Embedding must be exactly 768 dimensions (got {len(v)})")
+        if len(v) != 384:
+            raise ValueError(f"Embedding must be exactly 384 dimensions (got {len(v)})")
         return v
+
 
 class StatusUpdate(BaseModel):
     job_id: int

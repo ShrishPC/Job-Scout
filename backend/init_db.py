@@ -10,8 +10,13 @@ def init_db():
             conn.execute(text("CREATE EXTENSION IF NOT EXISTS vector"))
             conn.commit()
         
+        # Drop tables to migrate vector columns to 384 dimensions cleanly
+        print("Dropping existing tables to migrate to 384d vector schema...")
+        Base.metadata.drop_all(bind=engine)
+        
         # Create tables
         Base.metadata.create_all(bind=engine)
+
         
         # Check and dynamically add workplace_type column if it's missing (auto-migration)
         with engine.connect() as conn:

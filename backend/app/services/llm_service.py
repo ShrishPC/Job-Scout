@@ -184,11 +184,7 @@ def generate_embedding(text: str):
             cleaned_text = text[:10000] if text else ""
             embedding = embedding_model.encode(cleaned_text)
             vec = [float(v) for v in embedding]
-            
-            # Pad 384d to 768d to match our existing DB schema safely.
-            if len(vec) < 768:
-                vec.extend([0.0] * (768 - len(vec)))
-            return vec[:768]
+            return vec[:384]
         except Exception as e:
             print(f"Local Embedding Error: {e}")
             
@@ -208,14 +204,13 @@ def generate_embeddings_batch(texts: list[str]) -> list[list[float]]:
             results = []
             for emb in embeddings:
                 vec = [float(v) for v in emb]
-                if len(vec) < 768:
-                    vec.extend([0.0] * (768 - len(vec)))
-                results.append(vec[:768])
+                results.append(vec[:384])
             return results
         except Exception as e:
             print(f"Local Batch Embedding Error: {e}")
             
     return [generate_embedding(t) for t in texts]
+
 
 RESUME_LINE_EMBEDDING_CACHE = {}
 
