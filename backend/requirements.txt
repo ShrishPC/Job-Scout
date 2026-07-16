@@ -22,3 +22,4 @@ scrapy
 feedparser
 
 psutil
+fastapi-cache2[redis]

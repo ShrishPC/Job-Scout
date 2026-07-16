@@ -1,4 +1,4 @@
-from fastapi import FastAPI, UploadFile, File, HTTPException, BackgroundTasks, Depends
+from fastapi import FastAPI, UploadFile, File, HTTPException, BackgroundTasks, Depends, Request
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import StreamingResponse
 from app.services.resume_service import parse_resume_to_markdown
@@ -22,8 +22,19 @@ import psutil
 import os
 from app.models.models import Job, UserJobMatch, Resume, AIGenerationCache
 from app.core.config import settings
+from fastapi_cache import FastAPICache
+from fastapi_cache.backends.redis import RedisBackend
+from fastapi_cache.decorator import cache
+from redis import asyncio as aioredis
 
 app = FastAPI(title="Job Scout API")
+
+@app.on_event("startup")
+async def startup():
+    redis_url = os.getenv("REDIS_URL", "redis://redis:6379/0")
+    # For local testing, ensure it gracefully fails if redis is absent
+    redis = aioredis.from_url(redis_url, encoding="utf8", decode_responses=True)
+    FastAPICache.init(RedisBackend(redis), prefix="fastapi-cache")
 
 # Add CORS middleware to allow frontend communication securely
 origins = [o.strip() for o in settings.CORS_ALLOWED_ORIGINS.split(",") if o.strip()]
@@ -109,9 +120,10 @@ def get_board(db: Session = Depends(get_db)):
         raise HTTPException(status_code=500, detail=str(e))
 
 @app.post("/jobs/matches")
+@cache(expire=60)
 def get_matches(request: MatchRequest, db: Session = Depends(get_db)):
     """
-    Returns top job matches for a given embedding.
+    Returns top job matches for a given embedding. (Cached via Redis for 60 seconds)
     """
     print(f"Match request received. Embedding size: {len(request.embedding)}")
     try:
@@ -623,6 +635,7 @@ def restart_system():
     return {"status": "success", "message": "System restart initiated."}
 
 @app.get("/api/admin/stats")
+@cache(expire=15)
 def get_admin_stats(db: Session = Depends(get_db)):
     """
     Returns high-level telemetry stats for the dashboard.
