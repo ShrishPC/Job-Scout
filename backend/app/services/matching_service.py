@@ -88,6 +88,8 @@ def get_job_matches(db: Session, user_embedding: list, limit: int = 10, workplac
                 "date_posted": row.date_posted or "Recent",
                 "experience_required": row.experience_required,
                 "workplace_type": row.workplace_type if row.workplace_type else "unspecified",
+                "vector_score": float(row.vector_score) if row.vector_score is not None else 0.0,
+                "keyword_score": float(row.keyword_score) if row.keyword_score is not None else 0.0,
                 "match_score": float(row.match_score) if row.match_score is not None else 0.0,
                 "is_rejected": row.status == 'rejected'
             })
