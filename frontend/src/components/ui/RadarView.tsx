@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useMemo } from 'react';
-import { Target, TrendingUp, AlertTriangle, CheckCircle, BarChart3, PieChart, ShieldAlert, Sparkles, MapPin, Zap } from 'lucide-react';
+import { Target, TrendingUp, AlertTriangle, CheckCircle, BarChart3, PieChart, ShieldAlert, Sparkles, MapPin, Zap, Crosshair } from 'lucide-react';
 
 interface Job {
     id: number;
@@ -101,16 +101,25 @@ const RadarView: React.FC<RadarViewProps> = ({ jobs, parsedData }) => {
             'react', 'next.js', 'typescript', 'javascript', 'nodejs', 'python', 'django', 'fastapi',
             'docker', 'kubernetes', 'aws', 'gcp', 'postgresql', 'mongodb', 'redis', 'graphql', 'rest api',
             'github', 'ci/cd', 'tailwind', 'redux', 'sql', 'nosql', 'terraform', 'graphql', 'css', 'html',
-            'microservices', 'serverless', 'unit testing', 'agile', 'scrum', 'prompt engineering', 'pytorch', 'tensorflow'
+            'microservices', 'serverless', 'unit testing', 'agile', 'scrum', 'prompt engineering', 'pytorch', 'tensorflow',
+            'java', 'spring', 'go', 'rust', 'c++', 'c#'
         ];
 
         const skillMatches: Record<string, number> = {};
         const skillGaps: Record<string, number> = {};
+        const allSkillFreq: Record<string, number> = {};
 
         // Track how often these skills appear in scraped jobs
         jobs.forEach(job => {
             const desc = job.description?.toLowerCase() || '';
             
+            // Check all popular skills for overall frequency
+            popularIndustrySkills.forEach(skill => {
+                if (desc.includes(skill)) {
+                    allSkillFreq[skill] = (allSkillFreq[skill] || 0) + 1;
+                }
+            });
+
             // 1. Check user skills
             userSkills.forEach(skill => {
                 if (desc.includes(skill)) {
@@ -126,12 +135,14 @@ const RadarView: React.FC<RadarViewProps> = ({ jobs, parsedData }) => {
             });
         });
 
+        const total = Math.max(jobs.length, 1);
+
         // Format and sort
         const userSkillsMatched = Object.entries(skillMatches)
             .map(([name, count]) => ({
                 name,
                 count,
-                percentage: Math.round((count / Math.max(jobs.length, 1)) * 100)
+                percentage: Math.round((count / total) * 100)
             }))
             .sort((a, b) => b.count - a.count);
 
@@ -139,17 +150,167 @@ const RadarView: React.FC<RadarViewProps> = ({ jobs, parsedData }) => {
             .map(([name, count]) => ({
                 name,
                 count,
-                percentage: Math.round((count / Math.max(jobs.length, 1)) * 100)
+                percentage: Math.round((count / total) * 100)
             }))
             .filter(gap => gap.percentage >= 15) // Only display skills that appear in at least 15% of job posts
             .sort((a, b) => b.count - a.count)
             .slice(0, 5); // Limit to top 5 recommendations
 
+        // Top 6 skills overall for the Radar Chart
+        const top6Overall = Object.entries(allSkillFreq)
+            .sort((a, b) => b[1] - a[1])
+            .slice(0, 6)
+            .map(([name, count]) => {
+                const marketPct = Math.round((count / total) * 100);
+                const userHas = userSkills.includes(name);
+                // If user has it, their score is 100. If they don't, it's 0.
+                const userPct = userHas ? 100 : 0;
+                return { name, marketPct, userPct };
+            });
+
+        // If we don't have enough data to form a polygon (needs at least 3, ideally 6)
+        while (top6Overall.length > 0 && top6Overall.length < 6) {
+            top6Overall.push({ name: 'N/A', marketPct: 0, userPct: 0 });
+        }
+
         return {
             userSkillsMatched,
-            gapsDiscovered
+            gapsDiscovered,
+            radarData: top6Overall
         };
     }, [jobs, parsedData]);
+
+    // Render Custom Brutalist SVG Radar Chart
+    const renderRadarChart = () => {
+        if (!skillsAnalysis || skillsAnalysis.radarData.length < 3) return null;
+
+        const size = 320;
+        const center = size / 2;
+        const radius = 100;
+        const data = skillsAnalysis.radarData;
+        const numSides = data.length;
+        const angleStep = (Math.PI * 2) / numSides;
+
+        // Calculate points for polygons
+        const getPolygonPoints = (dataKey: 'marketPct' | 'userPct' | 'bg') => {
+            return data.map((item, i) => {
+                const angle = i * angleStep - Math.PI / 2; // start at top
+                const value = dataKey === 'bg' ? 100 : item[dataKey];
+                const r = (value / 100) * radius;
+                const x = center + r * Math.cos(angle);
+                const y = center + r * Math.sin(angle);
+                return `${x},${y}`;
+            }).join(' ');
+        };
+
+        const bgPoints = getPolygonPoints('bg');
+        const marketPoints = getPolygonPoints('marketPct');
+        const userPoints = getPolygonPoints('userPct');
+
+        return (
+            <div className="relative w-full flex flex-col items-center justify-center pt-8">
+                <svg width={size} height={size} className="overflow-visible">
+                    {/* Background Web */}
+                    <polygon points={bgPoints} fill="#fff" stroke="#000" strokeWidth="3" />
+                    
+                    {/* Inner Web Lines (Ticks) */}
+                    {[0.25, 0.5, 0.75].map((scale, i) => {
+                        const tickPoints = data.map((_, idx) => {
+                            const angle = idx * angleStep - Math.PI / 2;
+                            const r = radius * scale;
+                            return `${center + r * Math.cos(angle)},${center + r * Math.sin(angle)}`;
+                        }).join(' ');
+                        return <polygon key={i} points={tickPoints} fill="none" stroke="#000" strokeWidth="1" strokeDasharray="4 4" opacity="0.3" />;
+                    })}
+
+                    {/* Spokes */}
+                    {data.map((_, i) => {
+                        const angle = i * angleStep - Math.PI / 2;
+                        const x = center + radius * Math.cos(angle);
+                        const y = center + radius * Math.sin(angle);
+                        return <line key={i} x1={center} y1={center} x2={x} y2={y} stroke="#000" strokeWidth="2" />;
+                    })}
+
+                    {/* Market Demand Polygon */}
+                    <polygon 
+                        points={marketPoints} 
+                        fill="#FF90E8" 
+                        fillOpacity="0.7" 
+                        stroke="#FF90E8" 
+                        strokeWidth="4" 
+                        style={{ mixBlendMode: 'multiply' }}
+                    />
+
+                    {/* User Skill Polygon */}
+                    <polygon 
+                        points={userPoints} 
+                        fill="#FFC900" 
+                        fillOpacity="0.7" 
+                        stroke="#FFC900" 
+                        strokeWidth="4" 
+                        style={{ mixBlendMode: 'multiply' }}
+                    />
+                    
+                    {/* Outline for the User Polygon for pop */}
+                    <polygon 
+                        points={userPoints} 
+                        fill="none" 
+                        stroke="#000" 
+                        strokeWidth="3" 
+                        strokeLinejoin="round"
+                    />
+
+                    {/* Plot Points for User */}
+                    {data.map((item, i) => {
+                        const angle = i * angleStep - Math.PI / 2;
+                        const r = (item.userPct / 100) * radius;
+                        const x = center + r * Math.cos(angle);
+                        const y = center + r * Math.sin(angle);
+                        return (
+                            <circle key={`u-${i}`} cx={x} cy={y} r="5" fill="#FFC900" stroke="#000" strokeWidth="2" />
+                        );
+                    })}
+
+                    {/* Axis Labels */}
+                    {data.map((item, i) => {
+                        const angle = i * angleStep - Math.PI / 2;
+                        // Push text further out
+                        const r = radius + 30;
+                        const x = center + r * Math.cos(angle);
+                        const y = center + r * Math.sin(angle);
+                        
+                        let textAnchor = "middle";
+                        if (x < center - 10) textAnchor = "end";
+                        if (x > center + 10) textAnchor = "start";
+
+                        return (
+                            <text 
+                                key={`label-${i}`} 
+                                x={x} 
+                                y={y + 4} 
+                                textAnchor={textAnchor} 
+                                className="text-[10px] font-black uppercase tracking-widest fill-black"
+                            >
+                                {item.name}
+                            </text>
+                        );
+                    })}
+                </svg>
+                
+                {/* Legend */}
+                <div className="flex space-x-6 mt-8 border-3 border-black p-3 bg-white shadow-[3px_3px_0px_0px_rgba(0,0,0,1)]">
+                    <div className="flex items-center space-x-2">
+                        <div className="w-4 h-4 bg-[#FF90E8] border-2 border-black"></div>
+                        <span className="text-[10px] font-black uppercase text-black">Market Demand</span>
+                    </div>
+                    <div className="flex items-center space-x-2">
+                        <div className="w-4 h-4 bg-[#FFC900] border-2 border-black"></div>
+                        <span className="text-[10px] font-black uppercase text-black">Your Skills</span>
+                    </div>
+                </div>
+            </div>
+        );
+    };
 
     return (
         <div className="space-y-10 px-4 pb-20 bg-retro-cream text-black font-sans">
@@ -293,22 +454,21 @@ const RadarView: React.FC<RadarViewProps> = ({ jobs, parsedData }) => {
                 </div>
             </div>
 
-            {/* Skills demand mapping & gap analysis */}
+            {/* Skills Gap Radar & Matrix */}
             <div className="bg-white border-3 border-black rounded-xl p-8 shadow-[4px_4px_0px_0px_rgba(0,0,0,1)]">
-                <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-8">
+                <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-8 border-b-3 border-black pb-6">
                     <div>
-                        <h3 className="text-sm font-black uppercase tracking-widest text-black flex items-center">
-                            <Zap className="w-5 h-5 mr-3 text-retro-red animate-bounce" />
-                            Skills Gap Matrix & AI Insights
+                        <h3 className="text-2xl font-black uppercase tracking-tight text-black flex items-center">
+                            <Crosshair className="w-8 h-8 mr-3 text-retro-red" />
+                            Skill Gap Analysis Radar
                         </h3>
-                        <p className="text-xs text-black/60 font-black uppercase tracking-wider mt-1">
-                            Calculated by checking terms frequency in job descriptions relative to your profile
+                        <p className="text-xs text-black/60 font-black uppercase tracking-wider mt-2">
+                            Comparing your resume's capabilities against market demand requirements
                         </p>
                     </div>
-
                     {parsedData && (
-                        <div className="text-xs bg-retro-yellow border-2 border-black text-black px-4 py-2.5 rounded-lg font-black flex items-center justify-center shadow-[2px_2px_0px_0px_rgba(0,0,0,1)]">
-                            Analyzed using Active Neural Identity
+                        <div className="text-[10px] bg-retro-yellow border-2 border-black text-black px-4 py-2.5 rounded-lg font-black flex items-center justify-center shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] uppercase tracking-widest">
+                            AI-Powered Mapping
                         </div>
                     )}
                 </div>
@@ -323,54 +483,57 @@ const RadarView: React.FC<RadarViewProps> = ({ jobs, parsedData }) => {
                         Not enough job descriptions stored to perform statistical analysis. Trigger a scrape!
                     </div>
                 ) : (
-                    <div className="grid grid-cols-1 lg:grid-cols-2 gap-10">
-                        {/* Current Matching Strength */}
-                        <div className="space-y-6">
-                            <h4 className="text-xs font-black text-black uppercase tracking-widest flex items-center">
-                                <CheckCircle className="w-4 h-4 mr-2 text-retro-green" />
-                                Your Top Demanded Skills
-                            </h4>
-                            <div className="space-y-4">
-                                {skillsAnalysis.userSkillsMatched.slice(0, 5).map((skill, idx) => (
-                                    <div key={idx} className="flex items-center">
-                                        <div className="w-28 text-xs font-black text-black truncate pr-2 capitalize">{skill.name}</div>
-                                        <div className="flex-1 h-3 bg-retro-cream rounded-lg border-2 border-black overflow-hidden">
-                                            <div className="h-full bg-retro-green border-r border-black" style={{ width: `${skill.percentage}%` }}></div>
-                                        </div>
-                                        <div className="w-16 text-right text-xs font-black text-retro-green">{skill.percentage}%</div>
-                                    </div>
-                                ))}
-                                {skillsAnalysis.userSkillsMatched.length === 0 && (
-                                    <p className="text-black/60 text-xs italic">No matching skills detected in job descriptions. Try importing jobs matching your role.</p>
-                                )}
-                            </div>
+                    <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
+                        {/* Radar Chart Visual */}
+                        <div className="flex flex-col items-center justify-center w-full h-full min-h-[400px]">
+                            {renderRadarChart()}
                         </div>
 
-                        {/* Gap Analysis Opportunities */}
-                        <div className="space-y-6">
-                            <h4 className="text-xs font-black text-black uppercase tracking-widest flex items-center">
-                                <ShieldAlert className="w-4 h-4 mr-2 text-retro-yellow fill-retro-yellow" />
-                                Identified Skills Gaps
-                            </h4>
-                            <div className="space-y-4">
-                                {skillsAnalysis.gapsDiscovered.map((skill, idx) => (
-                                    <div key={idx} className="flex items-center justify-between bg-retro-cream border-2 border-black rounded-lg p-4 shadow-[2px_2px_0px_0px_rgba(0,0,0,1)]">
-                                        <div>
-                                            <span className="text-xs font-black text-black capitalize">{skill.name}</span>
-                                            <span className="text-[9px] text-black/60 font-black block uppercase tracking-wider mt-0.5">
-                                                Found in {skill.percentage}% of matching roles
+                        {/* Analysis Matrix */}
+                        <div className="space-y-10">
+                            {/* Current Matching Strength */}
+                            <div className="space-y-6">
+                                <h4 className="text-xs font-black text-black uppercase tracking-widest flex items-center bg-retro-green/20 border-2 border-black p-2 inline-flex shadow-[2px_2px_0px_0px_rgba(0,0,0,1)]">
+                                    <CheckCircle className="w-4 h-4 mr-2 text-retro-green" />
+                                    Your Top Demanded Skills
+                                </h4>
+                                <div className="space-y-4">
+                                    {skillsAnalysis.userSkillsMatched.slice(0, 4).map((skill, idx) => (
+                                        <div key={idx} className="flex items-center group">
+                                            <div className="w-32 text-xs font-black text-black truncate pr-2 capitalize group-hover:text-retro-green transition-colors">{skill.name}</div>
+                                            <div className="flex-1 h-4 bg-retro-cream rounded-lg border-2 border-black overflow-hidden relative">
+                                                <div className="h-full bg-retro-green border-r-2 border-black" style={{ width: `${skill.percentage}%` }}></div>
+                                            </div>
+                                            <div className="w-16 text-right text-xs font-black text-retro-green">{skill.percentage}%</div>
+                                        </div>
+                                    ))}
+                                </div>
+                            </div>
+
+                            {/* Gap Analysis Opportunities */}
+                            <div className="space-y-6">
+                                <h4 className="text-xs font-black text-black uppercase tracking-widest flex items-center bg-retro-pink/20 border-2 border-black p-2 inline-flex shadow-[2px_2px_0px_0px_rgba(0,0,0,1)]">
+                                    <ShieldAlert className="w-4 h-4 mr-2 text-retro-red" />
+                                    High Priority Gaps
+                                </h4>
+                                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                                    {skillsAnalysis.gapsDiscovered.map((skill, idx) => (
+                                        <div key={idx} className="flex flex-col bg-retro-cream border-2 border-black p-4 shadow-[3px_3px_0px_0px_rgba(0,0,0,1)] hover:translate-x-[1px] hover:translate-y-[1px] hover:shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] transition-all cursor-default group">
+                                            <span className="text-sm font-black text-black capitalize mb-1 group-hover:text-retro-red transition-colors">{skill.name}</span>
+                                            <span className="text-[9px] text-black/70 font-black uppercase tracking-widest mb-3">
+                                                In {skill.percentage}% of roles
                                             </span>
+                                            <div className="bg-retro-red text-white text-[10px] font-black uppercase tracking-widest px-2 py-1 border-2 border-black w-max">
+                                                Learn to boost match
+                                            </div>
                                         </div>
-                                        <div className="bg-retro-pink border-2 border-black text-black text-[10px] font-black uppercase tracking-wider px-3 py-1.5 rounded shadow-[1.5px_1.5px_0px_0px_rgba(0,0,0,1)]">
-                                            +{skill.percentage}% match boost
+                                    ))}
+                                    {skillsAnalysis.gapsDiscovered.length === 0 && (
+                                        <div className="py-6 text-center text-xs text-black/60 font-bold italic border-2 border-dashed border-black/30 rounded-lg col-span-2">
+                                            Excellent match! No high-frequency skills gaps detected.
                                         </div>
-                                    </div>
-                                ))}
-                                {skillsAnalysis.gapsDiscovered.length === 0 && (
-                                    <div className="py-6 text-center text-xs text-black/60 font-bold italic border-2 border-dashed border-black/30 rounded-lg">
-                                        Excellent match! No high-frequency skills gaps detected.
-                                    </div>
-                                )}
+                                    )}
+                                </div>
                             </div>
                         </div>
                     </div>
