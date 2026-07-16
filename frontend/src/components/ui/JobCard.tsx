@@ -14,6 +14,8 @@ interface Job {
   job_url: string;
   date_posted: string;
   match_score: number;
+  vector_score?: number;
+  keyword_score?: number;
   experience_required?: number;
   is_rejected?: boolean;
   workplace_type?: string;
@@ -216,6 +218,12 @@ const JobCard: React.FC<JobCardProps> = ({ job, onApply, onReject }) => {
             <div>
               <h2 className="text-2xl font-black text-black">{job.title}</h2>
               <p className="text-retro-green font-black mt-1 text-sm">{job.company}</p>
+              {(job.vector_score !== undefined && job.keyword_score !== undefined) && (
+                <div className="flex gap-2 mt-3">
+                  <span className="text-[10px] font-black uppercase tracking-widest text-black/70 bg-black/5 px-2 py-1 rounded border border-black/10">Semantic Score: {Math.round(job.vector_score)}%</span>
+                  <span className="text-[10px] font-black uppercase tracking-widest text-black/70 bg-black/5 px-2 py-1 rounded border border-black/10">Keyword Score: {Math.round(job.keyword_score)}%</span>
+                </div>
+              )}
             </div>
             <button onClick={() => setIsExpanded(false)} className="p-2 border-2 border-black bg-white rounded-lg text-black hover:bg-retro-pink shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] hover:translate-x-[0.5px] hover:translate-y-[0.5px] hover:shadow-[1.5px_1.5px_0px_0px_rgba(0,0,0,1)] active:translate-x-[2px] active:translate-y-[2px] active:shadow-none transition-all">
               <X className="w-5 h-5" />
