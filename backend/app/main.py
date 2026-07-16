@@ -18,6 +18,7 @@ from app.core.database import get_db
 from sqlalchemy.orm import Session
 from pydantic import BaseModel, field_validator
 from celery import Celery
+import psutil
 import os
 from app.models.models import Job, UserJobMatch, Resume, AIGenerationCache
 from app.core.config import settings
@@ -620,6 +621,35 @@ def restart_system():
 
     threading.Thread(target=reboot).start()
     return {"status": "success", "message": "System restart initiated."}
+
+@app.get("/api/admin/stats")
+def get_admin_stats(db: Session = Depends(get_db)):
+    """
+    Returns high-level telemetry stats for the dashboard.
+    """
+    try:
+        total_jobs = db.query(Job).count()
+        total_resumes = db.query(Resume).count()
+        
+        cpu_usage = psutil.cpu_percent(interval=0.1)
+        ram = psutil.virtual_memory()
+        
+        try:
+            i = celery_app.control.inspect(timeout=0.5)
+            active = i.active() if i else None
+            active_count = sum(len(tasks) for tasks in active.values()) if active else 0
+        except Exception:
+            active_count = 0
+            
+        return {
+            "total_jobs": total_jobs,
+            "total_resumes": total_resumes,
+            "system_cpu_usage_percent": cpu_usage,
+            "system_ram_usage_percent": ram.percent,
+            "celery_active_tasks": active_count
+        }
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
 
 if __name__ == "__main__":
     import uvicorn
