@@ -29,11 +29,44 @@ const JobCard: React.FC<JobCardProps> = ({ job, onApply, onReject }) => {
   const [loading, setLoading] = useState(false);
   const [success, setSuccess] = useState(false);
   const [isExpanded, setIsExpanded] = useState(false);
+  const [researchText, setResearchText] = useState('');
+  const [researching, setResearching] = useState(false);
+  const [researchError, setResearchError] = useState('');
+
+  const generateResearch = async () => {
+    setResearching(true);
+    setResearchText('');
+    setResearchError('');
+    try {
+      const apiHost = typeof window !== 'undefined' ? `${window.location.protocol}//${window.location.hostname}:8001` : 'http://127.0.0.1:8001';
+      const response = await fetch(`${apiHost}/ai/research`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ company: job.company })
+      });
+      
+      if (!response.ok) throw new Error('Research failed');
+      const reader = response.body?.getReader();
+      const decoder = new TextDecoder();
+      if (!reader) return;
+
+      while (true) {
+        const { done, value } = await reader.read();
+        if (done) break;
+        setResearchText(prev => prev + decoder.decode(value, { stream: true }));
+      }
+    } catch (err: any) {
+      setResearchError(err.message);
+    } finally {
+      setResearching(false);
+    }
+  };
+
 
   const handleInterest = async (e: React.MouseEvent) => {
     e.stopPropagation(); // Prevent modal from opening
     setLoading(true);
-    const apiHost = typeof window !== 'undefined' ? `${window.location.protocol}//${window.location.hostname}:8000` : 'http://127.0.0.1:8000';
+    const apiHost = typeof window !== 'undefined' ? `${window.location.protocol}//${window.location.hostname}:8001` : 'http://127.0.0.1:8001';
     try {
       await axios.post(`${apiHost}/jobs/interest`, { job_id: job.id, status: 'interested' });
       setSuccess(true);
@@ -221,6 +254,36 @@ const JobCard: React.FC<JobCardProps> = ({ job, onApply, onReject }) => {
             <div className="text-sm text-black font-medium leading-relaxed whitespace-pre-wrap break-words">
               {job.description || "No description available."}
             </div>
+          </div>
+
+          <div className="mb-8 bg-retro-sand p-6 border-3 border-black shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] rounded-lg">
+            <div className="flex justify-between items-center mb-4 border-b-2 border-black/10 pb-2">
+              <h4 className="text-[11px] font-black uppercase tracking-widest text-black/60">Company Intel</h4>
+              {!researchText && !researching && (
+                <button 
+                  onClick={generateResearch}
+                  className="px-3 py-1.5 bg-retro-pink text-black border-2 border-black shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] rounded hover:translate-x-[1px] hover:translate-y-[1px] hover:shadow-[1px_1px_0px_0px_rgba(0,0,0,1)] active:translate-x-[2px] active:translate-y-[2px] active:shadow-none transition-all text-[10px] font-black uppercase flex items-center gap-1"
+                >
+                  <Target className="w-3 h-3" />
+                  Generate Intel
+                </button>
+              )}
+            </div>
+            {researching && !researchText && (
+              <div className="flex items-center space-x-2 text-black/60 text-xs font-bold py-4">
+                <Loader2 className="w-4 h-4 animate-spin" />
+                <span>Running background check on {job.company}...</span>
+              </div>
+            )}
+            {researchText && (
+              <div className="text-sm text-black font-medium leading-relaxed whitespace-pre-wrap break-words">
+                {researchText}
+                {researching && <span className="inline-block w-2 h-4 ml-1 bg-black animate-pulse" />}
+              </div>
+            )}
+            {researchError && (
+              <div className="text-retro-red text-xs font-bold py-2">{researchError}</div>
+            )}
           </div>
 
           <div className="flex space-x-4 pt-6 border-t-2 border-black/20">

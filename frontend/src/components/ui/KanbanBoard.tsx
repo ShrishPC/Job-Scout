@@ -20,7 +20,7 @@ const KanbanBoard = () => {
     const [loading, setLoading] = useState(true);
     const [activeTab, setActiveTab] = useState<'active' | 'archived'>('active');
 
-    const apiHost = typeof window !== 'undefined' ? `${window.location.protocol}//${window.location.hostname}:8000` : 'http://127.0.0.1:8000';
+    const apiHost = typeof window !== 'undefined' ? `${window.location.protocol}//${window.location.hostname}:8001` : 'http://127.0.0.1:8001';
 
     const fetchBoard = async () => {
         setLoading(true);

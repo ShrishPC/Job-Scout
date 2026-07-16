@@ -56,7 +56,7 @@ export default function Home() {
     const formData = new FormData();
     formData.append('file', fileToUpload);
 
-    const apiHost = typeof window !== 'undefined' ? `${window.location.protocol}//${window.location.hostname}:8000` : 'http://127.0.0.1:8000';
+    const apiHost = typeof window !== 'undefined' ? `${window.location.protocol}//${window.location.hostname}:8001` : 'http://127.0.0.1:8001';
     try {
       const response = await axios.post(`${apiHost}/resume/parse`, formData, {
         headers: {
@@ -84,7 +84,7 @@ export default function Home() {
     setAiError(null);
     setAiResult('');
 
-    const apiHost = typeof window !== 'undefined' ? `${window.location.protocol}//${window.location.hostname}:8000` : 'http://127.0.0.1:8000';
+    const apiHost = typeof window !== 'undefined' ? `${window.location.protocol}//${window.location.hostname}:8001` : 'http://127.0.0.1:8001';
     try {
       const response = await fetch(`${apiHost}/ai/generate`, {
         method: 'POST',
@@ -126,9 +126,59 @@ export default function Home() {
     }
   };
 
+  const handleAIRefine = async (instruction: string) => {
+    setAiGenerating(true);
+    setAiError(null);
+    const currentText = aiResult;
+    setAiResult(''); // clear text to stream new one
+
+    const apiHost = typeof window !== 'undefined' ? `${window.location.protocol}//${window.location.hostname}:8001` : 'http://127.0.0.1:8001';
+    try {
+      const response = await fetch(`${apiHost}/ai/refine`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({ current_text: currentText, instruction })
+      });
+
+      if (!response.ok) {
+        const errData = await response.json().catch(() => ({ detail: "Unknown error occurred" }));
+        throw new Error(errData.detail || `Response error status: ${response.status}`);
+      }
+
+      const reader = response.body?.getReader();
+      if (!reader) {
+        throw new Error("Failed to initialize response reader.");
+      }
+
+      const decoder = new TextDecoder();
+      let done = false;
+      let accumulated = '';
+
+      while (!done) {
+        const { value, done: doneReading } = await reader.read();
+        done = doneReading;
+        if (value) {
+          const chunk = decoder.decode(value, { stream: !done });
+          accumulated += chunk;
+          setAiResult(accumulated);
+        }
+      }
+    } catch (err: any) {
+      console.error("Failed to refine AI output:", err);
+      setAiError(err.message || "Local AI Refinement failed.");
+      setAiResult(currentText); // revert on error
+      throw err;
+    } finally {
+      setAiGenerating(false);
+    }
+  };
+
+
   useEffect(() => {
     const fetchAIDevice = async () => {
-      const apiHost = typeof window !== 'undefined' ? `${window.location.protocol}//${window.location.hostname}:8000` : 'http://127.0.0.1:8000';
+      const apiHost = typeof window !== 'undefined' ? `${window.location.protocol}//${window.location.hostname}:8001` : 'http://127.0.0.1:8001';
       try {
         const res = await axios.get(`${apiHost}/ai/config`);
         setDevice(res.data.device);
@@ -140,7 +190,7 @@ export default function Home() {
   }, []);
 
   const handleDeviceChange = async (newDevice: 'cpu' | 'cuda') => {
-    const apiHost = typeof window !== 'undefined' ? `${window.location.protocol}//${window.location.hostname}:8000` : 'http://127.0.0.1:8000';
+    const apiHost = typeof window !== 'undefined' ? `${window.location.protocol}//${window.location.hostname}:8001` : 'http://127.0.0.1:8001';
     try {
       await axios.post(`${apiHost}/ai/config`, { device: newDevice });
       setDevice(newDevice);
@@ -153,7 +203,7 @@ export default function Home() {
   const [cacheCleared, setCacheCleared] = useState(false);
 
   const handleClearCache = async () => {
-    const apiHost = typeof window !== 'undefined' ? `${window.location.protocol}//${window.location.hostname}:8000` : 'http://127.0.0.1:8000';
+    const apiHost = typeof window !== 'undefined' ? `${window.location.protocol}//${window.location.hostname}:8001` : 'http://127.0.0.1:8001';
     setClearingCache(true);
     setCacheCleared(false);
     try {
@@ -171,7 +221,7 @@ export default function Home() {
   const [systemActionInProgress, setSystemActionInProgress] = useState(false);
 
   const handleShutdown = async () => {
-    const apiHost = typeof window !== 'undefined' ? `${window.location.protocol}//${window.location.hostname}:8000` : 'http://127.0.0.1:8000';
+    const apiHost = typeof window !== 'undefined' ? `${window.location.protocol}//${window.location.hostname}:8001` : 'http://127.0.0.1:8001';
     setSystemActionInProgress(true);
     try {
       await axios.post(`${apiHost}/system/shutdown`);
@@ -184,7 +234,7 @@ export default function Home() {
   };
 
   const handleRestart = async () => {
-    const apiHost = typeof window !== 'undefined' ? `${window.location.protocol}//${window.location.hostname}:8000` : 'http://127.0.0.1:8000';
+    const apiHost = typeof window !== 'undefined' ? `${window.location.protocol}//${window.location.hostname}:8001` : 'http://127.0.0.1:8001';
     setSystemActionInProgress(true);
     try {
       await axios.post(`${apiHost}/system/restart`);
@@ -236,7 +286,7 @@ export default function Home() {
   const fetchMatches = async (embedding: number[], workplaceTypes: string[]) => {
     if (!embedding || embedding.length === 0) return;
     setLoadingJobs(true);
-    const apiHost = typeof window !== 'undefined' ? `${window.location.protocol}//${window.location.hostname}:8000` : 'http://127.0.0.1:8000';
+    const apiHost = typeof window !== 'undefined' ? `${window.location.protocol}//${window.location.hostname}:8001` : 'http://127.0.0.1:8001';
     try {
       const response = await axios.post(`${apiHost}/jobs/matches`, {
         embedding: embedding,
@@ -252,7 +302,7 @@ export default function Home() {
   };
 
   const fetchActiveProfile = async () => {
-    const apiHost = typeof window !== 'undefined' ? `${window.location.protocol}//${window.location.hostname}:8000` : 'http://127.0.0.1:8000';
+    const apiHost = typeof window !== 'undefined' ? `${window.location.protocol}//${window.location.hostname}:8001` : 'http://127.0.0.1:8001';
     try {
       const response = await axios.get(`${apiHost}/resume/active`);
       if (response.data) {
@@ -319,7 +369,7 @@ export default function Home() {
 
   const triggerScrape = async () => {
     setScraping(true);
-    const apiHost = typeof window !== 'undefined' ? `${window.location.protocol}//${window.location.hostname}:8000` : 'http://127.0.0.1:8000';
+    const apiHost = typeof window !== 'undefined' ? `${window.location.protocol}//${window.location.hostname}:8001` : 'http://127.0.0.1:8001';
     const scrapeKw = searchParams.keyword.trim() || 'Software Engineer';
     const scrapeLoc = searchParams.location.trim();
     try {
@@ -337,7 +387,7 @@ export default function Home() {
   };
 
   const handleReject = async (id: number) => {
-    const apiHost = typeof window !== 'undefined' ? `${window.location.protocol}//${window.location.hostname}:8000` : 'http://127.0.0.1:8000';
+    const apiHost = typeof window !== 'undefined' ? `${window.location.protocol}//${window.location.hostname}:8001` : 'http://127.0.0.1:8001';
     try {
       await axios.post(`${apiHost}/jobs/interest`, { job_id: id, status: 'rejected' });
       setJobs(jobs.map(j => j.id === id ? { ...j, is_rejected: true } : j));
@@ -347,7 +397,7 @@ export default function Home() {
   };
 
   const handleDeleteProfile = async () => {
-    const apiHost = typeof window !== 'undefined' ? `${window.location.protocol}//${window.location.hostname}:8000` : 'http://127.0.0.1:8000';
+    const apiHost = typeof window !== 'undefined' ? `${window.location.protocol}//${window.location.hostname}:8001` : 'http://127.0.0.1:8001';
     try {
       await axios.delete(`${apiHost}/resume/reset`);
       setParsedData(null);
@@ -932,7 +982,7 @@ export default function Home() {
                 <div className="bg-white dark:bg-black/30 border-2 border-black rounded-lg p-3 text-[10px] font-mono text-black dark:text-white space-y-1.5 shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] dark:shadow-[2px_2px_0px_0px_#ffffff] mb-4">
                   <div className="flex justify-between">
                     <span className="font-extrabold uppercase">Backend Server:</span>
-                    <span className="text-retro-green font-black">ONLINE (8000)</span>
+                    <span className="text-retro-green font-black">ONLINE (8001)</span>
                   </div>
                   <div className="flex justify-between">
                     <span className="font-extrabold uppercase">Vector Index:</span>

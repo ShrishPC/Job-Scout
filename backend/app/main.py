@@ -8,8 +8,11 @@ from app.services.llm_service import (
     generate_tailored_resume_service, 
     generate_cover_letter_service,
     generate_tailored_resume_stream,
-    generate_cover_letter_stream
+    generate_cover_letter_stream,
+    refine_stream,
+    research_company_stream
 )
+
 from app.services.matching_service import get_job_matches
 from app.core.database import get_db
 from sqlalchemy.orm import Session
@@ -460,6 +463,55 @@ def generate_ai(request: AIGenerateRequest, db: Session = Depends(get_db)):
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 
+class AIRefineRequest(BaseModel):
+    current_text: str
+    instruction: str
+
+@app.post("/ai/refine")
+def refine_ai(request: AIRefineRequest, db: Session = Depends(get_db)):
+    """
+    Refines a generated resume or cover letter based on user instructions using the local LLM.
+    """
+    try:
+        if not request.current_text.strip():
+            raise HTTPException(status_code=400, detail="Current text is required.")
+        if not request.instruction.strip():
+            raise HTTPException(status_code=400, detail="Instruction is required.")
+            
+        def event_generator():
+            stream = refine_stream(request.current_text, request.instruction)
+            for chunk in stream:
+                yield chunk
+                
+        return StreamingResponse(event_generator(), media_type="text/plain")
+        
+    except HTTPException as he:
+        raise he
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+class CompanyResearchRequest(BaseModel):
+    company: str
+
+@app.post("/ai/research")
+def research_company(request: CompanyResearchRequest, db: Session = Depends(get_db)):
+    """
+    Researches a company and streams the LLM-generated cheat sheet back to the client.
+    """
+    try:
+        if not request.company.strip():
+            raise HTTPException(status_code=400, detail="Company name is required.")
+            
+        def event_generator():
+            stream = research_company_stream(request.company, db)
+            for chunk in stream:
+                yield chunk
+                
+        return StreamingResponse(event_generator(), media_type="text/plain")
+        
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
 @app.post("/ai/cache/clear")
 @app.delete("/ai/cache")
 def clear_ai_cache(db: Session = Depends(get_db)):
@@ -518,7 +570,7 @@ def shutdown_system():
                 "powershell -Command \""
                 "try { Stop-Process -Id (Get-NetTCPConnection -LocalPort 3000 -ErrorAction SilentlyContinue).OwningProcess -Force } catch {}; "
                 "Get-Process | Where-Object { $_.CommandLine -like '*celery*' } | Stop-Process -Force; "
-                "Stop-Process -Id (Get-NetTCPConnection -LocalPort 8000 -ErrorAction SilentlyContinue).OwningProcess -Force"
+                "Stop-Process -Id (Get-NetTCPConnection -LocalPort 8001 -ErrorAction SilentlyContinue).OwningProcess -Force"
                 "\""
             )
             subprocess.Popen(cmd, shell=True)
@@ -554,7 +606,7 @@ def restart_system():
                 "try { Stop-Process -Id (Get-NetTCPConnection -LocalPort 3000 -ErrorAction SilentlyContinue).OwningProcess -Force } catch {}; "
                 "Get-Process | Where-Object { $_.CommandLine -like '*celery*' } | Stop-Process -Force; "
                 "Start-Process powershell -ArgumentList '-ExecutionPolicy Bypass -File run.ps1' -WorkingDirectory '" + project_root + "'; "
-                "Stop-Process -Id (Get-NetTCPConnection -LocalPort 8000 -ErrorAction SilentlyContinue).OwningProcess -Force"
+                "Stop-Process -Id (Get-NetTCPConnection -LocalPort 8001 -ErrorAction SilentlyContinue).OwningProcess -Force"
                 "\""
             )
             subprocess.Popen(cmd, shell=True)
@@ -570,4 +622,4 @@ def restart_system():
 
 if __name__ == "__main__":
     import uvicorn
-    uvicorn.run(app, host="0.0.0.0", port=8000)
+    uvicorn.run(app, host="0.0.0.0", port=8001)

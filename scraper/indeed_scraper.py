@@ -26,7 +26,7 @@ async def fetch_indeed_description(browser, job_info: dict):
         
         # Wait for the selector to ensure content has parsed
         try:
-            await page.wait_for_selector('#jobDescriptionText', timeout=8000)
+            await page.wait_for_selector('#jobDescriptionText', timeout=8001)
         except: pass
 
         content = await page.content()
@@ -86,7 +86,7 @@ async def scrape_indeed_jobs(keyword: str, location: str, limit: int = 10):
             
             # Wait for job beacons to render
             try:
-                await page.wait_for_selector('.job_seen_beacon', timeout=8000)
+                await page.wait_for_selector('.job_seen_beacon', timeout=8001)
             except: pass
 
             content = await page.content()

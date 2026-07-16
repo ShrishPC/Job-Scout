@@ -12,6 +12,7 @@ python-docx
 PyMuPDF
 sentence-transformers
 transformers
+duckduckgo-search
 torch
 celery
 redis

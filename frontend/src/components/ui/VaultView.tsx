@@ -34,7 +34,7 @@ const VaultView: React.FC<VaultViewProps> = ({
     const [error, setError] = useState<string | null>(null);
     const [actionLoading, setActionLoading] = useState<number | null>(null);
 
-    const apiHost = typeof window !== 'undefined' ? `${window.location.protocol}//${window.location.hostname}:8000` : 'http://127.0.0.1:8000';
+    const apiHost = typeof window !== 'undefined' ? `${window.location.protocol}//${window.location.hostname}:8001` : 'http://127.0.0.1:8001';
 
     const fetchResumes = async () => {
         try {

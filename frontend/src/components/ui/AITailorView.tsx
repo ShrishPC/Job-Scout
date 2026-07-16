@@ -39,6 +39,7 @@ interface AITailorViewProps {
     mode: 'tailor' | 'cover_letter';
     setMode: (mode: 'tailor' | 'cover_letter') => void;
     onGenerate: (payload: any) => Promise<void>;
+    onRefine?: (instruction: string) => Promise<void>;
 }
 
 const AITailorView: React.FC<AITailorViewProps> = ({
@@ -58,7 +59,8 @@ const AITailorView: React.FC<AITailorViewProps> = ({
     setCustomDesc,
     mode,
     setMode,
-    onGenerate
+    onGenerate,
+    onRefine
 }) => {
     const [jobs, setJobs] = useState<BoardJob[]>([]);
     const [activeResume, setActiveResume] = useState<ActiveResume | null>(null);
@@ -68,6 +70,7 @@ const AITailorView: React.FC<AITailorViewProps> = ({
     const [dropdownOpen, setDropdownOpen] = useState(false);
     const [searchQuery, setSearchQuery] = useState('');
     const dropdownRef = React.useRef<HTMLDivElement>(null);
+    const [refineInstruction, setRefineInstruction] = useState('');
 
     useEffect(() => {
         const handleClickOutside = (event: MouseEvent) => {
@@ -81,7 +84,7 @@ const AITailorView: React.FC<AITailorViewProps> = ({
         };
     }, []);
 
-    const apiHost = typeof window !== 'undefined' ? `${window.location.protocol}//${window.location.hostname}:8000` : 'http://127.0.0.1:8000';
+    const apiHost = typeof window !== 'undefined' ? `${window.location.protocol}//${window.location.hostname}:8001` : 'http://127.0.0.1:8001';
 
     const fetchData = async () => {
         setLoadingJobs(true);
@@ -479,6 +482,38 @@ const AITailorView: React.FC<AITailorViewProps> = ({
                             )}
                         </div>
                     </div>
+
+                    {/* Refine Chat Input */}
+                    {result && !generating && onRefine && (
+                        <div className="mt-4 flex space-x-2 shrink-0 animate-in fade-in slide-in-from-bottom-2">
+                            <input
+                                type="text"
+                                value={refineInstruction}
+                                onChange={(e) => setRefineInstruction(e.target.value)}
+                                onKeyDown={(e) => {
+                                    if (e.key === 'Enter' && refineInstruction.trim()) {
+                                        onRefine(refineInstruction);
+                                        setRefineInstruction('');
+                                    }
+                                }}
+                                placeholder="Refine result... (e.g., 'Make it more aggressive', 'Add my Python skills')"
+                                className="flex-1 bg-white border-2 border-black rounded-lg px-4 py-2 text-xs font-bold text-black shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] focus:outline-none"
+                            />
+                            <button
+                                onClick={() => {
+                                    if (refineInstruction.trim()) {
+                                        onRefine(refineInstruction);
+                                        setRefineInstruction('');
+                                    }
+                                }}
+                                disabled={!refineInstruction.trim()}
+                                className="bg-retro-yellow text-black px-4 py-2 rounded-lg font-black text-xs uppercase tracking-wider border-2 border-black shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] hover:translate-x-[1px] hover:translate-y-[1px] hover:shadow-[1px_1px_0px_0px_rgba(0,0,0,1)] active:translate-x-[2px] active:translate-y-[2px] active:shadow-none transition-all disabled:opacity-50 disabled:pointer-events-none flex items-center"
+                            >
+                                <Sparkles className="w-3.5 h-3.5 mr-1.5" />
+                                Refine
+                            </button>
+                        </div>
+                    )}
                 </div>
             </div>
         </div>

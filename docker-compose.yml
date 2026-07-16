@@ -17,31 +17,59 @@ services:
 
   backend:
     build: ./backend
+    image: job-scout-backend:latest
     ports:
-      - "8000:8000"
+      - "8001:8001"
     environment:
       - DATABASE_URL=postgresql+psycopg2://postgres:password@db:5432/job_scout
       - REDIS_URL=redis://redis:6379/0
+      - HF_HUB_OFFLINE=1
+      - TRANSFORMERS_OFFLINE=1
+    volumes:
+      - ./models:/models
     depends_on:
       - db
       - redis
 
   scraper:
     build: ./scraper
+    image: job-scout-scraper:latest
+    command: celery -A celery_app worker --loglevel=info
     environment:
       - DATABASE_URL=postgresql+psycopg2://postgres:password@db:5432/job_scout
       - REDIS_URL=redis://redis:6379/0
+      - HF_HUB_OFFLINE=1
+      - TRANSFORMERS_OFFLINE=1
+    volumes:
+      - ./models:/models
+      - ./backend:/backend
     depends_on:
       - db
       - redis
 
   celery-beat:
-    build: ./scraper
+    image: job-scout-scraper:latest
     command: celery -A celery_app beat --loglevel=info
     environment:
       - REDIS_URL=redis://redis:6379/0
+      - HF_HUB_OFFLINE=1
+      - TRANSFORMERS_OFFLINE=1
+    volumes:
+      - ./models:/models
+      - ./backend:/backend
     depends_on:
       - redis
+      - scraper
+
+  frontend:
+    build: ./frontend
+    ports:
+      - "3000:3000"
+    depends_on:
+      - backend
 
 volumes:
   postgres_data:
+
+
+

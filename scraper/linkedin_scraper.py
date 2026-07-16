@@ -35,7 +35,7 @@ async def get_job_links(keyword: str, location: str, limit: int = 10):
             
             # Wait for job cards to render
             try:
-                await page.wait_for_selector(".base-card", timeout=8000)
+                await page.wait_for_selector(".base-card", timeout=8001)
             except: pass
 
             # Load more jobs

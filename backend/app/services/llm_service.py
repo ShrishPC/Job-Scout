@@ -526,3 +526,108 @@ def generate_cover_letter_stream(resume_text: str, job_title: str, company: str,
     except Exception as e:
         print(f"Local LLM streaming error during cover letter generation: {e}")
         yield "Could not generate cover letter with the local AI."
+
+def refine_stream(current_text: str, instruction: str):
+    """
+    Refines the generated text based on user instructions as a stream.
+    """
+    system_prompt = (
+        "You are an expert resume and cover letter editor. "
+        "The user will provide the current text and an instruction on how to change it.\n"
+        "CRITICAL: Apply the user's instruction and output ONLY the updated text in full. "
+        "Do not include any conversational filler, intro/outro remarks, or explanations."
+    )
+    user_prompt = f"Current Text:\n{current_text}\n\nInstruction:\n{instruction}"
+    prompt = format_prompt(system_prompt, user_prompt)
+    
+    try:
+        llm = get_local_llm()
+        tokenizer = llm.tokenizer
+        streamer = TextIteratorStreamer(tokenizer, skip_prompt=True, clean_up_tokenization_spaces=False)
+        
+        generation_kwargs = dict(
+            max_new_tokens=350,
+            streamer=streamer,
+            repetition_penalty=1.1,
+            do_sample=False
+        )
+        thread = Thread(target=llm, args=(prompt,), kwargs=generation_kwargs)
+        thread.start()
+        
+        for chunk in streamer:
+            yield chunk
+        thread.join()
+    except Exception as e:
+        print(f"Local LLM streaming error during refinement: {e}")
+        yield "Could not refine text with the local AI."
+
+def research_company_stream(company_name: str, db):
+    """
+    Researches a company using DuckDuckGo and streams an interview cheat sheet via LLM.
+    Uses AIGenerationCache to store and quickly return previously researched companies.
+    """
+    from duckduckgo_search import DDGS
+    from app.models.models import AIGenerationCache
+    import time
+
+    cache_key = f"company_research_{company_name.lower().replace(' ', '_')}"
+    cached_research = db.query(AIGenerationCache).filter(AIGenerationCache.cache_key == cache_key).first()
+    
+    if cached_research:
+        yield "*(Loaded from Job Scout Cache)*\n\n"
+        words = cached_research.response_text.split(" ")
+        for word in words:
+            yield word + " "
+            time.sleep(0.01)
+        return
+
+    # If not cached, perform web search
+    try:
+        results = DDGS().text(f"{company_name} company recent news OR tech stack", max_results=3)
+        context_snippets = []
+        for r in results:
+            context_snippets.append(r.get("body", ""))
+        context = "\n".join(context_snippets)
+    except Exception as e:
+        print(f"Failed to fetch DDGS results for {company_name}: {e}")
+        context = f"Company: {company_name}"
+    
+    system_prompt = (
+        "You are an expert career researcher. Based on the provided internet search snippets, "
+        "write a 3-bullet 'Interview Cheat Sheet' for the candidate. Focus on: \n"
+        "1. What the company does or recent news.\n"
+        "2. Their tech stack or engineering culture (if mentioned).\n"
+        "3. One highly tailored question the candidate should ask in an interview.\n"
+        "Be concise, professional, and use markdown bullet points. Do NOT include conversational filler."
+    )
+    user_prompt = f"Company: {company_name}\n\nSearch Context:\n{context}"
+    prompt = format_prompt(system_prompt, user_prompt)
+    
+    try:
+        llm = get_local_llm()
+        tokenizer = llm.tokenizer
+        streamer = TextIteratorStreamer(tokenizer, skip_prompt=True, clean_up_tokenization_spaces=False)
+        
+        generation_kwargs = dict(
+            max_new_tokens=250,
+            streamer=streamer,
+            repetition_penalty=1.1,
+            do_sample=False
+        )
+        thread = Thread(target=llm, args=(prompt,), kwargs=generation_kwargs)
+        thread.start()
+        
+        full_response = ""
+        for chunk in streamer:
+            full_response += chunk
+            yield chunk
+        thread.join()
+        
+        # Save to cache
+        new_cache = AIGenerationCache(cache_key=cache_key, response_text=full_response.strip())
+        db.add(new_cache)
+        db.commit()
+        
+    except Exception as e:
+        print(f"Local LLM streaming error during company research: {e}")
+        yield f"Could not research {company_name} with the local AI."
