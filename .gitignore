@@ -16,7 +16,8 @@ build/
 *.log
 
 # Local AI Model Cache
-models/
+/models/
+
 
 # Celery schedules & logs
 celerybeat-schedule*
