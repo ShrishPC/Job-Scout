@@ -16,6 +16,8 @@ from app.services.llm_service import (
 from app.services.matching_service import get_job_matches
 from app.core.database import get_db
 from sqlalchemy.orm import Session
+from sqlalchemy import func
+from datetime import datetime, timedelta
 from pydantic import BaseModel, field_validator
 from celery import Celery
 import psutil
@@ -691,12 +693,21 @@ def get_admin_stats(db: Session = Depends(get_db), authorized: bool = Depends(ve
         except Exception:
             active_count = 0
             
+        seven_days_ago = datetime.utcnow() - timedelta(days=7)
+        jobs_by_day = db.query(
+            func.date(Job.created_at).label('date'),
+            func.count(Job.id).label('count')
+        ).filter(Job.created_at >= seven_days_ago).group_by(func.date(Job.created_at)).all()
+        
+        jobs_chart = [{"date": str(row.date), "count": row.count} for row in jobs_by_day]
+
         return {
             "total_jobs": total_jobs,
             "total_resumes": total_resumes,
             "system_cpu_usage_percent": cpu_usage,
             "system_ram_usage_percent": ram.percent,
-            "celery_active_tasks": active_count
+            "celery_active_tasks": active_count,
+            "jobs_chart_data": jobs_chart
         }
     except Exception as e:
         raise HTTPException(status_code=500, detail="An internal server error occurred")

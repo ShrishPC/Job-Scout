@@ -1,8 +1,9 @@
 "use client";
 
 import React, { useState, useEffect } from 'react';
-import { Shield, Activity, Database, Server, Cpu, HardDrive, LogOut, RefreshCw } from 'lucide-react';
+import { Shield, Activity, Database, Server, Cpu, HardDrive, LogOut, RefreshCw, TrendingUp } from 'lucide-react';
 import axios from 'axios';
+import { AreaChart, Area, XAxis, YAxis, Tooltip, ResponsiveContainer } from 'recharts';
 
 interface TelemetryData {
   total_jobs: number;
@@ -10,6 +11,7 @@ interface TelemetryData {
   system_cpu_usage_percent: number;
   system_ram_usage_percent: number;
   celery_active_tasks: number;
+  jobs_chart_data: { date: string; count: number }[];
 }
 
 export default function AdminDashboard() {
@@ -232,6 +234,26 @@ export default function AdminDashboard() {
                 color="bg-[#90A8ED]" 
                 hexColor="#90A8ED"
               />
+            </div>
+
+            {/* Growth Chart */}
+            <div className={`p-5 bg-black ${brutalBorder} shadow-[4px_4px_0px_0px_#FFFFFF] mt-6`}>
+              <h2 className="text-xl font-black uppercase tracking-tighter mb-6 flex items-center gap-2 text-white">
+                <TrendingUp className="w-5 h-5 text-[#FF90E8]" strokeWidth={3} /> Indexing Velocity
+              </h2>
+              <div className="h-64 w-full">
+                <ResponsiveContainer width="100%" height="100%">
+                  <AreaChart data={stats.jobs_chart_data}>
+                    <XAxis dataKey="date" stroke="#ffffff" tick={{fill: '#ffffff', fontSize: 10, fontWeight: 'bold'}} />
+                    <YAxis stroke="#ffffff" tick={{fill: '#ffffff', fontSize: 10, fontWeight: 'bold'}} />
+                    <Tooltip 
+                      contentStyle={{ backgroundColor: '#000000', border: '2px solid #ffffff', borderRadius: 0 }}
+                      itemStyle={{ color: '#FFC900', fontWeight: 'bold' }}
+                    />
+                    <Area type="step" dataKey="count" stroke="#FFC900" strokeWidth={3} fill="#FFC900" fillOpacity={0.2} />
+                  </AreaChart>
+                </ResponsiveContainer>
+              </div>
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6 pt-6 border-t-4 border-white border-dashed">
