@@ -9,11 +9,23 @@ services:
       POSTGRES_PASSWORD: password
     volumes:
       - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres -d job_scout"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 30s
 
   redis:
     image: redis:alpine
     ports:
       - "6380:6379"
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 10s
 
   backend:
     build: ./backend
@@ -23,13 +35,16 @@ services:
     environment:
       - DATABASE_URL=postgresql+psycopg2://postgres:password@db:5432/job_scout
       - REDIS_URL=redis://redis:6379/0
+      - ADMIN_API_KEY=${ADMIN_API_KEY:-jobscout_admin_k3y_2026}
       - HF_HUB_OFFLINE=1
       - TRANSFORMERS_OFFLINE=1
     volumes:
       - ./models:/models
     depends_on:
-      - db
-      - redis
+      db:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
 
   scraper:
     build: ./scraper
@@ -44,8 +59,10 @@ services:
       - ./models:/models
       - ./backend:/backend
     depends_on:
-      - db
-      - redis
+      db:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
 
   celery-beat:
     image: job-scout-scraper:latest
@@ -58,8 +75,10 @@ services:
       - ./models:/models
       - ./backend:/backend
     depends_on:
-      - redis
-      - scraper
+      redis:
+        condition: service_healthy
+      scraper:
+        condition: service_started
 
   frontend:
     build: ./frontend

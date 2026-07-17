@@ -1,10 +1,10 @@
 from sqlalchemy.orm import Session
 from app.models.models import Job
 from sqlalchemy import text
-import numpy as np
+
 import re
 
-def get_job_matches(db: Session, user_embedding: list, limit: int = 10, skip: int = 0, workplace_types: list[str] | None = None):
+def get_job_matches(db: Session, user_embedding: list, limit: int = 10, skip: int = 0, workplace_types: list[str] | None = None, search_keyword: str | None = None):
     """
     Uses Hybrid RAG (pgvector cosine similarity + Postgres keyword matching)
     to find the most similar jobs based on the user's resume embedding and skills.
@@ -19,21 +19,24 @@ def get_job_matches(db: Session, user_embedding: list, limit: int = 10, skip: in
 
     # 2. Build Keyword Match expressions
     case_whens = []
-    for skill in skills:
-        safe_skill = skill.replace("'", "''")
+    params = {}
+    for i, skill in enumerate(skills):
+        param_name = f"skill_{i}"
         # Alphanumeric skills (e.g. "React", "Machine Learning") use precise word boundary regex
         if re.match(r'^[a-zA-Z0-9\s\-]+$', skill):
-            regex_skill = re.escape(safe_skill).replace(r'\ ', r'\s+')
+            regex_pattern = r'\y' + re.escape(skill).replace(r'\ ', r'\s+') + r'\y'
+            params[param_name] = regex_pattern
             case_whens.append(f"""
-                (CASE WHEN j.title ~* '\\y{regex_skill}\\y' THEN 2.0 
-                      WHEN j.description ~* '\\y{regex_skill}\\y' THEN 1.0 
+                (CASE WHEN j.title ~* :{param_name} THEN 2.0 
+                      WHEN j.description ~* :{param_name} THEN 1.0 
                       ELSE 0.0 END)
             """)
         else:
             # Special character skills (e.g. "C++", "C#", ".Net") use substring search
+            params[param_name] = f"%{skill}%"
             case_whens.append(f"""
-                (CASE WHEN LOWER(j.title) LIKE '%{safe_skill}%' THEN 2.0 
-                      WHEN LOWER(j.description) LIKE '%{safe_skill}%' THEN 1.0 
+                (CASE WHEN LOWER(j.title) LIKE :{param_name} THEN 2.0 
+                      WHEN LOWER(j.description) LIKE :{param_name} THEN 1.0 
                       ELSE 0.0 END)
             """)
 
@@ -58,7 +61,11 @@ def get_job_matches(db: Session, user_embedding: list, limit: int = 10, skip: in
         WHERE (m.job_id IS NULL OR m.status = 'rejected')
     """
     
-    params = {"embedding": str(user_embedding), "limit": limit, "skip": skip}
+    params.update({"embedding": str(user_embedding), "limit": limit, "skip": skip})
+    
+    if search_keyword and search_keyword.strip():
+        select_clause += " AND (j.title ILIKE :kw OR j.company ILIKE :kw OR j.description ILIKE :kw)"
+        params["kw"] = f"%{search_keyword.strip()}%"
     
     if workplace_types and len(workplace_types) > 0:
         cleaned_types = [wt.lower().strip() for wt in workplace_types if wt]

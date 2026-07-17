@@ -251,17 +251,13 @@ export default function Home() {
 
   const filteredJobs = useMemo(() => {
     let result = jobs.filter(job => {
-      const kw = searchParams.keyword.toLowerCase();
       const loc = searchParams.location.toLowerCase();
-      const matchesKeyword = job.title.toLowerCase().includes(kw) || 
-                           job.company.toLowerCase().includes(kw) || 
-                           job.description.toLowerCase().includes(kw);
       const matchesLocation = job.location.toLowerCase().includes(loc);
       
       const jobExp = job.experience_required || 0;
       const matchesExp = maxExperience === '' || jobExp <= Number(maxExperience);
 
-      return matchesKeyword && matchesLocation && matchesExp;
+      return matchesLocation && matchesExp;
     });
 
     result.sort((a, b) => {
@@ -283,7 +279,7 @@ export default function Home() {
     return locs.sort();
   }, [jobs]);
 
-  const fetchMatches = async (embedding: number[], workplaceTypes: string[]) => {
+  const fetchMatches = async (embedding: number[], workplaceTypes: string[], keyword?: string) => {
     if (!embedding || embedding.length === 0) return;
     setLoadingJobs(true);
     const apiHost = typeof window !== 'undefined' ? `${window.location.protocol}//${window.location.hostname}:8001` : 'http://127.0.0.1:8001';
@@ -291,7 +287,8 @@ export default function Home() {
       const response = await axios.post(`${apiHost}/jobs/matches`, {
         embedding: embedding,
         limit: 12,
-        workplace_types: workplaceTypes.length > 0 ? workplaceTypes : null
+        workplace_types: workplaceTypes.length > 0 ? workplaceTypes : null,
+        search_keyword: keyword || null
       });
       setJobs(response.data);
     } catch (err) {
@@ -362,10 +359,13 @@ export default function Home() {
   }, [theme]);
 
   useEffect(() => {
-    if (parsedData?.embedding) {
-      fetchMatches(parsedData.embedding, selectedWorkplaceTypes); 
-    }
-  }, [parsedData, selectedWorkplaceTypes]);
+    const timer = setTimeout(() => {
+      if (parsedData?.embedding) {
+        fetchMatches(parsedData.embedding, selectedWorkplaceTypes, searchParams.keyword);
+      }
+    }, 500);
+    return () => clearTimeout(timer);
+  }, [parsedData, selectedWorkplaceTypes, searchParams.keyword]);
 
   const triggerScrape = async () => {
     setScraping(true);
@@ -383,7 +383,7 @@ export default function Home() {
   };
 
   const handleApply = (id: number) => {
-    if (parsedData?.embedding) fetchMatches(parsedData.embedding, selectedWorkplaceTypes);
+    if (parsedData?.embedding) fetchMatches(parsedData.embedding, selectedWorkplaceTypes, searchParams.keyword);
   };
 
   const handleReject = async (id: number) => {
@@ -439,7 +439,7 @@ export default function Home() {
             onClick={() => {
               setView('hunt');
               if (parsedData?.embedding) {
-                fetchMatches(parsedData.embedding, selectedWorkplaceTypes);
+                fetchMatches(parsedData.embedding, selectedWorkplaceTypes, searchParams.keyword);
               }
             }} 
           />
@@ -668,7 +668,7 @@ export default function Home() {
                       </button>
                       <button 
                         suppressHydrationWarning
-                        onClick={() => parsedData?.embedding && fetchMatches(parsedData.embedding, selectedWorkplaceTypes)}
+                        onClick={() => parsedData?.embedding && fetchMatches(parsedData.embedding, selectedWorkplaceTypes, searchParams.keyword)}
                         className="p-3 bg-white border-3 border-black rounded-xl shadow-[3px_3px_0px_0px_rgba(0,0,0,1)] hover:translate-x-[1px] hover:translate-y-[1px] hover:shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] active:translate-x-[3px] active:translate-y-[3px] active:shadow-none transition-all"
                         title="Refresh Matches"
                       >

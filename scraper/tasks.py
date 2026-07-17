@@ -73,19 +73,21 @@ def scrape_and_process_jobs(keyword: str, location: str, limit: int = 10, source
     print(f"Starting optimized {source} scrape for {keyword} in {location}...")
     
     db: Session = SessionLocal()
-    new_jobs_to_process = []
-    
     try:
+        new_jobs_to_process = []
+
         if source == "linkedin":
             # Phase 1: Quick Discovery
             discovered_links = asyncio.run(get_job_links(keyword, location, limit))
-            
-            # Phase 2: Filter existing
-            for job_info in discovered_links:
-                existing = db.query(Job.id).filter(Job.job_url == job_info['job_url']).first()
-                if not existing:
-                    new_jobs_to_process.append(job_info)
-            
+
+            # Phase 2: Batch-filter existing jobs
+            existing_urls = set(
+                row[0] for row in db.query(Job.job_url)
+                .filter(Job.job_url.in_([j['job_url'] for j in discovered_links]))
+                .all()
+            )
+            new_jobs_to_process = [j for j in discovered_links if j['job_url'] not in existing_urls]
+        
             print(f"Found {len(discovered_links)} jobs, {len(new_jobs_to_process)} are new.")
             
             # Phase 3: Parallel Enrichment
@@ -100,10 +102,12 @@ def scrape_and_process_jobs(keyword: str, location: str, limit: int = 10, source
         elif source == "wwr":
             jobs_data = scrape_wwr_jobs(keyword, limit)
         else:
+            db.close()
             return {"status": "error", "message": f"Unknown source: {source}"}
             
     except Exception as e:
         print(f"Scraping failed: {e}")
+        db.close()
         return {"status": "error", "message": str(e)}
 
     processed_count = 0
@@ -149,9 +153,8 @@ def scrape_and_process_jobs(keyword: str, location: str, limit: int = 10, source
             print(f"Error processing job {job_info['job_url']}: {e}")
             db.rollback()
     
-    db.commit()
-    db.close()
-    
-    print(f"Finished processing {processed_count} new jobs from {source}.")
-    return {"status": "success", "new_jobs": processed_count, "source": source}
+        db.commit()
 
+        print(f"Finished processing {processed_count} new jobs from {source}.")
+        db.close()
+        return {"status": "success", "new_jobs": processed_count, "source": source}

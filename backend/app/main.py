@@ -20,6 +20,7 @@ from pydantic import BaseModel, field_validator
 from celery import Celery
 import psutil
 import os
+import uuid
 from app.models.models import Job, UserJobMatch, Resume, AIGenerationCache
 from app.core.config import settings
 from fastapi_cache import FastAPICache
@@ -53,6 +54,7 @@ class MatchRequest(BaseModel):
     limit: int = 10
     skip: int = 0
     workplace_types: list[str] | None = None
+    search_keyword: str | None = None
 
     @field_validator('embedding')
     @classmethod
@@ -61,6 +63,20 @@ class MatchRequest(BaseModel):
             raise ValueError("Embedding list cannot be empty")
         if len(v) != 384:
             raise ValueError(f"Embedding must be exactly 384 dimensions (got {len(v)})")
+        return v
+
+    @field_validator('limit')
+    @classmethod
+    def validate_limit(cls, v):
+        if v < 1 or v > 100:
+            raise ValueError("limit must be between 1 and 100")
+        return v
+
+    @field_validator('skip')
+    @classmethod
+    def validate_skip(cls, v):
+        if v < 0:
+            raise ValueError("skip must be non-negative")
         return v
 
 
@@ -91,7 +107,7 @@ def mark_interest(request: StatusUpdate, db: Session = Depends(get_db)):
         db.commit()
         return {"status": "success", "job_id": request.job_id}
     except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e))
+        raise HTTPException(status_code=500, detail="An internal server error occurred")
 
 @app.get("/jobs/board")
 def get_board(db: Session = Depends(get_db)):
@@ -118,7 +134,7 @@ def get_board(db: Session = Depends(get_db)):
             })
         return board
     except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e))
+        raise HTTPException(status_code=500, detail="An internal server error occurred")
 
 @app.post("/jobs/matches")
 @cache(expire=60)
@@ -128,14 +144,14 @@ def get_matches(request: MatchRequest, db: Session = Depends(get_db)):
     """
     print(f"Match request received. Embedding size: {len(request.embedding)}")
     try:
-        matches = get_job_matches(db, request.embedding, request.limit, request.skip, request.workplace_types)
+        matches = get_job_matches(db, request.embedding, request.limit, request.skip, request.workplace_types, request.search_keyword)
         print(f"Returning {len(matches)} matches.")
         return matches
     except Exception as e:
         print(f"MATCH ERROR: {str(e)}")
         import traceback
         traceback.print_exc()
-        raise HTTPException(status_code=500, detail=str(e))
+        raise HTTPException(status_code=500, detail="An internal server error occurred")
 
 @app.post("/jobs/scrape")
 def trigger_scrape(keyword: str, location: str, limit: int = 10, source: str = "linkedin"):
@@ -162,15 +178,26 @@ def trigger_scrape(keyword: str, location: str, limit: int = 10, source: str = "
             "sources": sources
         }
     except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e))
+        raise HTTPException(status_code=500, detail="An internal server error occurred")
 
 @app.post("/resume/parse")
 def parse_resume(file: UploadFile = File(...), db: Session = Depends(get_db)):
+    # Validate file type
+    ALLOWED_EXTENSIONS = {".pdf", ".docx", ".doc", ".md", ".txt"}
+    ext = os.path.splitext(file.filename)[1].lower()
+    if ext not in ALLOWED_EXTENSIONS:
+        raise HTTPException(status_code=400, detail=f"Unsupported file type: {ext}. Allowed: {', '.join(ALLOWED_EXTENSIONS)}")
+
+    # Validate file size (max 10MB)
+    MAX_FILE_SIZE = 10 * 1024 * 1024
+    content = file.file.read()
+    if len(content) > MAX_FILE_SIZE:
+        raise HTTPException(status_code=413, detail="File too large. Maximum size is 10MB.")
+
     # Save the file temporarily
-    temp_file_path = f"temp_{file.filename}"
+    temp_file_path = f"temp_{uuid.uuid4().hex}_{os.path.basename(file.filename)}"
     try:
         with open(temp_file_path, "wb") as buffer:
-            content = file.file.read()
             buffer.write(content)
         
         # 1. Convert to Markdown
@@ -217,7 +244,7 @@ def parse_resume(file: UploadFile = File(...), db: Session = Depends(get_db)):
         }
     except Exception as e:
         db.rollback()
-        raise HTTPException(status_code=500, detail=str(e))
+        raise HTTPException(status_code=500, detail="An internal server error occurred")
     finally:
         if os.path.exists(temp_file_path):
             os.remove(temp_file_path)
@@ -247,7 +274,7 @@ def get_active_resume(db: Session = Depends(get_db)):
             }
         return None
     except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e))
+        raise HTTPException(status_code=500, detail="An internal server error occurred")
 
 @app.get("/resumes")
 def list_resumes(db: Session = Depends(get_db)):
@@ -271,7 +298,7 @@ def list_resumes(db: Session = Depends(get_db)):
             })
         return result
     except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e))
+        raise HTTPException(status_code=500, detail="An internal server error occurred")
 
 @app.post("/resumes/{resume_id}/activate")
 def activate_resume(resume_id: int, db: Session = Depends(get_db)):
@@ -326,7 +353,7 @@ def activate_resume(resume_id: int, db: Session = Depends(get_db)):
         }
     except Exception as e:
         db.rollback()
-        raise HTTPException(status_code=500, detail=str(e))
+        raise HTTPException(status_code=500, detail="An internal server error occurred")
 
 @app.delete("/resumes/{resume_id}")
 def delete_resume(resume_id: int, db: Session = Depends(get_db)):
@@ -366,7 +393,7 @@ def delete_resume(resume_id: int, db: Session = Depends(get_db)):
         return {"status": "success", "message": "Resume deleted successfully."}
     except Exception as e:
         db.rollback()
-        raise HTTPException(status_code=500, detail=str(e))
+        raise HTTPException(status_code=500, detail="An internal server error occurred")
 
 @app.delete("/resume/reset")
 def reset_resume(db: Session = Depends(get_db)):
@@ -387,7 +414,7 @@ def reset_resume(db: Session = Depends(get_db)):
         return {"status": "success", "message": "Profile data cleared."}
     except Exception as e:
         db.rollback()
-        raise HTTPException(status_code=500, detail=str(e))
+        raise HTTPException(status_code=500, detail="An internal server error occurred")
 
 class AIGenerateRequest(BaseModel):
     job_id: int | None = None
@@ -476,7 +503,7 @@ def generate_ai(request: AIGenerateRequest, db: Session = Depends(get_db)):
     except HTTPException as he:
         raise he
     except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e))
+        raise HTTPException(status_code=500, detail="An internal server error occurred")
 
 class AIRefineRequest(BaseModel):
     current_text: str
@@ -503,7 +530,7 @@ def refine_ai(request: AIRefineRequest, db: Session = Depends(get_db)):
     except HTTPException as he:
         raise he
     except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e))
+        raise HTTPException(status_code=500, detail="An internal server error occurred")
 
 class CompanyResearchRequest(BaseModel):
     company: str
@@ -525,7 +552,7 @@ def research_company(request: CompanyResearchRequest, db: Session = Depends(get_
         return StreamingResponse(event_generator(), media_type="text/plain")
         
     except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e))
+        raise HTTPException(status_code=500, detail="An internal server error occurred")
 
 @app.post("/ai/cache/clear")
 @app.delete("/ai/cache")
@@ -539,7 +566,7 @@ def clear_ai_cache(db: Session = Depends(get_db)):
         return {"status": "success", "message": "AI generation cache cleared successfully."}
     except Exception as e:
         db.rollback()
-        raise HTTPException(status_code=500, detail=str(e))
+        raise HTTPException(status_code=500, detail="An internal server error occurred")
 
 class AIConfigRequest(BaseModel):
     device: str  # 'cpu' or 'cuda'
@@ -564,10 +591,18 @@ def update_ai_config(request: AIConfigRequest):
     except ValueError as ve:
         raise HTTPException(status_code=400, detail=str(ve))
     except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e))
+        raise HTTPException(status_code=500, detail="An internal server error occurred")
+
+def verify_admin_key(x_admin_key: str | None = Header(None)):
+    expected_key = os.getenv("ADMIN_API_KEY")
+    if not expected_key:
+        raise HTTPException(status_code=503, detail="Admin API key not configured")
+    if x_admin_key != expected_key:
+        raise HTTPException(status_code=403, detail="Invalid or missing Admin API Key")
+    return True
 
 @app.post("/system/shutdown")
-def shutdown_system():
+def shutdown_system(authorized: bool = Depends(verify_admin_key)):
     """
     Triggers an application shutdown sequence.
     """
@@ -597,7 +632,7 @@ def shutdown_system():
     return {"status": "success", "message": "System shutdown initiated."}
 
 @app.post("/system/restart")
-def restart_system():
+def restart_system(authorized: bool = Depends(verify_admin_key)):
     """
     Triggers a reboot sequence of the Job Scout stack.
     """
@@ -635,11 +670,6 @@ def restart_system():
     threading.Thread(target=reboot).start()
     return {"status": "success", "message": "System restart initiated."}
 
-def verify_admin_key(x_admin_key: str | None = Header(None)):
-    expected_key = os.getenv("ADMIN_API_KEY", "supersecretadmin123")
-    if x_admin_key != expected_key:
-        raise HTTPException(status_code=403, detail="Invalid or missing Admin API Key")
-    return True
 
 @app.get("/api/admin/stats")
 @cache(expire=15)
@@ -669,7 +699,7 @@ def get_admin_stats(db: Session = Depends(get_db), authorized: bool = Depends(ve
             "celery_active_tasks": active_count
         }
     except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e))
+        raise HTTPException(status_code=500, detail="An internal server error occurred")
 
 if __name__ == "__main__":
     import uvicorn
