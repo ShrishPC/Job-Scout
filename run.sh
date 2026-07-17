@@ -56,6 +56,7 @@ docker compose up -d --build
 echo -e "${GREEN}====================================================${NC}"
 echo -e "${GREEN}   Job Scout is up and running via Docker!           ${NC}"
 echo -e "${GREEN}   - Frontend: http://localhost:3000                 ${NC}"
+echo -e "${GREEN}   - Admin Panel: http://localhost:3000/admin        ${NC}"
 echo -e "${GREEN}   - Backend Docs: http://localhost:8001/docs        ${NC}"
 echo -e "${GREEN}====================================================${NC}"
 echo -e "${YELLOW}To view logs, run:${NC}"
