@@ -92,6 +92,7 @@ $pidsToKill += $celeryBeat.Id
 Write-Host "====================================================" -ForegroundColor Green
 Write-Host "   Job Scout is up and running!                      " -ForegroundColor Green
 Write-Host "   - Frontend: http://localhost:3000                 " -ForegroundColor Green
+Write-Host "   - Admin Panel: http://localhost:3000/admin        " -ForegroundColor Green
 Write-Host "   - Backend Docs: http://localhost:8000/docs        " -ForegroundColor Green
 Write-Host "====================================================" -ForegroundColor Green
 Write-Host "Logs are written to:" -ForegroundColor Yellow
