@@ -31,3 +31,9 @@ dummy.txt
 test.txt
 test_resume.txt
 *.docx.md
+
+# Local-only documentation
+docs/
+weekly_modules_analysis/
+Job_Scout_Definitive_Technical_Reference.docx
+Job_Scout_Technical_Documentation.docx
