@@ -42,3 +42,10 @@ generate_docx.py
 create_comprehensive_docs.py
 Job_Scout_Technical_Documentation.md
 Job_Scout_Definitive_Technical_Reference.md
+
+backend/crop_favicon.py
+backend/test_db.py
+backend/test_hybrid_rag.py
+test_hybrid_rag.py
+test_regex.py
+update_backend.py
