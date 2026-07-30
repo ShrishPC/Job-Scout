@@ -37,3 +37,8 @@ docs/
 weekly_modules_analysis/
 Job_Scout_Definitive_Technical_Reference.docx
 Job_Scout_Technical_Documentation.docx
+
+generate_docx.py
+create_comprehensive_docs.py
+Job_Scout_Technical_Documentation.md
+Job_Scout_Definitive_Technical_Reference.md
