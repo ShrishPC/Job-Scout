@@ -279,7 +279,7 @@ const RadarView: React.FC<RadarViewProps> = ({ jobs, parsedData }) => {
                         const x = center + r * Math.cos(angle);
                         const y = center + r * Math.sin(angle);
                         
-                        let textAnchor = "middle";
+                        let textAnchor: "middle" | "start" | "end" = "middle";
                         if (x < center - 10) textAnchor = "end";
                         if (x > center + 10) textAnchor = "start";
 

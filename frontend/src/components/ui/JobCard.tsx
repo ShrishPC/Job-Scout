@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState } from 'react';
-import { ExternalLink, Check, X, MapPin, DollarSign, Loader2, Calendar, Eye, RotateCw, Target, Briefcase, Laptop } from 'lucide-react';
+import { ExternalLink, Check, X, MapPin, DollarSign, Loader2, Calendar, Eye, RotateCw, Target, Briefcase, Laptop, Sparkles } from 'lucide-react';
 import axios from 'axios';
 
 interface Job {
@@ -25,9 +25,10 @@ interface JobCardProps {
   job: Job;
   onApply: (id: number) => void;
   onReject: (id: number) => void;
+  onTailor?: (job: Job) => void;
 }
 
-const JobCard: React.FC<JobCardProps> = ({ job, onApply, onReject }) => {
+const JobCard: React.FC<JobCardProps> = ({ job, onApply, onReject, onTailor }) => {
   const [loading, setLoading] = useState(false);
   const [success, setSuccess] = useState(false);
   const [isExpanded, setIsExpanded] = useState(false);
@@ -294,12 +295,25 @@ const JobCard: React.FC<JobCardProps> = ({ job, onApply, onReject }) => {
             )}
           </div>
 
-          <div className="flex space-x-4 pt-6 border-t-2 border-black/20">
+          <div className="flex flex-wrap gap-3 pt-6 border-t-2 border-black/20">
+            {onTailor && (
+              <button 
+                onClick={() => {
+                  onTailor(job);
+                  setIsExpanded(false);
+                }}
+                className="flex-1 py-4 px-6 rounded-lg font-black text-xs uppercase tracking-widest flex items-center justify-center space-x-2 bg-retro-yellow text-black border-3 border-black shadow-[3px_3px_0px_0px_rgba(0,0,0,1)] hover:translate-x-[1px] hover:translate-y-[1px] hover:shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] active:translate-x-[3px] active:translate-y-[3px] active:shadow-none transition-all cursor-pointer"
+              >
+                <Sparkles className="w-4 h-4 text-black" />
+                <span>Tailor & Export</span>
+              </button>
+            )}
+
             <button 
               onClick={handleInterest}
               disabled={loading || success}
               className={`
-                flex-1 py-4 rounded-lg font-black text-xs uppercase tracking-widest flex items-center justify-center space-x-2 transition-all border-3 border-black
+                flex-1 py-4 px-6 rounded-lg font-black text-xs uppercase tracking-widest flex items-center justify-center space-x-2 transition-all border-3 border-black
                 ${success 
                   ? 'bg-retro-green text-white shadow-none translate-x-[2px] translate-y-[2px]' 
                   : 'bg-retro-red text-white shadow-[3px_3px_0px_0px_rgba(0,0,0,1)] hover:translate-x-[1px] hover:translate-y-[1px] hover:shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] active:translate-x-[3px] active:translate-y-[3px] active:shadow-none'
@@ -309,11 +323,12 @@ const JobCard: React.FC<JobCardProps> = ({ job, onApply, onReject }) => {
               {loading ? <Loader2 className="w-5 h-5 animate-spin" /> : success ? <Check className="w-5 h-5" /> : <Target className="w-5 h-5" />}
               <span>{success ? 'In Pipeline' : 'Track Job'}</span>
             </button>
+
             <a 
               href={job.job_url}
               target="_blank"
               rel="noopener noreferrer"
-              className="px-8 py-4 rounded-lg text-xs font-black uppercase tracking-widest flex items-center justify-center space-x-2 bg-white text-black border-3 border-black shadow-[3px_3px_0px_0px_rgba(0,0,0,1)] hover:translate-x-[1px] hover:translate-y-[1px] hover:shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] active:translate-x-[3px] active:translate-y-[3px] active:shadow-none transition-all"
+              className="px-6 py-4 rounded-lg text-xs font-black uppercase tracking-widest flex items-center justify-center space-x-2 bg-white text-black border-3 border-black shadow-[3px_3px_0px_0px_rgba(0,0,0,1)] hover:translate-x-[1px] hover:translate-y-[1px] hover:shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] active:translate-x-[3px] active:translate-y-[3px] active:shadow-none transition-all"
             >
               <Eye className="w-4 h-4" />
               <span>Original Post</span>

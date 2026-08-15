@@ -1,12 +1,20 @@
+# Job Scout Windows PowerShell Bootstrapper
+param (
+    [switch]$Local = $false
+)
+
 $ErrorActionPreference = "Stop"
 
-Write-Host "[INIT] Initializing Job Scout Dev Stack (Windows PowerShell)..." -ForegroundColor Green
+Write-Host "====================================================" -ForegroundColor Green
+Write-Host "🚀 Initializing Job Scout Dev Stack (PowerShell)..." -ForegroundColor Green
+Write-Host "====================================================" -ForegroundColor Green
 
 # 1. Check if Docker is installed and running
 try {
     docker info > $null 2>&1
+    Write-Host "[OK] Docker daemon is running." -ForegroundColor Green
 } catch {
-    Write-Host "[ERROR] Docker is not running or not installed. PostgreSQL and Redis require Docker to be active." -ForegroundColor Red
+    Write-Host "[ERROR] Docker is not running or not installed. Docker is required to run the stack." -ForegroundColor Red
     Write-Host "Please start Docker Desktop and try again." -ForegroundColor Yellow
     exit 1
 }
@@ -22,94 +30,81 @@ if (-Not (Test-Path "backend/.env")) {
     Copy-Item ".env.example" "backend/.env"
 }
 
-# 3. Setup Backend Virtual Environment
+# Check if user requested Full Docker Mode (Default) or Local Host Mode
+if (-Not $Local) {
+    Write-Host "[Docker] Launching Full Job Scout Stack via Docker Compose..." -ForegroundColor Cyan
+    docker compose up -d --build
+
+    Start-Sleep -Seconds 3
+
+    Write-Host "`n====================================================" -ForegroundColor Green
+    Write-Host "   Job Scout is up and running via Docker!          " -ForegroundColor Green
+    Write-Host "   - Web App:      http://localhost:3000            " -ForegroundColor Green
+    Write-Host "   - Admin Panel:  http://localhost:3000/admin       " -ForegroundColor Green
+    Write-Host "   - API Docs:     http://localhost:8001/docs        " -ForegroundColor Green
+    Write-Host "   - Redis:        localhost:6380                    " -ForegroundColor Green
+    Write-Host "   - PostgreSQL:   localhost:5435                    " -ForegroundColor Green
+    Write-Host "====================================================" -ForegroundColor Green
+    Write-Host "Useful Commands:" -ForegroundColor Yellow
+    Write-Host "  • View live logs:     docker compose logs -f"
+    Write-Host "  • Check status:       docker compose ps"
+    Write-Host "  • Stop all services:  docker compose down"
+    Write-Host "====================================================`n" -ForegroundColor Green
+    exit 0
+}
+
+# Optional Local Host Mode execution (-Local switch)
+Write-Host "[Local] Setting up local Python & Node environment..." -ForegroundColor Yellow
+
 if (-Not (Test-Path "backend/venv")) {
     Write-Host "[Setup] Creating backend virtual environment..." -ForegroundColor Yellow
     python -m venv backend/venv
     Write-Host "[Setup] Installing backend dependencies (pip install)..." -ForegroundColor Yellow
     & .\backend\venv\Scripts\python.exe -m pip install --upgrade pip
     & .\backend\venv\Scripts\python.exe -m pip install -r backend/requirements.txt
-} else {
-    Write-Host "[OK] Backend virtual environment detected." -ForegroundColor Green
 }
 
-# 4. Setup Playwright in Backend Virtual Environment
-Write-Host "[Setup] Installing Playwright Chromium browser binaries..." -ForegroundColor Yellow
-& .\backend\venv\Scripts\playwright.exe install chromium
-
-# 5. Setup Frontend Dependencies
 if (-Not (Test-Path "frontend/node_modules")) {
     Write-Host "[Setup] Installing frontend dependencies (npm install)..." -ForegroundColor Yellow
     Push-Location frontend
     npm install
     Pop-Location
-} else {
-    Write-Host "[OK] Frontend dependencies (node_modules) detected." -ForegroundColor Green
 }
 
-# 6. Pre-cache Local AI Models
-$LLAMA3_CACHE = "models/models--unsloth--Llama-3.2-3B-Instruct"
-$MINILM_CACHE = "models/models--sentence-transformers--all-MiniLM-L6-v2"
-if ((-Not (Test-Path $LLAMA3_CACHE)) -or (-Not (Test-Path $MINILM_CACHE))) {
-    Write-Host "[Setup] Cache folders for local models not found. Pre-downloading models..." -ForegroundColor Cyan
-    & .\backend\venv\Scripts\python.exe scripts/download_models.py
-} else {
-    Write-Host "[OK] Local AI models (Llama 3.2 & MiniLM) are already cached locally." -ForegroundColor Green
-}
-
-Write-Host "[DONE] Bootstrapping complete! Launching services..." -ForegroundColor Green
-
-# 7. Start Docker containers (DB and Redis)
-Write-Host "[Docker] Starting Database and Redis..." -ForegroundColor Cyan
+# Start DB and Redis containers for local backend
+Write-Host "[Docker] Starting Database and Redis services..." -ForegroundColor Cyan
 docker compose up -d db redis
+Start-Sleep -Seconds 3
 
-Write-Host "[Docker] Waiting for PostgreSQL and Redis to be healthy..." -ForegroundColor Cyan
-Start-Sleep -Seconds 2
-
-# 8. Run Database Migrations/Initialization
-Write-Host "[Database] Running database initialization..." -ForegroundColor Yellow
+# Run DB migrations
 Push-Location backend
 & .\venv\Scripts\python.exe init_db.py
 Pop-Location
 
 $pidsToKill = @()
 
-# 9. Start Backend FastAPI
-Write-Host "[Backend] Starting FastAPI server on port 8000..." -ForegroundColor Cyan
-$backendProcess = Start-Process -FilePath ".\backend\venv\Scripts\python.exe" -ArgumentList "-m uvicorn app.main:app --host 0.0.0.0 --port 8000" -WorkingDirectory ".\backend" -RedirectStandardOutput ".\backend\backend.log" -RedirectStandardError ".\backend\backend_errors.log" -PassThru -WindowStyle Hidden
+# Start Backend FastAPI on port 8001
+Write-Host "[Backend] Starting FastAPI server on port 8001..." -ForegroundColor Cyan
+$backendProcess = Start-Process -FilePath ".\backend\venv\Scripts\python.exe" -ArgumentList "-m uvicorn app.main:app --host 0.0.0.0 --port 8001 --reload" -WorkingDirectory ".\backend" -RedirectStandardOutput ".\backend\backend.log" -RedirectStandardError ".\backend\backend_errors.log" -PassThru -WindowStyle Hidden
 $pidsToKill += $backendProcess.Id
 
-# 10. Start Celery Worker (Crucial: using --pool=solo for Windows)
+# Start Celery Worker
 Write-Host "[Celery] Starting Celery worker..." -ForegroundColor Magenta
 $celeryWorker = Start-Process -FilePath ".\backend\venv\Scripts\python.exe" -ArgumentList "-m celery -A celery_app worker --pool=solo --loglevel=info" -WorkingDirectory ".\scraper" -RedirectStandardOutput ".\scraper\celery_worker.log" -RedirectStandardError ".\scraper\celery_worker_errors.log" -PassThru -WindowStyle Hidden
 $pidsToKill += $celeryWorker.Id
 
-# 11. Start Celery Beat
-Write-Host "[Celery] Starting Celery beat..." -ForegroundColor Magenta
-$celeryBeat = Start-Process -FilePath ".\backend\venv\Scripts\python.exe" -ArgumentList "-m celery -A celery_app beat --loglevel=info" -WorkingDirectory ".\scraper" -RedirectStandardOutput ".\scraper\celery_beat.log" -RedirectStandardError ".\scraper\celery_beat_errors.log" -PassThru -WindowStyle Hidden
-$pidsToKill += $celeryBeat.Id
-
 Write-Host "====================================================" -ForegroundColor Green
-Write-Host "   Job Scout is up and running!                      " -ForegroundColor Green
+Write-Host "   Job Scout Local Stack Active!                     " -ForegroundColor Green
 Write-Host "   - Frontend: http://localhost:3000                 " -ForegroundColor Green
-Write-Host "   - Admin Panel: http://localhost:3000/admin        " -ForegroundColor Green
-Write-Host "   - Backend Docs: http://localhost:8000/docs        " -ForegroundColor Green
-Write-Host "====================================================" -ForegroundColor Green
-Write-Host "Logs are written to:" -ForegroundColor Yellow
-Write-Host "  - Backend: backend/backend.log"
-Write-Host "  - Celery Worker: scraper/celery_worker.log"
-Write-Host "  - Celery Beat: scraper/celery_beat.log"
-Write-Host "Frontend output is streaming below..." -ForegroundColor Yellow
-Write-Host "Press Ctrl+C to shut down all services." -ForegroundColor Yellow
+Write-Host "   - Backend:  http://localhost:8001/docs             " -ForegroundColor Green
 Write-Host "====================================================" -ForegroundColor Green
 
 try {
-    # 12. Start Frontend (Next.js) in the foreground
     Push-Location frontend
     npm run dev
     Pop-Location
 } finally {
-    Write-Host "`n[EXIT] Shutting down Job Scout services..." -ForegroundColor Red
+    Write-Host "`n[EXIT] Shutting down Job Scout local services..." -ForegroundColor Red
     foreach ($pidToKill in $pidsToKill) {
         Stop-Process -Id $pidToKill -Force -ErrorAction SilentlyContinue
     }

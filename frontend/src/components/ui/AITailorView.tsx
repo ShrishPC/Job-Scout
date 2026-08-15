@@ -154,6 +154,8 @@ const AITailorView: React.FC<AITailorViewProps> = ({
         }
     };
 
+    const [exportingFormat, setExportingFormat] = useState<'pdf' | 'docx' | 'txt' | null>(null);
+
     const handleCopy = () => {
         if (!result) return;
         navigator.clipboard.writeText(result);
@@ -161,16 +163,66 @@ const AITailorView: React.FC<AITailorViewProps> = ({
         setTimeout(() => setCopied(false), 2000);
     };
 
-    const handleDownload = () => {
+    const handleExport = async (format: 'pdf' | 'docx' | 'txt') => {
         if (!result) return;
-        const filename = mode === 'tailor' ? 'tailored_resume_suggestions.txt' : 'cover_letter.txt';
-        const element = document.createElement("a");
-        const file = new Blob([result], {type: 'text/plain'});
-        element.href = URL.createObjectURL(file);
-        element.download = filename;
-        document.body.appendChild(element);
-        element.click();
-        document.body.removeChild(element);
+
+        if (format === 'txt') {
+            const filename = mode === 'tailor' ? 'tailored_resume_suggestions.txt' : 'cover_letter.txt';
+            const element = document.createElement("a");
+            const file = new Blob([result], { type: 'text/plain' });
+            element.href = URL.createObjectURL(file);
+            element.download = filename;
+            document.body.appendChild(element);
+            element.click();
+            document.body.removeChild(element);
+            return;
+        }
+
+        setExportingFormat(format);
+        try {
+            const apiHost = typeof window !== 'undefined' ? `${window.location.protocol}//${window.location.hostname}:8001` : 'http://127.0.0.1:8001';
+            
+            const targetCompany = isCustomJob ? customCompany : (selectedJob?.company || '');
+            const targetTitle = isCustomJob ? customTitle : (selectedJob?.title || '');
+            const candidateName = activeResume?.parsed_json?.full_name || 'Applicant';
+            const candidateEmail = activeResume?.parsed_json?.email || '';
+
+            const docTitle = mode === 'tailor' 
+                ? `${candidateName}_Tailored_Resume_${targetCompany || 'Application'}`
+                : `${candidateName}_Cover_Letter_${targetCompany || 'Application'}`;
+
+            const response = await axios.post(`${apiHost}/export/document`, {
+                content: result,
+                mode: mode,
+                title: docTitle,
+                company: targetCompany,
+                job_title: targetTitle,
+                candidate_name: candidateName,
+                candidate_email: candidateEmail,
+                format: format
+            }, {
+                responseType: 'blob'
+            });
+
+            const mimeType = format === 'pdf' 
+                ? 'application/pdf' 
+                : 'application/vnd.openxmlformats-officedocument.wordprocessingml.document';
+                
+            const blob = new Blob([response.data], { type: mimeType });
+            const url = window.URL.createObjectURL(blob);
+            const link = document.createElement('a');
+            link.href = url;
+            link.setAttribute('download', `${docTitle}.${format}`);
+            document.body.appendChild(link);
+            link.click();
+            link.remove();
+            window.URL.revokeObjectURL(url);
+        } catch (err: any) {
+            console.error(`Failed to export ${format}:`, err);
+            setError(`Failed to export document as ${format.toUpperCase()}.`);
+        } finally {
+            setExportingFormat(null);
+        }
     };
 
     const selectedJob = jobs.find(j => j.id.toString() === selectedJobId);
@@ -444,20 +496,51 @@ const AITailorView: React.FC<AITailorViewProps> = ({
                             {mode === 'tailor' ? 'Resume Tailoring suggestions' : 'Generated Cover Letter'}
                         </h3>
                         {result && (
-                            <div className="flex space-x-2">
+                            <div className="flex flex-wrap items-center gap-2">
+                                <button
+                                    onClick={() => handleExport('pdf')}
+                                    disabled={exportingFormat !== null}
+                                    className="px-3 py-1.5 border-2 border-black bg-white rounded-lg text-black hover:bg-retro-pink shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] hover:translate-x-[0.5px] hover:translate-y-[0.5px] hover:shadow-[1.5px_1.5px_0px_0px_rgba(0,0,0,1)] active:translate-x-[2px] active:translate-y-[2px] active:shadow-none transition-all font-black text-[11px] uppercase tracking-wider flex items-center space-x-1.5 disabled:opacity-50"
+                                    title="Export as styled vector PDF"
+                                >
+                                    {exportingFormat === 'pdf' ? (
+                                        <Loader2 className="w-3.5 h-3.5 animate-spin text-retro-red" />
+                                    ) : (
+                                        <FileText className="w-3.5 h-3.5 text-retro-red" />
+                                    )}
+                                    <span>PDF</span>
+                                </button>
+
+                                <button
+                                    onClick={() => handleExport('docx')}
+                                    disabled={exportingFormat !== null}
+                                    className="px-3 py-1.5 border-2 border-black bg-white rounded-lg text-black hover:bg-retro-mint shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] hover:translate-x-[0.5px] hover:translate-y-[0.5px] hover:shadow-[1.5px_1.5px_0px_0px_rgba(0,0,0,1)] active:translate-x-[2px] active:translate-y-[2px] active:shadow-none transition-all font-black text-[11px] uppercase tracking-wider flex items-center space-x-1.5 disabled:opacity-50"
+                                    title="Export as Microsoft Word (.docx)"
+                                >
+                                    {exportingFormat === 'docx' ? (
+                                        <Loader2 className="w-3.5 h-3.5 animate-spin text-retro-green" />
+                                    ) : (
+                                        <FileText className="w-3.5 h-3.5 text-blue-600" />
+                                    )}
+                                    <span>DOCX</span>
+                                </button>
+
+                                <button
+                                    onClick={() => handleExport('txt')}
+                                    disabled={exportingFormat !== null}
+                                    className="px-2.5 py-1.5 border-2 border-black bg-white rounded-lg text-black hover:bg-retro-yellow shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] hover:translate-x-[0.5px] hover:translate-y-[0.5px] hover:shadow-[1.5px_1.5px_0px_0px_rgba(0,0,0,1)] active:translate-x-[2px] active:translate-y-[2px] active:shadow-none transition-all font-black text-[11px] uppercase tracking-wider flex items-center space-x-1 disabled:opacity-50"
+                                    title="Export as Plain Text (.txt)"
+                                >
+                                    <Download className="w-3.5 h-3.5" />
+                                    <span>TXT</span>
+                                </button>
+
                                 <button
                                     onClick={handleCopy}
-                                    className="p-2 border-2 border-black bg-white rounded-lg text-black hover:bg-retro-yellow shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] hover:translate-x-[0.5px] hover:translate-y-[0.5px] hover:shadow-[1.5px_1.5px_0px_0px_rgba(0,0,0,1)] active:translate-x-[2px] active:translate-y-[2px] active:shadow-none transition-all"
+                                    className="p-1.5 border-2 border-black bg-white rounded-lg text-black hover:bg-retro-sand shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] hover:translate-x-[0.5px] hover:translate-y-[0.5px] hover:shadow-[1.5px_1.5px_0px_0px_rgba(0,0,0,1)] active:translate-x-[2px] active:translate-y-[2px] active:shadow-none transition-all"
                                     title="Copy to Clipboard"
                                 >
                                     {copied ? <Check className="w-4 h-4 text-retro-green" /> : <Copy className="w-4 h-4" />}
-                                </button>
-                                <button
-                                    onClick={handleDownload}
-                                    className="p-2 border-2 border-black bg-white rounded-lg text-black hover:bg-retro-mint shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] hover:translate-x-[0.5px] hover:translate-y-[0.5px] hover:shadow-[1.5px_1.5px_0px_0px_rgba(0,0,0,1)] active:translate-x-[2px] active:translate-y-[2px] active:shadow-none transition-all"
-                                    title="Save to File"
-                                >
-                                    <Download className="w-4 h-4" />
                                 </button>
                             </div>
                         )}

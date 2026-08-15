@@ -28,7 +28,7 @@ export default function Home() {
   const [showFilters, setShowFilters] = useState(false);
   const [showLocationSuggestions, setShowLocationSuggestions] = useState(false);
   const [selectedWorkplaceTypes, setSelectedWorkplaceTypes] = useState<string[]>([]);
-  const [device, setDevice] = useState<'cpu' | 'cuda'>('cpu');
+  const [device, setDevice] = useState<'cpu' | 'cuda' | 'demo'>('cpu');
 
   // Global resume upload pipeline state
   const [globalFile, setGlobalFile] = useState<File | null>(null);
@@ -189,7 +189,7 @@ export default function Home() {
     fetchAIDevice();
   }, []);
 
-  const handleDeviceChange = async (newDevice: 'cpu' | 'cuda') => {
+  const handleDeviceChange = async (newDevice: 'cpu' | 'cuda' | 'demo') => {
     const apiHost = typeof window !== 'undefined' ? `${window.location.protocol}//${window.location.hostname}:8001` : 'http://127.0.0.1:8001';
     try {
       await axios.post(`${apiHost}/ai/config`, { device: newDevice });
@@ -367,17 +367,84 @@ export default function Home() {
     return () => clearTimeout(timer);
   }, [parsedData, selectedWorkplaceTypes, searchParams.keyword]);
 
+  const [scrapeStatus, setScrapeStatus] = useState<{
+    active: boolean;
+    message: string;
+    newJobs: number;
+    sources: string[];
+  } | null>(null);
+
   const triggerScrape = async () => {
     setScraping(true);
     const apiHost = typeof window !== 'undefined' ? `${window.location.protocol}//${window.location.hostname}:8001` : 'http://127.0.0.1:8001';
     const scrapeKw = searchParams.keyword.trim() || 'Software Engineer';
     const scrapeLoc = searchParams.location.trim();
+    
+    setScrapeStatus({
+      active: true,
+      message: `Dispatching background Celery workers for "${scrapeKw}"...`,
+      newJobs: 0,
+      sources: ['linkedin', 'indeed', 'remoteok', 'wwr']
+    });
+
     try {
-      await axios.post(`${apiHost}/jobs/scrape?keyword=${scrapeKw}&location=${scrapeLoc}&limit=15`);
-      alert(`Search initiated for ${scrapeKw} in ${scrapeLoc || 'All Locations'}.`);
-    } catch (err) {
+      const response = await axios.post(`${apiHost}/jobs/scrape?keyword=${encodeURIComponent(scrapeKw)}&location=${encodeURIComponent(scrapeLoc)}&limit=10&source=all`);
+      const taskIds = response.data?.task_ids || [];
+
+      if (taskIds.length === 0) {
+        setScrapeStatus({
+          active: false,
+          message: 'Scraper completed: 0 tasks returned.',
+          newJobs: 0,
+          sources: []
+        });
+        setScraping(false);
+        return;
+      }
+
+      let pollCount = 0;
+      const maxPolls = 60;
+      const pollInterval = setInterval(async () => {
+        pollCount++;
+        try {
+          const statusRes = await axios.post(`${apiHost}/tasks/batch-status`, { task_ids: taskIds });
+          const { tasks, all_completed, total_new_jobs } = statusRes.data;
+
+          const inProgress = tasks.find((t: any) => t.state === 'PROGRESS');
+          const currentMsg = inProgress?.progress?.status || (all_completed ? `Scrape complete! Discovered ${total_new_jobs} new jobs.` : 'Scraping job boards in background...');
+
+          setScrapeStatus({
+            active: !all_completed,
+            message: currentMsg,
+            newJobs: total_new_jobs || 0,
+            sources: tasks.map((t: any) => t.progress?.source || 'worker')
+          });
+
+          if (all_completed || pollCount >= maxPolls) {
+            clearInterval(pollInterval);
+            setScraping(false);
+            if (parsedData?.embedding) {
+              fetchMatches(parsedData.embedding, selectedWorkplaceTypes, searchParams.keyword);
+            }
+            setTimeout(() => {
+              setScrapeStatus(null);
+            }, 6000);
+          }
+        } catch (pollErr) {
+          console.error("Task polling error:", pollErr);
+          clearInterval(pollInterval);
+          setScraping(false);
+        }
+      }, 2000);
+
+    } catch (err: any) {
       console.error("Failed to start scraping:", err);
-    } finally {
+      setScrapeStatus({
+        active: false,
+        message: 'Failed to dispatch Celery scrapers. Ensure Redis and worker are running.',
+        newJobs: 0,
+        sources: []
+      });
       setScraping(false);
     }
   };
@@ -577,6 +644,38 @@ export default function Home() {
             </div>
           )}
         </header>
+
+        {/* Celery Background Task Telemetry Banner */}
+        {scrapeStatus && (
+          <div className="bg-retro-cream border-b-3 border-black px-6 py-3 flex items-center justify-between shadow-[0px_3px_0px_0px_rgba(0,0,0,1)] animate-in slide-in-from-top duration-200">
+            <div className="flex items-center space-x-3">
+              <div className={`w-8 h-8 rounded-lg border-2 border-black flex items-center justify-center ${scrapeStatus.active ? 'bg-retro-yellow animate-pulse text-black' : 'bg-retro-green text-white'}`}>
+                {scrapeStatus.active ? <Loader2 className="w-4 h-4 animate-spin" /> : <CheckCircle2 className="w-4 h-4" />}
+              </div>
+              <div>
+                <p className="text-xs font-black text-black uppercase tracking-wide flex items-center space-x-2">
+                  <span>{scrapeStatus.active ? 'Background Celery Scraper Active' : 'Scrape Completed'}</span>
+                  {scrapeStatus.newJobs > 0 && (
+                    <span className="bg-retro-mint text-black border-2 border-black px-2 py-0.5 rounded text-[10px] font-black">
+                      +{scrapeStatus.newJobs} NEW JOBS
+                    </span>
+                  )}
+                </p>
+                <p className="text-[11px] font-bold text-black/70 mt-0.5">{scrapeStatus.message}</p>
+              </div>
+            </div>
+            <div className="flex items-center space-x-2">
+              <span className="text-[9px] font-black uppercase text-black/50 tracking-widest hidden sm:inline-block">Worker Pool: Redis + Celery</span>
+              <button 
+                onClick={() => setScrapeStatus(null)}
+                className="p-1 border border-black bg-white rounded text-black hover:bg-retro-pink cursor-pointer"
+                title="Dismiss"
+              >
+                <X className="w-3.5 h-3.5" />
+              </button>
+            </div>
+          </div>
+        )}
 
         {/* Scrollable Content Area */}
         <div className="flex-1 overflow-y-auto custom-scrollbar">
@@ -791,6 +890,11 @@ export default function Home() {
                               job={job} 
                               onApply={handleApply} 
                               onReject={handleReject} 
+                              onTailor={(targetJob) => {
+                                setAiSelectedJobId(targetJob.id.toString());
+                                setAiIsCustomJob(false);
+                                setView('ai');
+                              }}
                             />
                           ))
                       )}
@@ -945,7 +1049,7 @@ export default function Home() {
                 <label className="text-xs font-black text-black/60 dark:text-white/60 uppercase tracking-[0.2em] block mb-3">
                   Local AI Hardware Acceleration
                 </label>
-                <div className="grid grid-cols-2 gap-3">
+                <div className="grid grid-cols-3 gap-3">
                   <button
                     onClick={() => handleDeviceChange('cpu')}
                     className={`px-4 py-3 border-2 border-black rounded-xl font-black text-xs uppercase tracking-wider transition-all flex items-center justify-center space-x-2 cursor-pointer ${
@@ -965,11 +1069,24 @@ export default function Home() {
                         : 'bg-white text-black shadow-[3px_3px_0px_0px_rgba(0,0,0,1)] hover:translate-x-[1px] hover:translate-y-[1px]'
                     }`}
                   >
-                    <span>⚡ GPU (CUDA)</span>
+                    <span>⚡ GPU</span>
+                  </button>
+
+                  <button
+                    onClick={() => handleDeviceChange('demo')}
+                    className={`px-4 py-3 border-2 border-black rounded-xl font-black text-xs uppercase tracking-wider transition-all flex items-center justify-center space-x-2 cursor-pointer ${
+                      device === 'demo'
+                        ? 'bg-retro-red text-white shadow-none translate-x-[2px] translate-y-[2px]'
+                        : 'bg-white text-black shadow-[3px_3px_0px_0px_rgba(0,0,0,1)] hover:translate-x-[1px] hover:translate-y-[1px]'
+                    }`}
+                  >
+                    <span>🚀 DEMO</span>
                   </button>
                 </div>
                 <p className="text-[10px] text-black/50 dark:text-white/50 font-bold mt-3 uppercase tracking-wide">
-                  {device === 'cuda' 
+                  {device === 'demo'
+                    ? 'Demo Mode active (Instant bypass of local AI).'
+                    : device === 'cuda' 
                     ? 'GPU mode active (Requires CUDA compatible graphics card & drivers).' 
                     : 'Running in standard CPU execution mode.'}
                 </p>

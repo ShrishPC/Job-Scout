@@ -2,6 +2,9 @@ FROM job-scout-backend:latest
 
 WORKDIR /app
 
+# Enable unbuffered python logging
+ENV PYTHONUNBUFFERED=1
+
 # Install Playwright and chromium browser system dependencies
 RUN playwright install --with-deps chromium
 
@@ -9,5 +12,4 @@ RUN playwright install --with-deps chromium
 COPY . .
 
 # Default command for celery worker (overridden for celery-beat in docker-compose)
-CMD ["celery", "-A celery_app", "worker", "--loglevel=info"]
-
+CMD ["celery", "-A", "celery_app", "worker", "--loglevel=info"]

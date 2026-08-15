@@ -319,6 +319,17 @@ export default function AdminDashboard() {
                   >
                     <Cpu className="w-4 h-4 text-black" strokeWidth={3} /> GPU Mode
                   </button>
+                  <button 
+                    onClick={async () => {
+                      try {
+                        await axios.post(`${apiHost}/ai/config`, { device: "demo" }, { headers: { 'x-admin-key': adminKey } });
+                        alert("AI Switched to DEMO Mode!");
+                      } catch (e) { alert("Failed to switch AI config."); }
+                    }}
+                    className={`w-full bg-[#FF4911] text-black font-black py-3 px-3 uppercase tracking-widest text-xs border-2 border-white shadow-[4px_4px_0px_0px_#FFFFFF] ${getBrutalHover('#FFFFFF')} flex justify-center items-center gap-2`}
+                  >
+                    🚀 Demo Mode
+                  </button>
                 </div>
               </div>
             </div>

@@ -141,6 +141,35 @@ const VaultView: React.FC<VaultViewProps> = ({
         }
     };
 
+    const [exportingId, setExportingId] = useState<{ id: number; format: string } | null>(null);
+
+    const handleExportResume = async (id: number, filename: string, format: 'pdf' | 'docx') => {
+        setExportingId({ id, format });
+        setError(null);
+        try {
+            const response = await axios.get(`${apiHost}/resumes/${id}/export?format=${format}`, {
+                responseType: 'blob'
+            });
+            const baseName = filename.replace(/\.[^/.]+$/, "");
+            const outFilename = `${baseName}_Export.${format}`;
+            const mimeType = format === 'pdf' ? 'application/pdf' : 'application/vnd.openxmlformats-officedocument.wordprocessingml.document';
+            const blob = new Blob([response.data], { type: mimeType });
+            const url = window.URL.createObjectURL(blob);
+            const link = document.createElement('a');
+            link.href = url;
+            link.setAttribute('download', outFilename);
+            document.body.appendChild(link);
+            link.click();
+            link.remove();
+            window.URL.revokeObjectURL(url);
+        } catch (err: any) {
+            console.error("Failed to export vault resume:", err);
+            setError(`Failed to export resume as ${format.toUpperCase()}.`);
+        } finally {
+            setExportingId(null);
+        }
+    };
+
     const formatDate = (isoStr: string) => {
         if (!isoStr) return "Unknown date";
         const date = new Date(isoStr);
@@ -329,24 +358,52 @@ const VaultView: React.FC<VaultViewProps> = ({
 
                                     <div className="flex items-center space-x-2">
                                         <button
+                                            onClick={() => handleExportResume(resume.id, resume.filename, 'pdf')}
+                                            disabled={exportingId !== null}
+                                            className="px-2 py-1.5 border-2 border-black bg-white hover:bg-retro-pink text-black text-[9px] font-black uppercase rounded shadow-[1.5px_1.5px_0px_0px_rgba(0,0,0,1)] hover:translate-x-[0.5px] hover:translate-y-[0.5px] active:translate-x-[1.5px] active:translate-y-[1.5px] active:shadow-none flex items-center space-x-1 transition-all disabled:opacity-50"
+                                            title="Export Resume as styled PDF"
+                                        >
+                                            {exportingId?.id === resume.id && exportingId?.format === 'pdf' ? (
+                                                <Loader2 className="w-3 h-3 animate-spin text-retro-red" />
+                                            ) : (
+                                                <FileText className="w-3 h-3 text-retro-red" />
+                                            )}
+                                            <span>PDF</span>
+                                        </button>
+
+                                        <button
+                                            onClick={() => handleExportResume(resume.id, resume.filename, 'docx')}
+                                            disabled={exportingId !== null}
+                                            className="px-2 py-1.5 border-2 border-black bg-white hover:bg-retro-mint text-black text-[9px] font-black uppercase rounded shadow-[1.5px_1.5px_0px_0px_rgba(0,0,0,1)] hover:translate-x-[0.5px] hover:translate-y-[0.5px] active:translate-x-[1.5px] active:translate-y-[1.5px] active:shadow-none flex items-center space-x-1 transition-all disabled:opacity-50"
+                                            title="Export Resume as Word (.docx)"
+                                        >
+                                            {exportingId?.id === resume.id && exportingId?.format === 'docx' ? (
+                                                <Loader2 className="w-3 h-3 animate-spin text-retro-green" />
+                                            ) : (
+                                                <FileText className="w-3 h-3 text-blue-600" />
+                                            )}
+                                            <span>DOCX</span>
+                                        </button>
+
+                                        <button
                                             onClick={() => handleDelete(resume.id)}
                                             disabled={actionLoading === resume.id}
-                                            className="p-2 text-black hover:text-white border-2 border-black bg-white hover:bg-retro-red rounded shadow-[1.5px_1.5px_0px_0px_rgba(0,0,0,1)] hover:translate-x-[0.5px] hover:translate-y-[0.5px] hover:shadow-[1px_1px_0px_0px_rgba(0,0,0,1)] active:translate-x-[1.5px] active:translate-y-[1.5px] active:shadow-none transition-all"
+                                            className="p-1.5 text-black hover:text-white border-2 border-black bg-white hover:bg-retro-red rounded shadow-[1.5px_1.5px_0px_0px_rgba(0,0,0,1)] hover:translate-x-[0.5px] hover:translate-y-[0.5px] hover:shadow-[1px_1px_0px_0px_rgba(0,0,0,1)] active:translate-x-[1.5px] active:translate-y-[1.5px] active:shadow-none transition-all"
                                             title="Delete resume"
                                         >
-                                            <Trash2 className="w-4 h-4" />
+                                            <Trash2 className="w-3.5 h-3.5" />
                                         </button>
                                         
                                         {!resume.is_active && (
                                             <button
                                                 onClick={() => handleActivate(resume.id)}
                                                 disabled={actionLoading !== null}
-                                                className="bg-retro-green text-white border-2 border-black text-[10px] font-black uppercase tracking-wider px-3.5 py-2 rounded shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] hover:translate-x-[0.5px] hover:translate-y-[0.5px] hover:shadow-[1.5px_1.5px_0px_0px_rgba(0,0,0,1)] active:translate-x-[2px] active:translate-y-[2px] active:shadow-none transition-all flex items-center"
+                                                className="bg-retro-green text-white border-2 border-black text-[10px] font-black uppercase tracking-wider px-3 py-1.5 rounded shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] hover:translate-x-[0.5px] hover:translate-y-[0.5px] hover:shadow-[1.5px_1.5px_0px_0px_rgba(0,0,0,1)] active:translate-x-[2px] active:translate-y-[2px] active:shadow-none transition-all flex items-center"
                                             >
                                                 {actionLoading === resume.id ? (
-                                                    <Loader2 className="w-3.5 h-3.5 animate-spin mr-1.5" />
+                                                    <Loader2 className="w-3 h-3 animate-spin mr-1" />
                                                 ) : (
-                                                    <CheckCircle2 className="w-3.5 h-3.5 mr-1.5" />
+                                                    <CheckCircle2 className="w-3 h-3 mr-1" />
                                                 )}
                                                 Activate
                                             </button>

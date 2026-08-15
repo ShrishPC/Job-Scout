@@ -1,6 +1,6 @@
 from fastapi import FastAPI, UploadFile, File, HTTPException, BackgroundTasks, Depends, Request, Header
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi.responses import StreamingResponse
+from fastapi.responses import StreamingResponse, Response
 from app.services.resume_service import parse_resume_to_markdown
 from app.services.llm_service import (
     parse_markdown_with_llm, 
@@ -86,8 +86,9 @@ class StatusUpdate(BaseModel):
     job_id: int
     status: str
 
-# Connect to Celery
-celery_app = Celery("job_scout_scraper", broker=os.getenv("REDIS_URL", "redis://localhost:6379/0"))
+# Connect to Celery (Broker and Result Backend)
+REDIS_URL = os.getenv("REDIS_URL", "redis://localhost:6379/0")
+celery_app = Celery("job_scout_scraper", broker=REDIS_URL, backend=REDIS_URL)
 
 @app.get("/")
 async def root():
@@ -181,6 +182,90 @@ def trigger_scrape(keyword: str, location: str, limit: int = 10, source: str = "
         }
     except Exception as e:
         raise HTTPException(status_code=500, detail="An internal server error occurred")
+
+@app.get("/tasks/{task_id}")
+def get_task_status(task_id: str):
+    """
+    Checks the execution state, progress, or return result of a Celery background task.
+    """
+    from celery.result import AsyncResult
+    try:
+        task_result = AsyncResult(task_id, app=celery_app)
+        response = {
+            "task_id": task_id,
+            "state": task_result.state,
+            "ready": task_result.ready(),
+            "successful": task_result.successful() if task_result.ready() else False,
+        }
+        
+        if task_result.state == 'PENDING':
+            response["status"] = "Task queued / pending execution"
+        elif task_result.state == 'PROGRESS':
+            response["status"] = task_result.info.get('status', 'Processing...') if isinstance(task_result.info, dict) else str(task_result.info)
+            response["progress"] = task_result.info if isinstance(task_result.info, dict) else {}
+        elif task_result.state == 'SUCCESS':
+            response["status"] = "Completed"
+            response["result"] = task_result.result
+        elif task_result.state == 'FAILURE':
+            response["status"] = "Failed"
+            response["error"] = str(task_result.info)
+        else:
+            response["status"] = str(task_result.state)
+            if isinstance(task_result.info, dict):
+                response["meta"] = task_result.info
+                
+        return response
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Failed to check task: {str(e)}")
+
+class BatchTaskStatusRequest(BaseModel):
+    task_ids: list[str]
+
+@app.post("/tasks/batch-status")
+def get_batch_task_status(request: BatchTaskStatusRequest):
+    """
+    Returns status and progress for multiple Celery background tasks in a single query.
+    """
+    from celery.result import AsyncResult
+    try:
+        results = []
+        all_completed = True
+        total_new_jobs = 0
+
+        for tid in request.task_ids:
+            task_result = AsyncResult(tid, app=celery_app)
+            item = {
+                "task_id": tid,
+                "state": task_result.state,
+                "ready": task_result.ready(),
+                "successful": task_result.successful() if task_result.ready() else False,
+            }
+            if not task_result.ready():
+                all_completed = False
+
+            if task_result.state == 'PROGRESS' and isinstance(task_result.info, dict):
+                item["progress"] = task_result.info
+                item["status"] = task_result.info.get('status', 'Processing...')
+            elif task_result.state == 'SUCCESS':
+                item["result"] = task_result.result
+                item["status"] = "Completed"
+                if isinstance(task_result.result, dict):
+                    total_new_jobs += task_result.result.get("new_jobs", 0)
+            elif task_result.state == 'FAILURE':
+                item["error"] = str(task_result.info)
+                item["status"] = "Failed"
+            else:
+                item["status"] = task_result.state
+
+            results.append(item)
+
+        return {
+            "tasks": results,
+            "all_completed": all_completed,
+            "total_new_jobs": total_new_jobs
+        }
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Batch task status failed: {str(e)}")
 
 @app.post("/resume/parse")
 def parse_resume(file: UploadFile = File(...), db: Session = Depends(get_db)):
@@ -570,26 +655,165 @@ def clear_ai_cache(db: Session = Depends(get_db)):
         db.rollback()
         raise HTTPException(status_code=500, detail="An internal server error occurred")
 
+class ExportDocumentRequest(BaseModel):
+    content: str
+    mode: str = "cover_letter"  # "cover_letter" | "tailor" | "resume"
+    title: str | None = None
+    company: str | None = None
+    job_title: str | None = None
+    candidate_name: str | None = None
+    candidate_email: str | None = None
+    candidate_phone: str | None = None
+    format: str = "pdf"  # "pdf" | "docx" | "txt"
+
+@app.post("/export/document")
+@app.post("/ai/export")
+def export_document(request: ExportDocumentRequest):
+    """
+    Exports tailored resumes or cover letters directly as professional DOCX, PDF, or TXT.
+    """
+    import re
+    from app.services.export_service import generate_docx_export, generate_pdf_export
+    try:
+        if not request.content.strip():
+            raise HTTPException(status_code=400, detail="Content is required for export.")
+            
+        doc_format = request.format.lower().strip()
+        doc_mode = request.mode.lower().strip()
+        doc_title = request.title or ("Cover_Letter" if doc_mode == "cover_letter" else "Tailored_Resume")
+        
+        safe_title = re.sub(r'[^a-zA-Z0-9_\-]', '_', doc_title).strip('_') or "Document"
+        
+        if doc_format == "docx":
+            file_bytes = generate_docx_export(
+                title=doc_title,
+                content=request.content,
+                mode=doc_mode,
+                candidate_name=request.candidate_name,
+                candidate_email=request.candidate_email,
+                candidate_phone=request.candidate_phone,
+                company=request.company,
+                job_title=request.job_title
+            )
+            media_type = "application/vnd.openxmlformats-officedocument.wordprocessingml.document"
+            filename = f"{safe_title}.docx"
+        elif doc_format == "pdf":
+            file_bytes = generate_pdf_export(
+                title=doc_title,
+                content=request.content,
+                mode=doc_mode,
+                candidate_name=request.candidate_name,
+                candidate_email=request.candidate_email,
+                candidate_phone=request.candidate_phone,
+                company=request.company,
+                job_title=request.job_title
+            )
+            media_type = "application/pdf"
+            filename = f"{safe_title}.pdf"
+        else:
+            file_bytes = request.content.encode('utf-8')
+            media_type = "text/plain; charset=utf-8"
+            filename = f"{safe_title}.txt"
+
+        headers = {
+            "Content-Disposition": f'attachment; filename="{filename}"',
+            "Access-Control-Expose-Headers": "Content-Disposition"
+        }
+        return Response(content=file_bytes, media_type=media_type, headers=headers)
+    except HTTPException as he:
+        raise he
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Export generation failed: {str(e)}")
+
+@app.get("/resumes/{resume_id}/export")
+def export_vault_resume(resume_id: int, format: str = "pdf", db: Session = Depends(get_db)):
+    """
+    Exports a specific resume stored in the vault as DOCX or PDF.
+    """
+    import re
+    from app.services.export_service import generate_docx_export, generate_pdf_export
+    try:
+        resume = db.query(Resume).filter(Resume.id == resume_id).first()
+        if not resume:
+            raise HTTPException(status_code=404, detail="Resume not found")
+        
+        parsed = resume.parsed_data or {}
+        candidate_name = parsed.get("full_name") or "Applicant"
+        candidate_email = parsed.get("email") or ""
+        candidate_phone = parsed.get("phone") or ""
+        
+        content = resume.resume_markdown or f"# {candidate_name}\n\n## Skills\n" + ", ".join(parsed.get("skills", []))
+        
+        doc_format = format.lower().strip()
+        doc_title = f"{candidate_name}_Resume"
+        safe_title = re.sub(r'[^a-zA-Z0-9_\-]', '_', doc_title).strip('_') or "Resume"
+        
+        if doc_format == "docx":
+            file_bytes = generate_docx_export(
+                title=doc_title,
+                content=content,
+                mode="resume",
+                candidate_name=candidate_name,
+                candidate_email=candidate_email,
+                candidate_phone=candidate_phone
+            )
+            media_type = "application/vnd.openxmlformats-officedocument.wordprocessingml.document"
+            filename = f"{safe_title}.docx"
+        elif doc_format == "pdf":
+            file_bytes = generate_pdf_export(
+                title=doc_title,
+                content=content,
+                mode="resume",
+                candidate_name=candidate_name,
+                candidate_email=candidate_email,
+                candidate_phone=candidate_phone
+            )
+            media_type = "application/pdf"
+            filename = f"{safe_title}.pdf"
+        else:
+            file_bytes = content.encode('utf-8')
+            media_type = "text/plain; charset=utf-8"
+            filename = f"{safe_title}.txt"
+
+        headers = {
+            "Content-Disposition": f'attachment; filename="{filename}"',
+            "Access-Control-Expose-Headers": "Content-Disposition"
+        }
+        return Response(content=file_bytes, media_type=media_type, headers=headers)
+    except HTTPException as he:
+        raise he
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Resume export failed: {str(e)}")
+
 class AIConfigRequest(BaseModel):
-    device: str  # 'cpu' or 'cuda'
+    device: str  # 'cpu', 'cuda', or 'demo'
 
 @app.get("/ai/config")
 def get_ai_config():
     """
-    Returns the current AI hardware execution device.
+    Returns the current AI hardware execution device or demo mode status.
     """
     from app.services.llm_service import AI_DEVICE
+    from app.core.config import settings
+    if getattr(settings, "DEMO_MODE", False):
+        return {"device": "demo"}
     return {"device": AI_DEVICE}
 
 @app.post("/ai/config")
 def update_ai_config(request: AIConfigRequest):
     """
-    Dynamically switches AI execution backend between CPU and CUDA (GPU).
+    Dynamically switches AI execution backend between CPU, GPU, and DEMO mode.
     """
     from app.services.llm_service import set_ai_device
+    from app.core.config import settings
     try:
-        set_ai_device(request.device)
-        return {"status": "success", "device": request.device}
+        if request.device == "demo":
+            settings.DEMO_MODE = True
+            return {"status": "success", "device": "demo"}
+        else:
+            settings.DEMO_MODE = False
+            set_ai_device(request.device)
+            return {"status": "success", "device": request.device}
     except ValueError as ve:
         raise HTTPException(status_code=400, detail=str(ve))
     except Exception as e:

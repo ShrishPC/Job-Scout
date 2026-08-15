@@ -6,6 +6,7 @@ from threading import Thread
 from transformers import pipeline, TextIteratorStreamer
 from app.services.llm_fallback import extract_structured_data_fallback, generate_embedding_fallback
 from sentence_transformers import SentenceTransformer
+from app.core.config import settings
 
 # Optimized Local Model Storage (Ensures portability across machines)
 PROJECT_ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "..", ".."))
@@ -135,6 +136,21 @@ def parse_markdown_with_llm(markdown_content: str, **kwargs):
     """
     Extracts structured data using a local LLM with configurable chat templates.
     """
+    if settings.DEMO_MODE:
+        import time
+        print("DEMO_MODE: Bypassing local LLM parsing for speed.")
+        time.sleep(0.5)
+        return {
+            "full_name": "Demo Candidate",
+            "email": "demo@example.com",
+            "phone": "555-0199",
+            "target_role": "Software Engineer",
+            "target_location": "Remote",
+            "skills": ["Python", "React", "Docker", "AWS", "Machine Learning"],
+            "experience": [{"title": "Senior Engineer", "company": "Tech Corp", "duration": "3 years", "description": "Built scalable APIs"}],
+            "education": [{"degree": "B.S. Computer Science", "institution": "State University", "year": "2020"}]
+        }
+
     truncated_content = markdown_content[:3000] if markdown_content else ""
     
     system_prompt = """You are a professional resume parsing assistant. Extract candidate information from the resume and respond ONLY with a valid JSON object. Do not include any explanations, introduction, markdown styling blocks, or surrounding text.
@@ -435,6 +451,15 @@ def generate_tailored_resume_stream(resume_text: str, job_title: str, job_desc: 
     """
     Generates a tailored Professional Summary and suggested resume edits using local LLM and RAG as a stream.
     """
+    if settings.DEMO_MODE:
+        import time
+        print("DEMO_MODE: Bypassing local LLM resume streaming.")
+        demo_text = f"**Professional Summary:**\nI am a results-driven {job_title} with a proven track record of optimizing architectures and delivering scalable solutions.\n\n**Suggested Bullets:**\n- Engineered a high-performance backend, reducing latency by 40%.\n- Spearheaded the migration to microservices, saving $50k annually.\n- Automated CI/CD pipelines, accelerating deployment speed by 200%."
+        for word in demo_text.split(" "):
+            yield word + " "
+            time.sleep(0.05)
+        return
+
     truncated_resume = resume_text[:2000] if resume_text else ""
     truncated_job = job_desc[:1500] if job_desc else ""
     
@@ -478,6 +503,15 @@ def generate_cover_letter_stream(resume_text: str, job_title: str, company: str,
     """
     Generates a cover letter tailored to a job description using the local LLM and RAG as a stream.
     """
+    if settings.DEMO_MODE:
+        import time
+        print("DEMO_MODE: Bypassing local LLM cover letter streaming.")
+        demo_text = f"Dear Hiring Manager,\n\nI am thrilled to apply for the {job_title} role at {company}. Having consistently driven measurable performance improvements in my previous roles, I am confident in my ability to immediately impact your engineering team.\n\nBest regards,\nDemo Candidate"
+        for word in demo_text.split(" "):
+            yield word + " "
+            time.sleep(0.05)
+        return
+
     truncated_resume = resume_text[:2000] if resume_text else ""
     truncated_job = job_desc[:1500] if job_desc else ""
     
