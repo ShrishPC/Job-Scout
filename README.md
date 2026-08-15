@@ -14,11 +14,11 @@
 
 Job Scout is a local-first, privacy-focused AI job intelligence platform that automates discovery, semantic candidate matching, and application preparation.
 
-- ** 100% Local Execution:** Your resume, vector embeddings, and generated cover letters are processed exclusively on your machine. Absolutely no personal data leaves your hardware.
-- ** Context-Aware AI (Dual-Track RAG):** The retrieval-augmented generation pipeline reads your active resume semantically, extracts your most relevant experience for each position, and grounds generation in real market requirements.
-- ** Direct PDF & DOCX Document Export:** Export tailored resumes and cover letters directly to styled PDFs (vector typography with `PyMuPDF`) or Word documents (`python-docx`).
-- ** Asynchronous Celery Queue:** Background scrapers query LinkedIn, Indeed, Naukri, RemoteOK, and We Work Remotely with real-time UI telemetry and task status polling.
-- ** Interactive Market Radar:** Visualize how your skills map against live industry demand through dynamic SVG radar charts.
+- **100% Local Execution:** Your resume, vector embeddings, and generated cover letters are processed exclusively on your machine. Absolutely no personal data leaves your hardware.
+- **Context-Aware AI (Dual-Track RAG):** The retrieval-augmented generation pipeline reads your active resume semantically, extracts your most relevant experience for each position, and grounds generation in real market requirements.
+- **Direct PDF & DOCX Document Export:** Export tailored resumes and cover letters directly to styled PDFs (vector typography with `PyMuPDF`) or Word documents (`python-docx`).
+- **Asynchronous Celery Queue:** Background scrapers query LinkedIn, Indeed, Naukri, RemoteOK, and We Work Remotely with real-time UI telemetry and task status polling.
+- **Interactive Market Radar:** Visualize how your skills map against live industry demand through dynamic SVG radar charts.
 
 ---
 
@@ -44,14 +44,14 @@ Job Scout is a local-first, privacy-focused AI job intelligence platform that au
 
 ##  Key Features
 
-- ** Hybrid Neural Matching:** Vector cosine similarity using `all-MiniLM-L6-v2` with PostgreSQL `pgvector` HNSW indexing coupled with title/skill keyword weighting.
-- ** PDF & DOCX Export Engine:** Download generated resumes and cover letters with publication-grade formatting, margins, and custom typography.
-- ** AI Copilot:** Instant tailoring for scraped listings or pasted descriptions powered by `Llama-3.2-3B-Instruct`.
-- ** Multi-Resume Vault:** Upload, manage, and toggle active resume identities on the fly.
-- ** Admin Telemetry Dashboard (`/admin`):** Hardware utilization monitoring, Celery worker status, cache management, and indexing velocity charts.
-- ** Asynchronous Scraper Pipeline:** Multi-source parallel scrapers (LinkedIn, Indeed, Naukri, RemoteOK, We Work Remotely) with live progress feedback.
-- ** Kanban Application Pipeline:** Drag-and-drop workflow tracking (*Interested*, *Applied*, *Interviewing*, *Offered*, *Rejected*).
-- ** Neo-Brutalist Interface:** High-contrast retro-modern UI with WCAG-compliant color contrast and fluid responsive components.
+- **Hybrid Neural Matching:** Vector cosine similarity using `all-MiniLM-L6-v2` with PostgreSQL `pgvector` HNSW indexing coupled with title/skill keyword weighting.
+- **PDF & DOCX Export Engine:** Download generated resumes and cover letters with publication-grade formatting, margins, and custom typography.
+- **AI Copilot:** Instant tailoring for scraped listings or pasted descriptions powered by `Llama-3.2-3B-Instruct`.
+- **Multi-Resume Vault:** Upload, manage, and toggle active resume identities on the fly.
+- **Admin Telemetry Dashboard (`/admin`):** Hardware utilization monitoring, Celery worker status, cache management, and indexing velocity charts.
+- **Asynchronous Scraper Pipeline:** Multi-source parallel scrapers (LinkedIn, Indeed, Naukri, RemoteOK, We Work Remotely) with live progress feedback.
+- **Kanban Application Pipeline:** Drag-and-drop workflow tracking (*Interested*, *Applied*, *Interviewing*, *Offered*, *Rejected*).
+- **Neo-Brutalist Interface:** High-contrast retro-modern UI with WCAG-compliant color contrast and fluid responsive components.
 
 ---
 
