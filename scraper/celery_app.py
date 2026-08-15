@@ -21,6 +21,8 @@ app.conf.update(
     result_serializer='json',
     timezone='UTC',
     enable_utc=True,
+    task_track_started=True,
+    broker_connection_retry_on_startup=True,
     beat_schedule={
         'scrape-every-10-min': {
             'task': 'tasks.scheduled_scrape',

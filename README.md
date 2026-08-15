@@ -1,7 +1,7 @@
 # Job Scout: Neural Job Discovery & Tracking
 
-[![Next.js](https://img.shields.io/badge/Next.js-15-black?style=for-the-badge&logo=nextdotjs)](https://nextjs.org/)
-[![FastAPI](https://img.shields.io/badge/FastAPI-0.100+-009688?style=for-the-badge&logo=fastapi&logoColor=white)](https://fastapi.tiangolo.com/)
+[![Next.js](https://img.shields.io/badge/Next.js-16-black?style=for-the-badge&logo=nextdotjs)](https://nextjs.org/)
+[![FastAPI](https://img.shields.io/badge/FastAPI-0.139+-009688?style=for-the-badge&logo=fastapi&logoColor=white)](https://fastapi.tiangolo.com/)
 [![PostgreSQL](https://img.shields.io/badge/PostgreSQL-pgvector-4169E1?style=for-the-badge&logo=postgresql&logoColor=white)](https://www.postgresql.org/)
 [![Docker](https://img.shields.io/badge/Docker-Containerized-2496ED?style=for-the-badge&logo=docker&logoColor=white)](https://www.docker.com/)
 [![Celery](https://img.shields.io/badge/Celery-Distributed-37814A?style=for-the-badge&logo=celery&logoColor=white)](https://docs.celeryq.dev/)
@@ -10,22 +10,19 @@
 
 ---
 
-## About
+## 🎯 About
 
-Job Scout was built to solve a real problem: the modern job hunt is noisy, repetitive, and privacy-invasive. Most AI job tools send your resume to third-party APIs (like OpenAI or Anthropic) and lock insights behind paywalls.
+Job Scout is a local-first, privacy-focused AI job intelligence platform that automates discovery, semantic candidate matching, and application preparation.
 
-This project takes a fundamentally different approach:
-
-- **100% Local Execution:** Your resume, your vector embeddings, and your generated cover letters are all processed on your own hardware. Absolutely no data leaves your machine.
-- **Context-Aware AI:** The retrieval-augmented generation (RAG) pipeline reads your active resume semantically, finds the most relevant parts of your experience for each job, and injects them into the LLM prompt. The output sounds exactly like you, rather than a generic template.
-- **Built for Daily Use:** From a Kanban board to track applications, to a Market Radar that maps your skills against live postings, to a robust admin dashboard for tracking background indexing. Job Scout is designed as a daily driver.
-- **Highly Configurable:** The model, embedding dimensions, scraper targets, and hardware device (CPU/GPU) can be adjusted dynamically via the in-app configuration panel.
-
-> Built with Next.js 15, FastAPI, PostgreSQL + pgvector, Celery, Playwright, and Llama-3.2-3B-Instruct.
+- **🔒 100% Local Execution:** Your resume, vector embeddings, and generated cover letters are processed exclusively on your machine. Absolutely no personal data leaves your hardware.
+- **🧠 Context-Aware AI (Dual-Track RAG):** The retrieval-augmented generation pipeline reads your active resume semantically, extracts your most relevant experience for each position, and grounds generation in real market requirements.
+- **📄 Direct PDF & DOCX Document Export:** Export tailored resumes and cover letters directly to styled PDFs (vector typography with `PyMuPDF`) or Word documents (`python-docx`).
+- **⚡ Asynchronous Celery Queue:** Background scrapers query LinkedIn, Indeed, Naukri, RemoteOK, and We Work Remotely with real-time UI telemetry and task status polling.
+- **📊 Interactive Market Radar:** Visualize how your skills map against live industry demand through dynamic SVG radar charts.
 
 ---
 
-## Visual Showcase
+## 📸 Visual Showcase
 
 | Warm Cream Light Theme | Kanban Board Tracker |
 |:---:|:---:|
@@ -35,142 +32,104 @@ This project takes a fundamentally different approach:
 |:---:|:---:|
 | ![Resume Vault](assets/vault.png) | ![Profile Details](assets/profile.png) |
 
-| AI Copilot (Dark Mode) | Market Radar & Skills |
+| AI Copilot | Market Radar & Skills |
 |:---:|:---:|
 | ![AI Copilot](assets/copilot.png) | ![Market Radar](assets/config.png) |
 
-| Config & Diagnostics | Exit & Shutdown |
+| System Config & Telemetry | Exit & Lifecycle Control |
 |:---:|:---:|
 | ![System Config](assets/radar.png) | ![Exit Modal](assets/exit_modal.png) |
 
 ---
 
-## Key Features
+## 🚀 Key Features
 
-- **Neural Matching (Semantic Search):** Generates high-dimensional vector embeddings of your resume using `all-MiniLM-L6-v2`. It leverages PostgreSQL's `pgvector` extension to rank and match jobs by semantic relevance instead of rigid keyword matching.
-- **AI Copilot (Resume & Cover Letters):** A full-screen AI Copilot powered by `Llama-3.2-3B-Instruct`. Select any scraped job listing (or paste a custom description) and receive a tailored resume or personalized cover letter generated entirely on-device.
-- **Dual-Track RAG Pipeline:** Before generating, the system retrieves the top 6 most relevant bullets from your resume and the top 3 similar market job listings from the database. This context grounds the LLM outputs in your real experience and current market language.
-- **AI Generation Cache:** A SHA-256 hashed cache layer backed by PostgreSQL ensures identical requests return instantly. The cache can be managed from the Config panel.
-- **Dynamic Hardware Selector:** Switch AI inference between CPU and CUDA (GPU) at runtime via the Config panel—no restart required.
-- **Resume Vault:** Store, activate, and manage multiple resume profiles. Switching active resumes instantly recalculates all matching scores across the platform.
-- **Admin Dashboard & Telemetry:** Access `/admin` (protected by a custom secure key) to view real-time system metrics, RAM/CPU usage, Celery worker status, and an interactive Recharts graph tracking indexing velocity.
-- **Automated Scraping Pipeline:** Celery background tasks trigger Playwright scrapers in parallel to pull fresh postings from LinkedIn, Indeed, Naukri, RemoteOK, and We Work Remotely.
-- **Kanban Board:** Move jobs through a visual application pipeline (Interested -> Applied -> Interviewing -> Offer).
-- **Market Radar:** Highlights target roles, preferred locations, and matches your skill set against real-time market demands using interactive radar charts.
-- **Neo-Brutalist Theme:** A stark, vibrant design toggling between a warm-cream Light mode and a deep Midnight-Indigo Dark mode with a glowing violet grid paper effect.
-- **System Control:** Shut down or restart the entire stack directly from the UI.
-- **Enterprise-Grade Local Security:** Strict file upload validation, parameterized SQL queries to prevent injection, dependency pinning for reproducible builds, and custom authentication headers for system endpoints.
+- **⚡ Hybrid Neural Matching:** Vector cosine similarity using `all-MiniLM-L6-v2` with PostgreSQL `pgvector` HNSW indexing coupled with title/skill keyword weighting.
+- **📄 PDF & DOCX Export Engine:** Download generated resumes and cover letters with publication-grade formatting, margins, and custom typography.
+- **✨ AI Copilot:** Instant tailoring for scraped listings or pasted descriptions powered by `Llama-3.2-3B-Instruct`.
+- **🗄️ Multi-Resume Vault:** Upload, manage, and toggle active resume identities on the fly.
+- **🛡️ Admin Telemetry Dashboard (`/admin`):** Hardware utilization monitoring, Celery worker status, cache management, and indexing velocity charts.
+- **🔄 Asynchronous Scraper Pipeline:** Multi-source parallel scrapers (LinkedIn, Indeed, Naukri, RemoteOK, We Work Remotely) with live progress feedback.
+- **📋 Kanban Application Pipeline:** Drag-and-drop workflow tracking (*Interested*, *Applied*, *Interviewing*, *Offered*, *Rejected*).
+- **🎨 Neo-Brutalist Interface:** High-contrast retro-modern UI with WCAG-compliant color contrast and fluid responsive components.
 
 ---
 
-## System Architecture
+## 🛠️ Architecture
 
-![System Architecture](assets/system_architecture.jpg)
+![Architecture](assets/final_architecture.jpg)
 
-- **Embeddings Model:** `all-MiniLM-L6-v2` (384-dimensional vector padded to 768d, running locally).
-- **Text Generator Model:** `unsloth/Llama-3.2-3B-Instruct` (Local inference on CPU/CUDA).
-- **Vector Store:** PostgreSQL with the `pgvector` extension and an HNSW index for O(log n) approximate nearest-neighbor search.
-- **Generation Strategy:** Deterministic greedy decoding (`do_sample=False`) with `repetition_penalty=1.2` to prevent hallucinations and ensure reproducible outputs.
-
----
-
-## Getting Started
-
-### Prerequisites
-
-Ensure you have the following installed on your machine:
-- [Docker & Docker Compose](https://docs.docker.com/get-docker/)
-- [Node.js (v18+) & npm](https://nodejs.org/)
-- [Python (v3.10+)](https://www.python.org/)
+- **Vector Search:** HNSW index on `jobs.embedding` for sub-millisecond similarity lookups.
+- **Embedding Model:** `all-MiniLM-L6-v2` (384-dimensional vector, cached locally).
+- **LLM Generator:** `unsloth/Llama-3.2-3B-Instruct` (Supports CPU, CUDA GPU, and Demo modes).
+- **Queue & Results:** Redis broker (`localhost:6380`) with Celery prefork workers.
+- **Backend API:** FastAPI on `localhost:8001` with automated database migrations.
+- **Frontend:** Next.js 16 on `localhost:3000`.
 
 ---
 
-### Quick Start: One-Command Boot (Recommended)
+## 🏁 Quick Start
 
-Job Scout comes with a self-bootstrapping launcher. Run the script from the project root:
+### One-Command Launch (Recommended)
 
-**For Linux/macOS:**
+**Linux / macOS:**
 ```bash
 chmod +x run.sh
 ./run.sh
 ```
 
-**For Windows (PowerShell):**
+**Windows (PowerShell):**
 ```powershell
 .\run.ps1
 ```
 
-*(Note: If you encounter an `ExecutionPolicy` error on Windows, bypass it temporarily by running: `powershell -ExecutionPolicy Bypass -File .\run.ps1`)*
-
-**The startup script will automatically:**
-1. Verify Docker is running.
-2. Create local configuration files (`.env`).
-3. Initialize isolated Python virtual environments.
-4. Install all required dependencies for the backend, frontend, and scrapers.
-5. Pre-download local AI models.
-6. Install Playwright browser dependencies.
-7. Launch PostgreSQL, Redis, FastAPI, Celery Workers, and the Next.js Server.
-
-To shut down all services cleanly, press `Ctrl+C` in your terminal.
-
----
-
-### Setup via Docker Compose (100% Containerized)
-
-You can run the entire stack containerized using Docker Compose:
+### Docker Compose
 
 ```bash
-# 1. Download local models to prevent startup timeouts
-python3 -m venv setup_venv && source setup_venv/bin/activate
-pip install sentence-transformers transformers torch
-python scripts/download_models.py
-deactivate && rm -rf setup_venv
-
-# 2. Start all services
-docker compose up --build
+docker compose up -d --build
 ```
+
+### Service Map
+
+- **Web App:** [http://localhost:3000](http://localhost:3000)
+- **Admin Panel:** [http://localhost:3000/admin](http://localhost:3000/admin)
+- **Backend API Docs:** [http://localhost:8001/docs](http://localhost:8001/docs)
+- **Database (PostgreSQL):** `localhost:5435`
+- **Redis Queue:** `localhost:6380`
 
 ---
 
-## Project Structure
+## 📁 Project Structure
 
 ```text
 ├── backend/                  # FastAPI Backend API
 │   ├── app/
-│   │   ├── core/             # DB setup & Configuration
+│   │   ├── core/             # DB connection, config, & pooling
 │   │   ├── models/           # SQLAlchemy models with pgvector
-│   │   ├── services/         # Embedding generation & LLM parsing
-│   │   └── main.py           # API endpoints
+│   │   ├── services/         # Embedding, RAG pipeline, export engine
+│   │   └── main.py           # REST endpoints & Celery task dispatcher
 │   ├── requirements.txt      # Pinned Python dependencies
-│   └── Dockerfile            # Backend Docker build instructions
-├── frontend/                 # Next.js Frontend App
+│   └── Dockerfile            # Hardened container definition
+├── frontend/                 # Next.js 16 Web Application
 │   ├── src/
-│   │   ├── components/       # UI elements (JobCard, Kanban, Admin)
-│   │   └── app/              # App router (globals, layouts)
-│   └── package.json          # Frontend dependencies
-├── scraper/                  # Scrapers & Task Engine
+│   │   ├── components/ui/    # Neo-Brutalist UI components & views
+│   │   └── app/              # Next.js App Router (pages & admin)
+│   ├── package.json          # Node dependencies
+│   └── Dockerfile            # Frontend container definition
+├── scraper/                  # Asynchronous Scraping Engine
 │   ├── celery_app.py         # Celery task configuration
-│   ├── tasks.py              # Background scraping workflows
-│   ├── linkedin_scraper.py   # Playwright scraper module
-│   └── Dockerfile            # Scraper Docker build instructions
-├── scripts/                  # Helper Utilities
-├── docker-compose.yml        # Orchestration file
+│   ├── tasks.py              # Parallel extraction & embedding tasks
+│   ├── remote_scrapers.py    # RemoteOK & We Work Remotely scrapers
+│   ├── linkedin_scraper.py   # Playwright LinkedIn scraper
+│   ├── indeed_scraper.py     # Playwright Indeed scraper
+│   └── Dockerfile            # Scraper worker definition
+├── project-docx/             # Project documentation artifacts
+├── docker-compose.yml        # Orchestration definition
 └── run.sh / run.ps1          # One-click bootstrap scripts
 ```
 
 ---
 
-## Security & Privacy Notice
+## 📜 License
 
-- **Data Protection:** Job Scout preserves candidate data privacy. Your resume text, contact parameters, and application notes never exit your machine.
-- **SQL Injection Prevention:** All database operations utilize parameterized queries, entirely preventing SQL injection attacks.
-- **Upload Validation:** Strict MIME-type checking and unique file naming conventions protect the system from malicious uploads and path traversal.
-- **Secrets Management:** The local `.env` configuration ensures passwords and admin keys are never committed to version control.
-
----
-
-## License
-
-This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
-
-*Disclaimer: Job Scout scrapers are intended for personal use and education. Please respect the Terms of Service of the platforms being queried.*
+This project is licensed under the MIT License. See [LICENSE](LICENSE) for details.

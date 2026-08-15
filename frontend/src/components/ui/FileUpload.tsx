@@ -18,6 +18,7 @@ const FileUpload: React.FC<FileUploadProps> = ({
   onStartUpload
 }) => {
   const [file, setFile] = useState<File | null>(null);
+  const [isDragging, setIsDragging] = useState(false);
 
   // Sync selected file with globalFile if started
   useEffect(() => {
@@ -39,6 +40,24 @@ const FileUpload: React.FC<FileUploadProps> = ({
     }
   };
 
+  const handleDrop = (e: React.DragEvent<HTMLLabelElement>) => {
+    e.preventDefault();
+    setIsDragging(false);
+    if (e.dataTransfer.files && e.dataTransfer.files[0]) {
+      setFile(e.dataTransfer.files[0]);
+    }
+  };
+
+  const handleDragOver = (e: React.DragEvent<HTMLLabelElement>) => {
+    e.preventDefault();
+    setIsDragging(true);
+  };
+
+  const handleDragLeave = (e: React.DragEvent<HTMLLabelElement>) => {
+    e.preventDefault();
+    setIsDragging(false);
+  };
+
   const handleUpload = () => {
     if (file) {
       onStartUpload(file);
@@ -54,32 +73,37 @@ const FileUpload: React.FC<FileUploadProps> = ({
           </div>
           <div>
             <h2 className="text-lg font-black text-black">Upload Resume</h2>
-            <p className="text-black/60 text-xs font-bold">PDF, DOCX, or MD • Max 5MB</p>
+            <p className="text-black/60 text-xs font-bold">PDF, DOCX, TXT, or MD • Max 10MB</p>
           </div>
         </div>
 
-        <label className="relative group block cursor-pointer">
+        <label 
+          onDrop={handleDrop}
+          onDragOver={handleDragOver}
+          onDragLeave={handleDragLeave}
+          className="relative group block cursor-pointer"
+        >
           <div className={`
             flex flex-col items-center justify-center p-8 border-3 border-dashed rounded-lg transition-all duration-100 upload-dropzone
-            ${file ? 'border-retro-green bg-retro-mint/20 bg-opacity-30' : 'border-black bg-white hover:bg-retro-cream'}
+            ${isDragging ? 'border-retro-yellow bg-retro-yellow/20 scale-[1.01]' : file ? 'border-retro-green bg-retro-mint/20' : 'border-black bg-white hover:bg-retro-cream'}
           `}>
             <FileText className={`w-10 h-10 mb-3 transition-colors ${file ? 'text-retro-green' : 'text-black/40 group-hover:text-black'}`} />
-            <span className="text-sm font-extrabold text-black text-center px-4">
-              {file ? file.name : 'Click to select or drag resume'}
+            <span className="text-sm font-extrabold text-black text-center px-4 truncate max-w-full">
+              {file ? file.name : isDragging ? 'Drop resume file here' : 'Click to select or drag resume'}
             </span>
           </div>
           <input 
             type="file" 
             className="hidden" 
-            accept=".pdf,.docx,.md,.markdown" 
+            accept=".pdf,.docx,.doc,.md,.markdown,.txt" 
             onChange={handleFileChange} 
             disabled={globalUploading}
           />
         </label>
 
         {globalUploadError && (
-          <div className="flex items-center space-x-2 text-retro-red text-xs bg-retro-pink/20 border-2 border-black p-3 rounded-lg animate-in fade-in slide-in-from-top-2 font-bold">
-            <AlertCircle className="w-4 h-4 flex-shrink-0" />
+          <div className="flex items-center space-x-2 text-black text-xs bg-retro-pink border-2 border-black p-3 rounded-lg animate-in fade-in slide-in-from-top-2 font-bold shadow-[2px_2px_0px_0px_rgba(0,0,0,1)]">
+            <AlertCircle className="w-4 h-4 flex-shrink-0 text-black" />
             <span>{globalUploadError}</span>
           </div>
         )}
@@ -88,7 +112,7 @@ const FileUpload: React.FC<FileUploadProps> = ({
           onClick={handleUpload}
           disabled={!file || globalUploading || globalUploadSuccess}
           className={`
-            w-full py-4 rounded-lg font-black text-[11px] uppercase tracking-[0.2em] transition-all flex items-center justify-center space-x-3 border-3 border-black sync-profile-btn
+            w-full py-4 rounded-lg font-black text-[11px] uppercase tracking-[0.2em] transition-all flex items-center justify-center space-x-3 border-3 border-black sync-profile-btn cursor-pointer
             ${!file || globalUploading || globalUploadSuccess 
               ? 'bg-gray-100 text-black/35 border-black/30 cursor-not-allowed shadow-none' 
               : globalUploadSuccess
@@ -99,7 +123,7 @@ const FileUpload: React.FC<FileUploadProps> = ({
         >
           {globalUploading ? (
             <>
-              <Loader2 className="w-4 h-4 animate-spin" />
+              <Loader2 className="w-4 h-4 animate-spin text-black" />
               <span>Analyzing Resume...</span>
             </>
           ) : globalUploadSuccess ? (
