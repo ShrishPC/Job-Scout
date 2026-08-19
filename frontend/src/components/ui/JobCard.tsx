@@ -26,9 +26,10 @@ interface JobCardProps {
   onApply: (id: number) => void;
   onReject: (id: number) => void;
   onTailor?: (job: Job) => void;
+  onOpenATS?: (job: Job) => void;
 }
 
-const JobCard: React.FC<JobCardProps> = ({ job, onApply, onReject, onTailor }) => {
+const JobCard: React.FC<JobCardProps> = ({ job, onApply, onReject, onTailor, onOpenATS }) => {
   const [loading, setLoading] = useState(false);
   const [success, setSuccess] = useState(false);
   const [isExpanded, setIsExpanded] = useState(false);
@@ -177,7 +178,21 @@ const JobCard: React.FC<JobCardProps> = ({ job, onApply, onReject, onTailor }) =
       </p>
 
       <div className="mt-auto space-y-3">
-        <div className="flex space-x-3">
+        <div className="flex space-x-2">
+          {onOpenATS && !job.is_rejected && (
+            <button
+              onClick={(e) => {
+                e.stopPropagation();
+                onOpenATS(job);
+              }}
+              title="Inspect ATS Compatibility & Keyword Gap"
+              className="px-3.5 py-3.5 bg-retro-mint text-black border-2 border-black rounded-lg text-[10px] font-black uppercase tracking-wider flex items-center justify-center space-x-1 shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] hover:translate-x-[0.5px] hover:translate-y-[0.5px] hover:shadow-[1.5px_1.5px_0px_0px_rgba(0,0,0,1)] active:translate-x-[2px] active:translate-y-[2px] active:shadow-none transition-all cursor-pointer"
+            >
+              <Target className="w-3.5 h-3.5 text-black" />
+              <span>ATS Gap</span>
+            </button>
+          )}
+
           <button 
             onClick={handleInterest}
             disabled={loading || success}
@@ -198,7 +213,7 @@ const JobCard: React.FC<JobCardProps> = ({ job, onApply, onReject, onTailor }) =
           {!job.is_rejected && (
             <button 
               onClick={handleRejectClick}
-              className="px-4 bg-white text-black border-2 border-black rounded-lg shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] hover:bg-retro-pink hover:translate-x-[0.5px] hover:translate-y-[0.5px] hover:shadow-[1.5px_1.5px_0px_0px_rgba(0,0,0,1)] active:translate-x-[2px] active:translate-y-[2px] active:shadow-none transition-all"
+              className="px-3.5 bg-white text-black border-2 border-black rounded-lg shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] hover:bg-retro-pink hover:translate-x-[0.5px] hover:translate-y-[0.5px] hover:shadow-[1.5px_1.5px_0px_0px_rgba(0,0,0,1)] active:translate-x-[2px] active:translate-y-[2px] active:shadow-none transition-all"
             >
               <X className="w-5 h-5" />
             </button>
@@ -296,6 +311,19 @@ const JobCard: React.FC<JobCardProps> = ({ job, onApply, onReject, onTailor }) =
           </div>
 
           <div className="flex flex-wrap gap-3 pt-6 border-t-2 border-black/20">
+            {onOpenATS && (
+              <button 
+                onClick={() => {
+                  onOpenATS(job);
+                  setIsExpanded(false);
+                }}
+                className="flex-1 py-4 px-6 rounded-lg font-black text-xs uppercase tracking-widest flex items-center justify-center space-x-2 bg-retro-mint text-black border-3 border-black shadow-[3px_3px_0px_0px_rgba(0,0,0,1)] hover:translate-x-[1px] hover:translate-y-[1px] hover:shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] active:translate-x-[3px] active:translate-y-[3px] active:shadow-none transition-all cursor-pointer"
+              >
+                <Target className="w-4 h-4 text-black" />
+                <span>ATS Diagnostic</span>
+              </button>
+            )}
+
             {onTailor && (
               <button 
                 onClick={() => {

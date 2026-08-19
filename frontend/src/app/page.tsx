@@ -8,6 +8,7 @@ import VaultView from '@/components/ui/VaultView';
 import ProfileView from '@/components/ui/ProfileView';
 import RadarView from '@/components/ui/RadarView';
 import AITailorView from '@/components/ui/AITailorView';
+import ATSScoreModal from '@/components/ui/ATSScoreModal';
 import { Search, Briefcase, User, Settings as SettingsIcon, Play, Loader2, Sparkles, LogOut, Layout, Radar, Target, Database, RotateCw, Trash2, X, ChevronDown, SlidersHorizontal, MapPin, CheckCircle2, AlertCircle } from 'lucide-react';
 import axios from 'axios';
 
@@ -46,6 +47,28 @@ export default function Home() {
   const [aiCustomTitle, setAiCustomTitle] = useState('');
   const [aiCustomCompany, setAiCustomCompany] = useState('');
   const [aiCustomDesc, setAiCustomDesc] = useState('');
+
+  // Global ATS Match Diagnostic state
+  const [atsModalOpen, setAtsModalOpen] = useState(false);
+  const [atsSelectedJob, setAtsSelectedJob] = useState<any>(null);
+
+  const handleOpenATS = (job: any) => {
+    setAtsSelectedJob(job);
+    setAtsModalOpen(true);
+  };
+
+  const handleOpenTailorFromATS = (job: any, initialInstruction?: string) => {
+    if (job?.id) {
+      setAiSelectedJobId(job.id.toString());
+      setAiIsCustomJob(false);
+    } else {
+      setAiIsCustomJob(true);
+      setAiCustomTitle(job?.title || '');
+      setAiCustomCompany(job?.company || '');
+      setAiCustomDesc(job?.description || '');
+    }
+    setView('ai');
+  };
 
   const startGlobalUpload = async (fileToUpload: File, onComplete?: (data: any) => void) => {
     setGlobalFile(fileToUpload);
@@ -895,6 +918,7 @@ export default function Home() {
                                 setAiIsCustomJob(false);
                                 setView('ai');
                               }}
+                              onOpenATS={handleOpenATS}
                             />
                           ))
                       )}
@@ -963,6 +987,7 @@ export default function Home() {
                 customDesc={aiCustomDesc}
                 setCustomDesc={setAiCustomDesc}
                 onGenerate={handleAIGenerate}
+                onOpenATS={handleOpenATS}
               />
             </div>
           ) : (
@@ -1228,6 +1253,15 @@ export default function Home() {
           )}
         </div>
       )}
+
+      {/* Global ATS Compatibility & Keyword Gap Modal */}
+      <ATSScoreModal 
+        isOpen={atsModalOpen} 
+        onClose={() => setAtsModalOpen(false)} 
+        job={atsSelectedJob} 
+        parsedData={parsedData} 
+        onOpenTailor={handleOpenTailorFromATS} 
+      />
     </main>
   );
 }

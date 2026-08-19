@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
-import { Sparkles, Loader2, Copy, FileText, Download, Check, AlertCircle, RefreshCw, Briefcase, Plus, User, Laptop, ChevronDown, ChevronUp, Search, Building } from 'lucide-react';
+import { Sparkles, Loader2, Copy, FileText, Download, Check, AlertCircle, RefreshCw, Briefcase, Plus, User, Laptop, ChevronDown, ChevronUp, Search, Building, Target } from 'lucide-react';
 
 interface BoardJob {
     id: number;
@@ -40,6 +40,7 @@ interface AITailorViewProps {
     setMode: (mode: 'tailor' | 'cover_letter') => void;
     onGenerate: (payload: any) => Promise<void>;
     onRefine?: (instruction: string) => Promise<void>;
+    onOpenATS?: (job: any) => void;
 }
 
 const AITailorView: React.FC<AITailorViewProps> = ({
@@ -60,7 +61,8 @@ const AITailorView: React.FC<AITailorViewProps> = ({
     mode,
     setMode,
     onGenerate,
-    onRefine
+    onRefine,
+    onOpenATS
 }) => {
     const [jobs, setJobs] = useState<BoardJob[]>([]);
     const [activeResume, setActiveResume] = useState<ActiveResume | null>(null);
@@ -469,7 +471,7 @@ const AITailorView: React.FC<AITailorViewProps> = ({
                             type="button"
                             onClick={handleGenerate}
                             disabled={generating || !activeResume}
-                            className="w-full bg-retro-red text-white py-4 rounded-xl font-black text-xs uppercase tracking-widest border-3 border-black shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] hover:translate-x-[1px] hover:translate-y-[1px] hover:shadow-[3px_3px_0px_0px_rgba(0,0,0,1)] active:translate-x-[3px] active:translate-y-[3px] active:shadow-none transition-all disabled:opacity-50 disabled:pointer-events-none flex items-center justify-center space-x-2"
+                            className="w-full bg-retro-red text-white py-4 rounded-xl font-black text-xs uppercase tracking-widest border-3 border-black shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] hover:translate-x-[1px] hover:translate-y-[1px] hover:shadow-[3px_3px_0px_0px_rgba(0,0,0,1)] active:translate-x-[3px] active:translate-y-[3px] active:shadow-none transition-all disabled:opacity-50 disabled:pointer-events-none flex items-center justify-center space-x-2 cursor-pointer"
                         >
                             {generating ? (
                                 <>
@@ -483,6 +485,29 @@ const AITailorView: React.FC<AITailorViewProps> = ({
                                 </>
                             )}
                         </button>
+
+                        {onOpenATS && (
+                            <button
+                                type="button"
+                                onClick={() => {
+                                    const targetJob = isCustomJob ? {
+                                        title: customTitle || "Custom Role",
+                                        company: customCompany || "Custom Company",
+                                        description: customDesc
+                                    } : jobs.find(j => String(j.id) === selectedJobId);
+
+                                    if (targetJob) {
+                                        onOpenATS(targetJob);
+                                    } else {
+                                        setError("Please select or specify a job first to run ATS analysis.");
+                                    }
+                                }}
+                                className="w-full bg-retro-mint text-black py-3.5 rounded-xl font-black text-xs uppercase tracking-widest border-3 border-black shadow-[3px_3px_0px_0px_rgba(0,0,0,1)] hover:translate-x-[1px] hover:translate-y-[1px] hover:shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] active:translate-x-[3px] active:translate-y-[3px] active:shadow-none transition-all flex items-center justify-center space-x-2 cursor-pointer mt-3"
+                            >
+                                <Target className="w-4 h-4 text-black" />
+                                <span>Inspect ATS Compatibility & Gap</span>
+                            </button>
+                        )}
                     </div>
                 </div>
             </div>

@@ -785,6 +785,125 @@ def export_vault_resume(resume_id: int, format: str = "pdf", db: Session = Depen
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Resume export failed: {str(e)}")
 
+class ATSAnalyzeRequest(BaseModel):
+    resume_id: int | None = None
+    resume_text: str | None = None
+    job_id: int | None = None
+    job_title: str | None = None
+    job_description: str | None = None
+    company: str | None = None
+
+@app.post("/ai/ats-analyze")
+def ats_analyze(request: ATSAnalyzeRequest, db: Session = Depends(get_db)):
+    """
+    Computes deterministic ATS match score, keyword gap matrix, and category rubrics.
+    """
+    try:
+        resume_text = ""
+        candidate_name = "Candidate"
+        
+        if request.resume_id:
+            resume = db.query(Resume).filter(Resume.id == request.resume_id).first()
+            if resume:
+                resume_text = resume.resume_markdown or ""
+                parsed = resume.parsed_data or {}
+                candidate_name = parsed.get("full_name") or candidate_name
+        elif request.resume_text and request.resume_text.strip():
+            resume_text = request.resume_text.strip()
+        else:
+            # Fallback to active resume
+            active_resume = db.query(Resume).filter(Resume.is_active == True).first()
+            if active_resume:
+                resume_text = active_resume.resume_markdown or ""
+                parsed = active_resume.parsed_data or {}
+                candidate_name = parsed.get("full_name") or candidate_name
+            else:
+                user = db.query(User).filter(User.id == 1).first()
+                if user:
+                    resume_text = user.resume_markdown or ""
+                    parsed = user.parsed_data or {}
+                    candidate_name = parsed.get("full_name") or candidate_name
+
+        if not resume_text:
+            raise HTTPException(status_code=400, detail="No resume content available. Please upload a resume first.")
+
+        job_title = request.job_title or "Target Role"
+        company = request.company or "Target Company"
+        job_desc = request.job_description or ""
+
+        if request.job_id:
+            job = db.query(Job).filter(Job.id == request.job_id).first()
+            if job:
+                job_title = job.title or job_title
+                company = job.company or company
+                job_desc = job.description or job_desc
+
+        if not job_desc.strip():
+            raise HTTPException(status_code=400, detail="Job description is required for ATS analysis.")
+
+        from app.services.ats_service import analyze_resume_ats_match
+        result = analyze_resume_ats_match(
+            resume_text=resume_text,
+            job_title=job_title,
+            job_description=job_desc,
+            company=company,
+            db=db
+        )
+        result["candidate_name"] = candidate_name
+        return result
+    except HTTPException as he:
+        raise he
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"ATS analysis failed: {str(e)}")
+
+class ExportATSReportRequest(BaseModel):
+    ats_data: dict
+    format: str = "pdf"  # "pdf" | "docx" | "txt"
+    candidate_name: str | None = None
+
+@app.post("/export/ats-report")
+def export_ats_report(request: ExportATSReportRequest):
+    """
+    Exports an ATS diagnostic report as a publication-grade PDF, Word DOCX, or text file.
+    """
+    import re
+    from app.services.export_service import generate_ats_report_docx, generate_ats_report_pdf, format_ats_report_markdown
+    try:
+        ats_data = request.ats_data
+        if not ats_data:
+            raise HTTPException(status_code=400, detail="ATS evaluation data is required.")
+
+        candidate_name = request.candidate_name or ats_data.get("candidate_name") or "Applicant"
+        job_title = ats_data.get("job_title", "Position")
+        company = ats_data.get("company", "Company")
+        
+        doc_format = request.format.lower().strip()
+        safe_title = re.sub(r'[^a-zA-Z0-9_\-]', '_', f"ATS_Report_{company}_{job_title}").strip('_') or "ATS_Report"
+
+        if doc_format == "docx":
+            file_bytes = generate_ats_report_docx(ats_data=ats_data, candidate_name=candidate_name)
+            media_type = "application/vnd.openxmlformats-officedocument.wordprocessingml.document"
+            filename = f"{safe_title}.docx"
+        elif doc_format == "pdf":
+            file_bytes = generate_ats_report_pdf(ats_data=ats_data, candidate_name=candidate_name)
+            media_type = "application/pdf"
+            filename = f"{safe_title}.pdf"
+        else:
+            text_content = format_ats_report_markdown(ats_data=ats_data, candidate_name=candidate_name)
+            file_bytes = text_content.encode('utf-8')
+            media_type = "text/plain; charset=utf-8"
+            filename = f"{safe_title}.txt"
+
+        headers = {
+            "Content-Disposition": f'attachment; filename="{filename}"',
+            "Access-Control-Expose-Headers": "Content-Disposition"
+        }
+        return Response(content=file_bytes, media_type=media_type, headers=headers)
+    except HTTPException as he:
+        raise he
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Export generation failed: {str(e)}")
+
 class AIConfigRequest(BaseModel):
     device: str  # 'cpu', 'cuda', or 'demo'
 

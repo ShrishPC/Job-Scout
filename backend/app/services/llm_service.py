@@ -37,6 +37,12 @@ def load_embedding_model(device="cpu"):
             print(f"Fallback model failed: {fallback_err}")
             embedding_model = None
 
+def get_embedding_model():
+    global embedding_model, CURRENT_DEVICE
+    if embedding_model is None:
+        load_embedding_model(CURRENT_DEVICE)
+    return embedding_model
+
 # Initialize on startup
 load_embedding_model("cpu")
 
