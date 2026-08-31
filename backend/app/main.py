@@ -156,14 +156,32 @@ def get_matches(request: MatchRequest, db: Session = Depends(get_db)):
         traceback.print_exc()
         raise HTTPException(status_code=500, detail="An internal server error occurred")
 
+class ScrapeTriggerRequest(BaseModel):
+    keyword: str = "Software Engineer"
+    location: str = "Remote"
+    limit: int = 10
+    source: str = "linkedin"
+
 @app.post("/jobs/scrape")
-def trigger_scrape(keyword: str, location: str, limit: int = 10, source: str = "linkedin"):
+def trigger_scrape(
+    keyword: str | None = None, 
+    location: str | None = None, 
+    limit: int = 10, 
+    source: str = "linkedin",
+    body: ScrapeTriggerRequest | None = None
+):
     """
     Triggers background scraping tasks for one or more sources.
+    Supports both JSON request body and URL query parameters.
     Source can be: linkedin, indeed, naukri, remoteok, wwr, or all.
     """
-    sources = [source]
-    if source == "all":
+    kw = (body.keyword if body and body.keyword else keyword) or "Software Engineer"
+    loc = (body.location if body and body.location else location) or "Remote"
+    lim = body.limit if body and body.limit else limit
+    src = (body.source if body and body.source else source) or "linkedin"
+
+    sources = [src]
+    if src == "all":
         sources = ["linkedin", "indeed", "naukri", "remoteok", "wwr"]
     
     task_ids = []
@@ -171,7 +189,7 @@ def trigger_scrape(keyword: str, location: str, limit: int = 10, source: str = "
         for s in sources:
             task = celery_app.send_task(
                 "tasks.scrape_and_process_jobs", 
-                args=[keyword, location, limit, s]
+                args=[kw, loc, lim, s]
             )
             task_ids.append(task.id)
         

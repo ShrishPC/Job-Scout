@@ -1,52 +1,43 @@
 from celery_app import app
 import asyncio
-from linkedin_scraper import get_job_links, enrich_jobs_with_descriptions
-from indeed_scraper import scrape_indeed_jobs
-from naukri_scraper import scrape_naukri_jobs
-from remote_scrapers import scrape_remoteok_jobs, scrape_wwr_jobs
 from sqlalchemy.orm import Session
-import sys
 import os
+import sys
 
-# Add backend to path to reuse models and core logic
+# Add backend to path to reuse models and database
 sys.path.append(os.path.join(os.path.dirname(__file__), '..', 'backend'))
 
 from app.core.database import SessionLocal
 from app.models.models import Job
 from app.services.llm_service import generate_embedding, extract_experience_from_job
+from linkedin_scraper import get_job_links, enrich_jobs_with_descriptions
+from indeed_scraper import scrape_indeed_jobs
+from naukri_scraper import scrape_naukri_jobs
+from remote_scrapers import scrape_remoteok_jobs, scrape_wwr_jobs
+
+def safe_update_state(task_instance, state: str, meta: dict):
+    """
+    Safely updates task progress state only if running inside an active Celery worker context with a task_id.
+    """
+    try:
+        if task_instance and getattr(task_instance, "request", None) and getattr(task_instance.request, "id", None):
+            task_instance.update_state(state=state, meta=meta)
+    except Exception as e:
+        print(f"Warning: safe_update_state skipped ({e})")
 
 def determine_workplace_type(title: str, location: str, description: str, source: str) -> str:
     """
-    Heuristically identifies if a job is remote, hybrid, onsite, or negotiable
-    based on title, location, description, and source engine.
+    Infers whether a job is remote, hybrid, or onsite based on title, location, and description.
     """
-    source_lower = source.lower() if source else ""
-    if "remoteok" in source_lower or "wwr" in source_lower:
+    if source in ("remoteok", "wwr"):
         return "remote"
         
-    title_lower = title.lower() if title else ""
-    loc_lower = location.lower() if location else ""
-    desc_lower = description.lower() if description else ""
+    combined_text = f"{title} {location} {description}".lower()
     
-    # Check remote keywords
-    if "remote" in loc_lower or "telecommute" in loc_lower or "work from home" in loc_lower or "wfh" in loc_lower:
-        return "remote"
-    if "remote" in title_lower or "wfh" in title_lower:
-        return "remote"
-        
-    # Check hybrid keywords
-    if "hybrid" in loc_lower or "hybrid" in title_lower:
+    if "hybrid" in combined_text or "flexible remote" in combined_text:
         return "hybrid"
-    if "hybrid" in desc_lower or "work from office and home" in desc_lower:
-        if "hybrid work" in desc_lower or "hybrid model" in desc_lower or "hybrid setup" in desc_lower or "hybrid role" in desc_lower:
-            return "hybrid"
-            
-    # Check negotiable keywords
-    if "negotiable" in desc_lower or "location negotiable" in desc_lower or "remote negotiable" in desc_lower or "flexible location" in desc_lower:
-        return "negotiable"
         
-    # Standard check for remote in description
-    if "100% remote" in desc_lower or "fully remote" in desc_lower or "work from anywhere" in desc_lower:
+    if "remote" in combined_text or "work from home" in combined_text or "wfh" in combined_text or "anywhere" in combined_text:
         return "remote"
         
     if not location or location.strip() == "":
@@ -58,22 +49,19 @@ def determine_workplace_type(title: str, location: str, description: str, source
 def scheduled_scrape(self):
     """
     Automated task triggered by Celery Beat every 10 minutes.
-    Uses default search terms to keep the database fresh.
+    Dispatches background scrape across default search terms.
     """
-    return scrape_and_process_jobs("Software Engineer", "Remote", limit=15, source="linkedin")
+    return scrape_and_process_jobs.apply_async(args=["Software Engineer", "Remote", 15, "linkedin"])
 
 @app.task(bind=True)
 def scrape_and_process_jobs(self, keyword: str, location: str, limit: int = 10, source: str = "linkedin"):
     """
-    Optimized asynchronous Celery task with real-time state reporting.
-    1. Discovers links.
-    2. Batch filters duplicates.
-    3. Enriches descriptions in parallel.
-    4. Computes vector embeddings and stores in PostgreSQL pgvector.
+    Optimized asynchronous Celery task with real-time state reporting and batch database persistence.
     """
     print(f"Starting optimized {source} scrape for '{keyword}' in '{location}'...")
     
-    self.update_state(
+    safe_update_state(
+        self,
         state='PROGRESS', 
         meta={
             'status': f'Initiating {source} discovery...', 
@@ -87,46 +75,53 @@ def scrape_and_process_jobs(self, keyword: str, location: str, limit: int = 10, 
     
     db: Session = SessionLocal()
     try:
-        new_jobs_to_process = []
         jobs_data = []
 
         if source == "linkedin":
-            self.update_state(state='PROGRESS', meta={'status': 'Discovering LinkedIn job postings...', 'source': source, 'current': 0, 'total': limit})
+            safe_update_state(self, state='PROGRESS', meta={'status': 'Discovering LinkedIn job postings...', 'source': source, 'current': 0, 'total': limit})
             discovered_links = asyncio.run(get_job_links(keyword, location, limit))
 
             # Batch-filter existing jobs
             existing_urls = set(
                 row[0] for row in db.query(Job.job_url)
-                .filter(Job.job_url.in_([j['job_url'] for j in discovered_links]))
+                .filter(Job.job_url.in_([j['job_url'] for j in discovered_links if j.get('job_url')]))
                 .all()
             )
-            new_jobs_to_process = [j for j in discovered_links if j['job_url'] not in existing_urls]
+            new_jobs_to_process = [j for j in discovered_links if j.get('job_url') and j['job_url'] not in existing_urls]
             print(f"Found {len(discovered_links)} jobs, {len(new_jobs_to_process)} are new.")
             
-            self.update_state(state='PROGRESS', meta={'status': f'Enriching {len(new_jobs_to_process)} new job descriptions...', 'source': source, 'current': 0, 'total': len(new_jobs_to_process)})
+            safe_update_state(self, state='PROGRESS', meta={'status': f'Enriching {len(new_jobs_to_process)} new job descriptions...', 'source': source, 'current': 0, 'total': len(new_jobs_to_process)})
             jobs_data = asyncio.run(enrich_jobs_with_descriptions(new_jobs_to_process))
             
         elif source == "indeed":
-            self.update_state(state='PROGRESS', meta={'status': 'Scraping Indeed listings...', 'source': source, 'current': 0, 'total': limit})
+            safe_update_state(self, state='PROGRESS', meta={'status': 'Scraping Indeed listings...', 'source': source, 'current': 0, 'total': limit})
             jobs_data = asyncio.run(scrape_indeed_jobs(keyword, location, limit))
         elif source == "naukri":
-            self.update_state(state='PROGRESS', meta={'status': 'Scraping Naukri listings...', 'source': source, 'current': 0, 'total': limit})
+            safe_update_state(self, state='PROGRESS', meta={'status': 'Scraping Naukri listings...', 'source': source, 'current': 0, 'total': limit})
             jobs_data = asyncio.run(scrape_naukri_jobs(keyword, location, limit))
         elif source == "remoteok":
-            self.update_state(state='PROGRESS', meta={'status': 'Fetching Remote OK jobs...', 'source': source, 'current': 0, 'total': limit})
+            safe_update_state(self, state='PROGRESS', meta={'status': 'Fetching Remote OK jobs...', 'source': source, 'current': 0, 'total': limit})
             jobs_data = scrape_remoteok_jobs(keyword, limit)
         elif source == "wwr":
-            self.update_state(state='PROGRESS', meta={'status': 'Fetching We Work Remotely feed...', 'source': source, 'current': 0, 'total': limit})
+            safe_update_state(self, state='PROGRESS', meta={'status': 'Fetching We Work Remotely feed...', 'source': source, 'current': 0, 'total': limit})
             jobs_data = scrape_wwr_jobs(keyword, limit)
         else:
             return {"status": "error", "message": f"Unknown source: {source}", "new_jobs": 0}
 
-        total_to_process = len(jobs_data)
+        # Filter duplicates across all sources
+        all_urls = [j.get('job_url') for j in jobs_data if j.get('job_url')]
+        existing_urls = set(
+            row[0] for row in db.query(Job.job_url).filter(Job.job_url.in_(all_urls)).all()
+        ) if all_urls else set()
+        
+        new_jobs = [j for j in jobs_data if j.get('job_url') and j['job_url'] not in existing_urls]
+        total_to_process = len(new_jobs)
         processed_count = 0
 
-        for idx, job_info in enumerate(jobs_data):
+        for idx, job_info in enumerate(new_jobs):
             try:
-                self.update_state(
+                safe_update_state(
+                    self,
                     state='PROGRESS', 
                     meta={
                         'status': f"Generating embedding for {job_info.get('title', 'job')} ({idx + 1}/{total_to_process})...",
@@ -136,11 +131,6 @@ def scrape_and_process_jobs(self, keyword: str, location: str, limit: int = 10, 
                     }
                 )
 
-                # Check existence to avoid duplicate entries
-                existing_job = db.query(Job).filter(Job.job_url == job_info['job_url']).first()
-                if existing_job:
-                    continue
-                
                 content_to_embed = job_info.get('description') or f"{job_info['title']} at {job_info['company']}"
                 embedding = generate_embedding(content_to_embed)
                 
