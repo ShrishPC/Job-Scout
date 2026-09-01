@@ -37,7 +37,8 @@ test_resume.txt
 *.docx.md
 
 # Local-only documentation
-docs/
+docs/*.docx
+docs/*.pdf
 weekly_modules_analysis/
 Job_Scout_Definitive_Technical_Reference.docx
 Job_Scout_Technical_Documentation.docx
