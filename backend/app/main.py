@@ -460,6 +460,41 @@ def activate_resume(resume_id: int, db: Session = Depends(get_db)):
         db.rollback()
         raise HTTPException(status_code=500, detail="An internal server error occurred")
 
+@app.get("/user")
+def get_user_profile(db: Session = Depends(get_db)):
+    """
+    Returns the active user profile and active resume data on app initialization.
+    """
+    try:
+        from app.models.models import User, Resume
+        active_resume = db.query(Resume).filter(Resume.is_active == True).first()
+        user = db.query(User).filter(User.id == 1).first()
+        
+        if not active_resume and not user:
+            return {"has_profile": False}
+            
+        embedding_list = []
+        if active_resume and active_resume.embedding is not None:
+            embedding_list = [float(x) for x in active_resume.embedding]
+        elif user and user.embedding is not None:
+            embedding_list = [float(x) for x in user.embedding]
+            
+        parsed = (active_resume.parsed_data if active_resume else None) or (user.parsed_data if user else {}) or {}
+        markdown = (active_resume.resume_markdown if active_resume else None) or (user.resume_markdown if user else "") or ""
+        filename = active_resume.filename if active_resume else "Active_Resume.pdf"
+        
+        return {
+            "has_profile": True,
+            "filename": filename,
+            "markdown": markdown,
+            "resume_markdown": markdown,
+            "parsed_json": parsed,
+            "embedding": embedding_list,
+            "embedding_length": len(embedding_list)
+        }
+    except Exception as e:
+        raise HTTPException(status_code=500, detail="An internal server error occurred")
+
 @app.delete("/resumes/{resume_id}")
 def delete_resume(resume_id: int, db: Session = Depends(get_db)):
     """

@@ -2,6 +2,7 @@
 
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
+import { getApiHost } from '@/lib/api';
 import { Database, Upload, FileText, CheckCircle2, Trash2, Clock, Star, Loader2, Mail, ShieldAlert } from 'lucide-react';
 
 interface ResumeListItem {
@@ -34,7 +35,7 @@ const VaultView: React.FC<VaultViewProps> = ({
     const [error, setError] = useState<string | null>(null);
     const [actionLoading, setActionLoading] = useState<number | null>(null);
 
-    const apiHost = typeof window !== 'undefined' ? `${window.location.protocol}//${window.location.hostname}:8001` : 'http://127.0.0.1:8001';
+    const apiHost = getApiHost();
 
     const fetchResumes = async () => {
         try {

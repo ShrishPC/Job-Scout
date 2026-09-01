@@ -28,6 +28,9 @@ temp_*
 
 # Local test scratch files
 scratch/
+screenshots/
+scraper/screenshots/
+scripts/screenshots/
 dummy.txt
 test.txt
 test_resume.txt

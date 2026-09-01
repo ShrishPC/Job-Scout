@@ -2,6 +2,7 @@
 
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
+import { getApiHost } from '@/lib/api';
 import { ExternalLink, ArrowRight, Trash2, Loader2, Info, Calendar, MapPin, Briefcase, RotateCw } from 'lucide-react';
 
 interface BoardJob {
@@ -20,7 +21,7 @@ const KanbanBoard = () => {
     const [loading, setLoading] = useState(true);
     const [activeTab, setActiveTab] = useState<'active' | 'archived'>('active');
 
-    const apiHost = typeof window !== 'undefined' ? `${window.location.protocol}//${window.location.hostname}:8001` : 'http://127.0.0.1:8001';
+    const apiHost = getApiHost();
 
     const fetchBoard = async () => {
         setLoading(true);

@@ -3,6 +3,7 @@
 import React, { useState } from 'react';
 import { ExternalLink, Check, X, MapPin, DollarSign, Loader2, Calendar, Eye, RotateCw, Target, Briefcase, Laptop, Sparkles } from 'lucide-react';
 import axios from 'axios';
+import { getApiHost } from '@/lib/api';
 
 interface Job {
   id: number;
@@ -42,7 +43,7 @@ const JobCard: React.FC<JobCardProps> = ({ job, onApply, onReject, onTailor, onO
     setResearchText('');
     setResearchError('');
     try {
-      const apiHost = typeof window !== 'undefined' ? `${window.location.protocol}//${window.location.hostname}:8001` : 'http://127.0.0.1:8001';
+      const apiHost = getApiHost();
       const response = await fetch(`${apiHost}/ai/research`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -70,7 +71,7 @@ const JobCard: React.FC<JobCardProps> = ({ job, onApply, onReject, onTailor, onO
   const handleInterest = async (e: React.MouseEvent) => {
     e.stopPropagation(); // Prevent modal from opening
     setLoading(true);
-    const apiHost = typeof window !== 'undefined' ? `${window.location.protocol}//${window.location.hostname}:8001` : 'http://127.0.0.1:8001';
+    const apiHost = getApiHost();
     try {
       await axios.post(`${apiHost}/jobs/interest`, { job_id: job.id, status: 'interested' });
       setSuccess(true);

@@ -21,6 +21,7 @@ import {
   Target
 } from 'lucide-react';
 import axios from 'axios';
+import { getApiHost } from '@/lib/api';
 
 interface ATSScoreModalProps {
   isOpen: boolean;
@@ -52,7 +53,7 @@ const ATSScoreModal: React.FC<ATSScoreModalProps> = ({
   const fetchATSAnalysis = async () => {
     setLoading(true);
     setError(null);
-    const apiHost = typeof window !== 'undefined' ? `${window.location.protocol}//${window.location.hostname}:8001` : 'http://127.0.0.1:8001';
+    const apiHost = getApiHost();
 
     try {
       const payload: any = {
@@ -85,7 +86,7 @@ const ATSScoreModal: React.FC<ATSScoreModalProps> = ({
   const handleExportReport = async (format: 'pdf' | 'docx') => {
     if (!atsData) return;
     setExportingFormat(format);
-    const apiHost = typeof window !== 'undefined' ? `${window.location.protocol}//${window.location.hostname}:8001` : 'http://127.0.0.1:8001';
+    const apiHost = getApiHost();
 
     try {
       const response = await axios.post(

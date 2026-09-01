@@ -3,6 +3,7 @@
 import React, { useState, useEffect } from 'react';
 import { Shield, Activity, Database, Server, Cpu, HardDrive, LogOut, RefreshCw, TrendingUp } from 'lucide-react';
 import axios from 'axios';
+import { getApiHost } from '@/lib/api';
 import { AreaChart, Area, XAxis, YAxis, Tooltip, ResponsiveContainer } from 'recharts';
 
 interface TelemetryData {
@@ -22,7 +23,7 @@ export default function AdminDashboard() {
   const [error, setError] = useState<string>('');
   const [lastRefreshed, setLastRefreshed] = useState<Date | null>(null);
 
-  const apiHost = typeof window !== 'undefined' ? `${window.location.protocol}//${window.location.hostname}:8001` : 'http://127.0.0.1:8001';
+  const apiHost = getApiHost();
 
   const fetchStats = async (key: string) => {
     setLoading(true);

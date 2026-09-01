@@ -2,6 +2,7 @@
 
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
+import { getApiHost } from '@/lib/api';
 import { Sparkles, Loader2, Copy, FileText, Download, Check, AlertCircle, RefreshCw, Briefcase, Plus, User, Laptop, ChevronDown, ChevronUp, Search, Building, Target } from 'lucide-react';
 
 interface BoardJob {
@@ -86,7 +87,7 @@ const AITailorView: React.FC<AITailorViewProps> = ({
         };
     }, []);
 
-    const apiHost = typeof window !== 'undefined' ? `${window.location.protocol}//${window.location.hostname}:8001` : 'http://127.0.0.1:8001';
+    const apiHost = getApiHost();
 
     const fetchData = async () => {
         setLoadingJobs(true);
@@ -182,7 +183,7 @@ const AITailorView: React.FC<AITailorViewProps> = ({
 
         setExportingFormat(format);
         try {
-            const apiHost = typeof window !== 'undefined' ? `${window.location.protocol}//${window.location.hostname}:8001` : 'http://127.0.0.1:8001';
+            const apiHost = getApiHost();
             
             const targetCompany = isCustomJob ? customCompany : (selectedJob?.company || '');
             const targetTitle = isCustomJob ? customTitle : (selectedJob?.title || '');

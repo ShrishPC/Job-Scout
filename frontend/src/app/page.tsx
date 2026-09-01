@@ -9,6 +9,7 @@ import ProfileView from '@/components/ui/ProfileView';
 import RadarView from '@/components/ui/RadarView';
 import AITailorView from '@/components/ui/AITailorView';
 import ATSScoreModal from '@/components/ui/ATSScoreModal';
+import { getApiHost } from '@/lib/api';
 import { Search, Briefcase, User, Settings as SettingsIcon, Play, Loader2, Sparkles, LogOut, Layout, Radar, Target, Database, RotateCw, Trash2, X, ChevronDown, SlidersHorizontal, MapPin, CheckCircle2, AlertCircle } from 'lucide-react';
 import axios from 'axios';
 
@@ -79,7 +80,7 @@ export default function Home() {
     const formData = new FormData();
     formData.append('file', fileToUpload);
 
-    const apiHost = typeof window !== 'undefined' ? `${window.location.protocol}//${window.location.hostname}:8001` : 'http://127.0.0.1:8001';
+    const apiHost = getApiHost();
     try {
       const response = await axios.post(`${apiHost}/resume/parse`, formData, {
         headers: {
@@ -107,7 +108,7 @@ export default function Home() {
     setAiError(null);
     setAiResult('');
 
-    const apiHost = typeof window !== 'undefined' ? `${window.location.protocol}//${window.location.hostname}:8001` : 'http://127.0.0.1:8001';
+    const apiHost = getApiHost();
     try {
       const response = await fetch(`${apiHost}/ai/generate`, {
         method: 'POST',
@@ -155,7 +156,7 @@ export default function Home() {
     const currentText = aiResult;
     setAiResult(''); // clear text to stream new one
 
-    const apiHost = typeof window !== 'undefined' ? `${window.location.protocol}//${window.location.hostname}:8001` : 'http://127.0.0.1:8001';
+    const apiHost = getApiHost();
     try {
       const response = await fetch(`${apiHost}/ai/refine`, {
         method: 'POST',
@@ -200,20 +201,33 @@ export default function Home() {
 
 
   useEffect(() => {
-    const fetchAIDevice = async () => {
-      const apiHost = typeof window !== 'undefined' ? `${window.location.protocol}//${window.location.hostname}:8001` : 'http://127.0.0.1:8001';
+    const fetchInitialData = async () => {
+      const apiHost = getApiHost();
       try {
-        const res = await axios.get(`${apiHost}/ai/config`);
-        setDevice(res.data.device);
+        const [configRes, userRes] = await Promise.all([
+          axios.get(`${apiHost}/ai/config`).catch(() => ({ data: { device: 'cpu' } })),
+          axios.get(`${apiHost}/user`).catch(() => ({ data: { has_profile: false } }))
+        ]);
+
+        if (configRes.data?.device) {
+          setDevice(configRes.data.device);
+        }
+
+        if (userRes.data?.has_profile) {
+          setParsedData(userRes.data);
+          if (userRes.data.embedding && userRes.data.embedding.length > 0) {
+            fetchMatches(userRes.data.embedding, selectedWorkplaceTypes, searchParams.keyword);
+          }
+        }
       } catch (err) {
-        console.error("Failed to load AI device config:", err);
+        console.error("Failed to initialize startup data:", err);
       }
     };
-    fetchAIDevice();
+    fetchInitialData();
   }, []);
 
   const handleDeviceChange = async (newDevice: 'cpu' | 'cuda' | 'demo') => {
-    const apiHost = typeof window !== 'undefined' ? `${window.location.protocol}//${window.location.hostname}:8001` : 'http://127.0.0.1:8001';
+    const apiHost = getApiHost();
     try {
       await axios.post(`${apiHost}/ai/config`, { device: newDevice });
       setDevice(newDevice);
@@ -226,7 +240,7 @@ export default function Home() {
   const [cacheCleared, setCacheCleared] = useState(false);
 
   const handleClearCache = async () => {
-    const apiHost = typeof window !== 'undefined' ? `${window.location.protocol}//${window.location.hostname}:8001` : 'http://127.0.0.1:8001';
+    const apiHost = getApiHost();
     setClearingCache(true);
     setCacheCleared(false);
     try {
@@ -244,7 +258,7 @@ export default function Home() {
   const [systemActionInProgress, setSystemActionInProgress] = useState(false);
 
   const handleShutdown = async () => {
-    const apiHost = typeof window !== 'undefined' ? `${window.location.protocol}//${window.location.hostname}:8001` : 'http://127.0.0.1:8001';
+    const apiHost = getApiHost();
     setSystemActionInProgress(true);
     try {
       await axios.post(`${apiHost}/system/shutdown`);
@@ -257,7 +271,7 @@ export default function Home() {
   };
 
   const handleRestart = async () => {
-    const apiHost = typeof window !== 'undefined' ? `${window.location.protocol}//${window.location.hostname}:8001` : 'http://127.0.0.1:8001';
+    const apiHost = getApiHost();
     setSystemActionInProgress(true);
     try {
       await axios.post(`${apiHost}/system/restart`);
@@ -305,7 +319,7 @@ export default function Home() {
   const fetchMatches = async (embedding: number[], workplaceTypes: string[], keyword?: string) => {
     if (!embedding || embedding.length === 0) return;
     setLoadingJobs(true);
-    const apiHost = typeof window !== 'undefined' ? `${window.location.protocol}//${window.location.hostname}:8001` : 'http://127.0.0.1:8001';
+    const apiHost = getApiHost();
     try {
       const response = await axios.post(`${apiHost}/jobs/matches`, {
         embedding: embedding,
@@ -322,7 +336,7 @@ export default function Home() {
   };
 
   const fetchActiveProfile = async () => {
-    const apiHost = typeof window !== 'undefined' ? `${window.location.protocol}//${window.location.hostname}:8001` : 'http://127.0.0.1:8001';
+    const apiHost = getApiHost();
     try {
       const response = await axios.get(`${apiHost}/resume/active`);
       if (response.data) {
@@ -399,7 +413,7 @@ export default function Home() {
 
   const triggerScrape = async () => {
     setScraping(true);
-    const apiHost = typeof window !== 'undefined' ? `${window.location.protocol}//${window.location.hostname}:8001` : 'http://127.0.0.1:8001';
+    const apiHost = getApiHost();
     const scrapeKw = searchParams.keyword.trim() || 'Software Engineer';
     const scrapeLoc = searchParams.location.trim();
     
@@ -477,7 +491,7 @@ export default function Home() {
   };
 
   const handleReject = async (id: number) => {
-    const apiHost = typeof window !== 'undefined' ? `${window.location.protocol}//${window.location.hostname}:8001` : 'http://127.0.0.1:8001';
+    const apiHost = getApiHost();
     try {
       await axios.post(`${apiHost}/jobs/interest`, { job_id: id, status: 'rejected' });
       setJobs(jobs.map(j => j.id === id ? { ...j, is_rejected: true } : j));
@@ -487,7 +501,7 @@ export default function Home() {
   };
 
   const handleDeleteProfile = async () => {
-    const apiHost = typeof window !== 'undefined' ? `${window.location.protocol}//${window.location.hostname}:8001` : 'http://127.0.0.1:8001';
+    const apiHost = getApiHost();
     try {
       await axios.delete(`${apiHost}/resume/reset`);
       setParsedData(null);
@@ -1268,11 +1282,14 @@ export default function Home() {
 
 function NavItem({ icon, label, active = false, onClick }: { icon: React.ReactNode, label: string, active?: boolean, onClick?: () => void }) {
   return (
-    <div className="flex flex-col items-center space-y-1 group">
+    <button 
+      type="button"
+      onClick={onClick}
+      className="flex flex-col items-center space-y-1 group cursor-pointer focus:outline-none w-full bg-transparent border-none p-0"
+    >
       <div 
-        onClick={onClick}
         className={`
-          w-12 h-12 rounded-xl cursor-pointer flex items-center justify-center transition-all duration-100 border-3 border-black
+          w-12 h-12 rounded-xl flex items-center justify-center transition-all duration-100 border-3 border-black
           ${active 
             ? 'bg-retro-sand text-black shadow-none translate-x-[2px] translate-y-[2px]' 
             : 'bg-white text-black shadow-[3px_3px_0px_0px_rgba(0,0,0,1)] hover:translate-x-[1px] hover:translate-y-[1px] hover:shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] active:translate-x-[3px] active:translate-y-[3px] active:shadow-none'
@@ -1284,7 +1301,7 @@ function NavItem({ icon, label, active = false, onClick }: { icon: React.ReactNo
       <span className={`text-[10px] font-black uppercase tracking-tighter transition-colors ${active ? 'text-black font-extrabold' : 'text-black/60 group-hover:text-black'}`}>
         {label}
       </span>
-    </div>
+    </button>
   );
 }
 
