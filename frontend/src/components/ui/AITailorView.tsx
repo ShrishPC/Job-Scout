@@ -42,6 +42,7 @@ interface AITailorViewProps {
     onGenerate: (payload: any) => Promise<void>;
     onRefine?: (instruction: string) => Promise<void>;
     onOpenATS?: (job: any) => void;
+    parsedData?: any;
 }
 
 const AITailorView: React.FC<AITailorViewProps> = ({
@@ -63,10 +64,11 @@ const AITailorView: React.FC<AITailorViewProps> = ({
     setMode,
     onGenerate,
     onRefine,
-    onOpenATS
+    onOpenATS,
+    parsedData
 }) => {
     const [jobs, setJobs] = useState<BoardJob[]>([]);
-    const [activeResume, setActiveResume] = useState<ActiveResume | null>(null);
+    const [activeResume, setActiveResume] = useState<ActiveResume | null>(parsedData || null);
     const [loadingJobs, setLoadingJobs] = useState(true);
     const [copied, setCopied] = useState(false);
 
@@ -74,6 +76,12 @@ const AITailorView: React.FC<AITailorViewProps> = ({
     const [searchQuery, setSearchQuery] = useState('');
     const dropdownRef = React.useRef<HTMLDivElement>(null);
     const [refineInstruction, setRefineInstruction] = useState('');
+
+    useEffect(() => {
+        if (parsedData && !activeResume) {
+            setActiveResume(parsedData);
+        }
+    }, [parsedData]);
 
     useEffect(() => {
         const handleClickOutside = (event: MouseEvent) => {
@@ -95,12 +103,11 @@ const AITailorView: React.FC<AITailorViewProps> = ({
         try {
             // Fetch Board Jobs
             const jobsRes = await axios.get(`${apiHost}/jobs/board`);
-            // filter out only rejected/archived jobs
             const activeJobs = jobsRes.data.filter((j: BoardJob) => j.status !== 'rejected');
             setJobs(activeJobs);
-            if (activeJobs.length > 0) {
+            if (!isCustomJob && !selectedJobId && activeJobs.length > 0) {
                 setSelectedJobId(activeJobs[0].id.toString());
-            } else {
+            } else if (activeJobs.length === 0 && !isCustomJob && !customTitle) {
                 setIsCustomJob(true);
             }
 

@@ -59,15 +59,18 @@ export default function Home() {
   };
 
   const handleOpenTailorFromATS = (job: any, initialInstruction?: string) => {
-    if (job?.id) {
-      setAiSelectedJobId(job.id.toString());
-      setAiIsCustomJob(false);
-    } else {
+    if (job) {
+      setAiCustomTitle(job.title || '');
+      setAiCustomCompany(job.company || '');
+      setAiCustomDesc(job.description || '');
+      if (job.id) {
+        setAiSelectedJobId(job.id.toString());
+      }
       setAiIsCustomJob(true);
-      setAiCustomTitle(job?.title || '');
-      setAiCustomCompany(job?.company || '');
-      setAiCustomDesc(job?.description || '');
     }
+    setAiError(null);
+    setAiResult('');
+    setAiMode('tailor');
     setView('ai');
   };
 
@@ -1003,6 +1006,7 @@ export default function Home() {
                 onGenerate={handleAIGenerate}
                 onRefine={handleAIRefine}
                 onOpenATS={handleOpenATS}
+                parsedData={parsedData}
               />
             </div>
           ) : (
