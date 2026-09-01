@@ -611,14 +611,18 @@ def generate_ai(request: AIGenerateRequest, db: Session = Depends(get_db)):
                 yield cache_entry.response_text
             return StreamingResponse(stream_cached(), media_type="text/plain")
             
+        # Pre-fetch RAG context synchronously using active db session before returning StreamingResponse
+        from app.services.llm_service import retrieve_rag_context
+        rag_context = retrieve_rag_context(resume_text, job_desc, db=db)
+
         # Define generator for streaming and caching
         def event_generator():
             accumulated_response = []
             
             if request.mode == "tailor":
-                stream = generate_tailored_resume_stream(resume_text, job_title, job_desc, db=db)
+                stream = generate_tailored_resume_stream(resume_text, job_title, job_desc, rag_context=rag_context)
             elif request.mode == "cover_letter":
-                stream = generate_cover_letter_stream(resume_text, job_title, company, job_desc, db=db)
+                stream = generate_cover_letter_stream(resume_text, job_title, company, job_desc, rag_context=rag_context)
             else:
                 raise HTTPException(status_code=400, detail="Invalid generation mode. Choose 'tailor' or 'cover_letter'.")
                 
@@ -628,14 +632,15 @@ def generate_ai(request: AIGenerateRequest, db: Session = Depends(get_db)):
                 
             full_response = "".join(accumulated_response).strip()
             
-            # Store in Cache
-            if full_response:
+            # Store in Cache safely using isolated session
+            if full_response and not full_response.startswith("Could not generate"):
                 try:
-                    new_cache = AIGenerationCache(cache_key=cache_key, response_text=full_response)
-                    db.add(new_cache)
-                    db.commit()
+                    from app.core.database import SessionLocal
+                    with SessionLocal() as cache_session:
+                        new_cache = AIGenerationCache(cache_key=cache_key, response_text=full_response)
+                        cache_session.add(new_cache)
+                        cache_session.commit()
                 except Exception as cache_err:
-                    db.rollback()
                     print(f"Failed to cache generation inside stream: {cache_err}")
                     
         return StreamingResponse(event_generator(), media_type="text/plain")
