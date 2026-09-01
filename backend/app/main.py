@@ -620,7 +620,7 @@ def generate_ai(request: AIGenerateRequest, db: Session = Depends(get_db)):
             accumulated_response = []
             
             if request.mode == "tailor":
-                stream = generate_tailored_resume_stream(resume_text, job_title, job_desc, rag_context=rag_context)
+                stream = generate_tailored_resume_stream(resume_text, job_title, job_desc, company=company, rag_context=rag_context)
             elif request.mode == "cover_letter":
                 stream = generate_cover_letter_stream(resume_text, job_title, company, job_desc, rag_context=rag_context)
             else:

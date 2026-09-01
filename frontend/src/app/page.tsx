@@ -1001,6 +1001,7 @@ export default function Home() {
                 customDesc={aiCustomDesc}
                 setCustomDesc={setAiCustomDesc}
                 onGenerate={handleAIGenerate}
+                onRefine={handleAIRefine}
                 onOpenATS={handleOpenATS}
               />
             </div>
