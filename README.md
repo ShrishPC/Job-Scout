@@ -1,135 +1,90 @@
-# Job Scout: Neural Job Discovery & Tracking
+# 🚀 Job Scout: AI-Powered Job Discovery & ATS Optimization
 
-[![Next.js](https://img.shields.io/badge/Next.js-16-black?style=for-the-badge&logo=nextdotjs)](https://nextjs.org/)
-[![FastAPI](https://img.shields.io/badge/FastAPI-0.139+-009688?style=for-the-badge&logo=fastapi&logoColor=white)](https://fastapi.tiangolo.com/)
-[![PostgreSQL](https://img.shields.io/badge/PostgreSQL-pgvector-4169E1?style=for-the-badge&logo=postgresql&logoColor=white)](https://www.postgresql.org/)
-[![Docker](https://img.shields.io/badge/Docker-Containerized-2496ED?style=for-the-badge&logo=docker&logoColor=white)](https://www.docker.com/)
-[![Celery](https://img.shields.io/badge/Celery-Distributed-37814A?style=for-the-badge&logo=celery&logoColor=white)](https://docs.celeryq.dev/)
-[![License](https://img.shields.io/badge/License-MIT-yellow.svg?style=for-the-badge)](LICENSE)
-[![Llama](https://img.shields.io/badge/Llama-3.2--3B-blueviolet?style=for-the-badge&logo=meta&logoColor=white)](https://huggingface.co/unsloth/Llama-3.2-3B-Instruct)
+![Python](https://img.shields.io/badge/Python-3.11+-blue.svg)
+![FastAPI](https://img.shields.io/badge/FastAPI-0.100+-00a393.svg)
+![Next.js](https://img.shields.io/badge/Next.js-14-black.svg)
+![PostgreSQL](https://img.shields.io/badge/PostgreSQL-15-336791.svg)
+![pgvector](https://img.shields.io/badge/pgvector-Supported-success.svg)
+![Docker](https://img.shields.io/badge/Docker-Ready-2496ED.svg)
 
----
+**Job Scout** is a privacy-first, Retrieval-Augmented Generation (RAG) platform designed to bridge the semantic gap between applicants and Applicant Tracking Systems (ATS). By utilizing local AI models and vector similarity search, it matches candidates to ideal roles and generates highly tailored application materials—all without transmitting sensitive personal data to external cloud APIs.
 
-##  About
+## ✨ Key Features
 
-Job Scout is a local-first, privacy-focused AI job intelligence platform that automates discovery, semantic candidate matching, and application preparation.
-
-- **100% Local Execution:** Your resume, vector embeddings, and generated cover letters are processed exclusively on your machine. Absolutely no personal data leaves your hardware.
-- **Context-Aware AI (Dual-Track RAG):** The retrieval-augmented generation pipeline reads your active resume semantically, extracts your most relevant experience for each position, and grounds generation in real market requirements.
-- **Direct PDF & DOCX Document Export:** Export tailored resumes and cover letters directly to styled PDFs (vector typography with `PyMuPDF`) or Word documents (`python-docx`).
-- **Asynchronous Celery Queue:** Background scrapers query LinkedIn, Indeed, Naukri, RemoteOK, and We Work Remotely with real-time UI telemetry and task status polling.
-- **Interactive Market Radar:** Visualize how your skills map against live industry demand through dynamic SVG radar charts.
+- **Semantic Vector Matching:** Uses `all-MiniLM-L6-v2` and PostgreSQL (`pgvector`) with an HNSW index to match resumes to job descriptions based on contextual meaning, not just exact keywords.
+- **100% Offline AI Generation:** Integrates `Llama-3.2-3B-Instruct` locally via PyTorch to generate ATS-optimized cover letters and resume bullets, guaranteeing zero data leakage.
+- **Automated Job Scraping:** Asynchronous Celery workers periodically extract and index job listings from target career portals.
+- **Microservices Architecture:** Fully containerized environment comprising FastAPI, Next.js, Redis, and PostgreSQL.
+- **Sub-10ms Query Latency:** Optimized vector indexing guarantees rapid candidate-to-job matching, verified by included benchmarking scripts.
 
 ---
 
-##  Visual Showcase
+## 🏗️ Architecture
 
-| Warm Cream Light Theme | Kanban Board Tracker |
-|:---:|:---:|
-| ![Light Theme](assets/light_mode.png) | ![Pipeline Tracker](assets/pipeline.png) |
+Job Scout is built on a containerized microservices architecture:
 
-| Resume Vault | Neural Candidate Profile |
-|:---:|:---:|
-| ![Resume Vault](assets/vault.png) | ![Profile Details](assets/profile.png) |
-
-| AI Copilot | Market Radar & Skills |
-|:---:|:---:|
-| ![AI Copilot](assets/copilot.png) | ![Market Radar](assets/config.png) |
-
-| System Config & Telemetry | Exit & Lifecycle Control |
-|:---:|:---:|
-| ![System Config](assets/radar.png) | ![Exit Modal](assets/exit_modal.png) |
+1. **Frontend (Next.js):** React-based UI with Server-Sent Events (SSE) for streaming LLM outputs.
+2. **Backend API (FastAPI):** Python REST API handling orchestration, RAG logic, and model inference.
+3. **Database (PostgreSQL + pgvector):** Relational and vector storage for resumes and job embeddings.
+4. **Message Broker (Redis):** Task queuing for background jobs.
+5. **Worker (Celery):** Handles asynchronous web scraping and bulk embedding tasks.
+6. **Scheduler (Celery-Beat):** Triggers periodic pipeline updates.
 
 ---
 
-##  Key Features
+## ⚙️ Prerequisites
 
-- **Hybrid Neural Matching:** Vector cosine similarity using `all-MiniLM-L6-v2` with PostgreSQL `pgvector` HNSW indexing coupled with title/skill keyword weighting.
-- **PDF & DOCX Export Engine:** Download generated resumes and cover letters with publication-grade formatting, margins, and custom typography.
-- **AI Copilot:** Instant tailoring for scraped listings or pasted descriptions powered by `Llama-3.2-3B-Instruct`.
-- **Multi-Resume Vault:** Upload, manage, and toggle active resume identities on the fly.
-- **Admin Telemetry Dashboard (`/admin`):** Hardware utilization monitoring, Celery worker status, cache management, and indexing velocity charts.
-- **Asynchronous Scraper Pipeline:** Multi-source parallel scrapers (LinkedIn, Indeed, Naukri, RemoteOK, We Work Remotely) with live progress feedback.
-- **Kanban Application Pipeline:** Drag-and-drop workflow tracking (*Interested*, *Applied*, *Interviewing*, *Offered*, *Rejected*).
-- **Neo-Brutalist Interface:** High-contrast retro-modern UI with WCAG-compliant color contrast and fluid responsive components.
+Before you begin, ensure you have the following installed on your host machine:
+- [Docker](https://docs.docker.com/get-docker/)
+- [Docker Compose](https://docs.docker.com/compose/install/)
+- At least 8GB of free RAM (for running the local LLM in `bfloat16` precision)
 
 ---
 
-##  Architecture
+## 🚀 Quick Start
 
-![Architecture](assets/final_architecture.jpg)
-
-- **Vector Search:** HNSW index on `jobs.embedding` for sub-millisecond similarity lookups.
-- **Embedding Model:** `all-MiniLM-L6-v2` (384-dimensional vector, cached locally).
-- **LLM Generator:** `unsloth/Llama-3.2-3B-Instruct` (Supports CPU, CUDA GPU, and Demo modes).
-- **Queue & Results:** Redis broker (`localhost:6380`) with Celery prefork workers.
-- **Backend API:** FastAPI on `localhost:8001` with automated database migrations.
-- **Frontend:** Next.js 16 on `localhost:3000`.
-
----
-
-##  Quick Start
-
-### One-Command Launch (Recommended)
-
-**Linux / macOS:**
+**1. Clone the repository**
 ```bash
-chmod +x run.sh
-./run.sh
+git clone https://github.com/ShrishPC/Job-Scout.git
+cd job-scout
 ```
 
-**Windows (PowerShell):**
-```powershell
-.\run.ps1
-```
-
-### Docker Compose
-
+**2. Start the Docker containers**
 ```bash
-docker compose up -d --build
+docker compose up --build -d
 ```
+*Note: On the first boot, the backend will download the `all-MiniLM-L6-v2` and `Llama-3.2` models. This may take a few minutes depending on your internet connection.*
 
-### Service Map
-
-- **Web App:** [http://localhost:3000](http://localhost:3000)
-- **Admin Panel:** [http://localhost:3000/admin](http://localhost:3000/admin)
-- **Backend API Docs:** [http://localhost:8001/docs](http://localhost:8001/docs)
-- **Database (PostgreSQL):** `localhost:5435`
-- **Redis Queue:** `localhost:6380`
+**3. Access the Application**
+- **Frontend UI:** [http://localhost:3000](http://localhost:3000)
+- **Backend API Docs (Swagger):** [http://localhost:8001/docs](http://localhost:8001/docs)
 
 ---
 
-##  Project Structure
+## 📊 Performance Benchmarking
 
-```text
-├── backend/                  # FastAPI Backend API
-│   ├── app/
-│   │   ├── core/             # DB connection, config, & pooling
-│   │   ├── models/           # SQLAlchemy models with pgvector
-│   │   ├── services/         # Embedding, RAG pipeline, export engine
-│   │   └── main.py           # REST endpoints & Celery task dispatcher
-│   ├── requirements.txt      # Pinned Python dependencies
-│   └── Dockerfile            # Hardened container definition
-├── frontend/                 # Next.js 16 Web Application
-│   ├── src/
-│   │   ├── components/ui/    # Neo-Brutalist UI components & views
-│   │   └── app/              # Next.js App Router (pages & admin)
-│   ├── package.json          # Node dependencies
-│   └── Dockerfile            # Frontend container definition
-├── scraper/                  # Asynchronous Scraping Engine
-│   ├── celery_app.py         # Celery task configuration
-│   ├── tasks.py              # Parallel extraction & embedding tasks
-│   ├── remote_scrapers.py    # RemoteOK & We Work Remotely scrapers
-│   ├── linkedin_scraper.py   # Playwright LinkedIn scraper
-│   ├── indeed_scraper.py     # Playwright Indeed scraper
-│   └── Dockerfile            # Scraper worker definition
-├── project-docx/             # Project documentation artifacts
-├── docker-compose.yml        # Orchestration definition
-└── run.sh / run.ps1          # One-click bootstrap scripts
+To prove the efficiency of the HNSW vector indexing, a benchmark script is included. It generates 10,000 mock 384-dimensional job embeddings and measures the latency of sequential scans vs. indexed graph traversal.
+
+Run the benchmark inside the backend container:
+```bash
+docker compose exec backend python scripts/benchmark_pgvector.py
 ```
+*Expected Output: Sequential scans (~140ms) vs. HNSW Index (~9ms).*
 
 ---
 
-##  License
+## 🔒 Security & Privacy
 
-This project is licensed under the MIT License. See [LICENSE](LICENSE) for details.
+- **Offline Inference:** All AI/ML processing occurs on the host CPU/GPU. No resume data is sent to OpenAI, Anthropic, or any external vendor.
+- **Vulnerability Mitigation:** Employs parameterized SQL queries to prevent injection attacks and UUID-based file handling to block Path Traversal.
+
+---
+
+## 👨‍💻 Author
+
+**Shrish Prasad Chakraborty**  
+Department of Computer Applications  
+SRM Institute of Science and Technology  
+
+---
+*Developed as a Minor Project (2026-2027).*
