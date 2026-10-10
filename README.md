@@ -7,7 +7,7 @@
 ![pgvector](https://img.shields.io/badge/pgvector-Supported-success.svg)
 ![Docker](https://img.shields.io/badge/Docker-Ready-2496ED.svg)
 
-**Job Scout** is a privacy-first, Retrieval-Augmented Generation (RAG) platform designed to bridge the semantic gap between applicants and Applicant Tracking Systems (ATS). By utilizing local AI models and vector similarity search, it matches candidates to ideal roles and generates highly tailored application materials—all without transmitting sensitive personal data to external cloud APIs.
+**Job Scout** is a privacy-first Retrieval-Augmented Generation (RAG) platform that bridges the semantic gap between applicants and Applicant Tracking Systems (ATS). By utilizing local AI models and vector similarity search, it matches candidates to ideal roles. It generates highly tailored application materials—all without transmitting sensitive personal data to external cloud APIs.
 
 ## ✨ Key Features
 
@@ -77,14 +77,3 @@ docker compose exec backend python scripts/benchmark_pgvector.py
 
 - **Offline Inference:** All AI/ML processing occurs on the host CPU/GPU. No resume data is sent to OpenAI, Anthropic, or any external vendor.
 - **Vulnerability Mitigation:** Employs parameterized SQL queries to prevent injection attacks and UUID-based file handling to block Path Traversal.
-
----
-
-## 👨‍💻 Author
-
-**Shrish Prasad Chakraborty**  
-Department of Computer Applications  
-SRM Institute of Science and Technology  
-
----
-*Developed as a Minor Project (2026-2027).*
