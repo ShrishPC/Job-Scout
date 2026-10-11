@@ -23,3 +23,6 @@ feedparser==6.0.12
 
 psutil==7.2.2
 fastapi-cache2[redis]==0.2.2
+pytest==9.1.1
+pytest-cov==7.1.0
+pytest-mock==3.16.0

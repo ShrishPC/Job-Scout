@@ -1,0 +1,77 @@
+name: Test Suite
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+
+    services:
+      postgres:
+        image: ankane/pgvector:latest
+        env:
+          POSTGRES_DB: job_scout
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: password
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+
+      redis:
+        image: redis:alpine
+        ports:
+          - 6379:6379
+        options: >-
+          --health-cmd "redis-cli ping"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python 3.11
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+          cache: "pip"
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r backend/requirements.txt
+          pip install pytest pytest-cov pytest-mock httpx
+
+      - name: Download minimal embedding model for CI
+        run: |
+          mkdir -p models
+          export HF_HUB_OFFLINE=0
+          python -c "from sentence_transformers import SentenceTransformer; SentenceTransformer('all-MiniLM-L6-v2', cache_folder='models')"
+
+      - name: Initialize Database Indexes
+        env:
+          DATABASE_URL: postgresql+psycopg2://postgres:password@localhost:5432/job_scout
+          HF_HUB_OFFLINE: "1"
+          TRANSFORMERS_OFFLINE: "1"
+        run: |
+          cd backend
+          python init_db.py
+
+      - name: Run Pytest Suite with Coverage
+        env:
+          DATABASE_URL: postgresql+psycopg2://postgres:password@localhost:5432/job_scout
+          REDIS_URL: redis://localhost:6379/0
+          ADMIN_API_KEY: jobscout_admin_k3y_2026
+          HF_HUB_OFFLINE: "1"
+          TRANSFORMERS_OFFLINE: "1"
+        run: |
+          PYTHONPATH=backend:scraper pytest tests -v --cov=backend/app --cov-report=term-missing --cov-report=html

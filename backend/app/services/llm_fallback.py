@@ -42,12 +42,16 @@ def extract_structured_data_fallback(markdown_content: str):
 
     # 4. Extract Skills (Common keyword matching)
     common_skills = [
-        "Python", "SQL", "R", "Java", "C++", "Pandas", "NumPy", "Matplotlib", 
+        "Python", "SQL", "R", "Java", "C++", "C#", ".NET", "Pandas", "NumPy", "Matplotlib", 
         "Machine Learning", "Data Analysis", "Tableau", "Power BI", "Git", 
-        "Docker", "AWS", "FastAPI", "React", "Next.js", "TypeScript"
+        "Docker", "AWS", "FastAPI", "React", "Next.js", "TypeScript", "PostgreSQL", "Redis"
     ]
     for skill in common_skills:
-        if re.search(rf'\b{skill}\b', markdown_content, re.IGNORECASE):
+        if re.match(r'^[a-zA-Z0-9\s\-]+$', skill):
+            pattern = rf'\b{re.escape(skill)}\b'
+        else:
+            pattern = rf'(?:^|[\s,;:(]){re.escape(skill)}(?:$|[\s,;:).])'
+        if re.search(pattern, markdown_content, re.IGNORECASE):
             data["skills"].append(skill)
             
     # 5. Experience/Education (Simple line splitting)

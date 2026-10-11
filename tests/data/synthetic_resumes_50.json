@@ -1,0 +1,508 @@
+[
+  {
+    "id": 1,
+    "text": "Alex Mercer\nalex@example.com\n555-0101\nExperienced Python Engineer with 5+ years of experience building APIs with FastAPI and PostgreSQL.",
+    "expected_experience": 5,
+    "expected_skills": [
+      "Python",
+      "FastAPI",
+      "PostgreSQL"
+    ]
+  },
+  {
+    "id": 2,
+    "text": "Jordan Lee\njordan@example.com\n555-0102\nSenior Full Stack Developer with 7 years of practical experience in React, Next.js, and TypeScript.",
+    "expected_experience": 7,
+    "expected_skills": [
+      "React",
+      "Next.js",
+      "TypeScript"
+    ]
+  },
+  {
+    "id": 3,
+    "text": "Devon Vance\ndevon@example.com\n555-0103\nData Scientist with at least 4 years experience specializing in Machine Learning, Pandas, and Python.",
+    "expected_experience": 4,
+    "expected_skills": [
+      "Machine Learning",
+      "Pandas",
+      "Python"
+    ]
+  },
+  {
+    "id": 4,
+    "text": "Morgan Croft\nmorgan@example.com\n555-0104\nDevOps Engineer. 6+ yrs req experience maintaining Docker clusters, Git workflows, and AWS architecture.",
+    "expected_experience": 6,
+    "expected_skills": [
+      "Docker",
+      "Git",
+      "AWS"
+    ]
+  },
+  {
+    "id": 5,
+    "text": "Taylor Swiftly\ntaylor@example.com\n555-0105\nSystems Programmer with 8 years experience in C++, Java, and Redis caching systems.",
+    "expected_experience": 8,
+    "expected_skills": [
+      "C++",
+      "Java",
+      "Redis"
+    ]
+  },
+  {
+    "id": 6,
+    "text": "Casey Jones\ncasey@example.com\n555-0106\nDatabase Administrator with minimum 10 years experience in SQL, PostgreSQL, and Data Analysis.",
+    "expected_experience": 10,
+    "expected_skills": [
+      "SQL",
+      "PostgreSQL",
+      "Data Analysis"
+    ]
+  },
+  {
+    "id": 7,
+    "text": "Samira Khan\nsamira@example.com\n555-0107\nFrontend Developer with 3+ years of experience in TypeScript, React, and Git version control.",
+    "expected_experience": 3,
+    "expected_skills": [
+      "TypeScript",
+      "React",
+      "Git"
+    ]
+  },
+  {
+    "id": 8,
+    "text": "Marcus Brody\nmarcus@example.com\n555-0108\nBackend Engineer with 5 years experience required in Java, AWS, and Docker microservices.",
+    "expected_experience": 5,
+    "expected_skills": [
+      "Java",
+      "AWS",
+      "Docker"
+    ]
+  },
+  {
+    "id": 9,
+    "text": "Elena Rostova\nelena@example.com\n555-0109\nBI Analyst with 4 years experience in Tableau, Power BI, SQL, and Data Analysis.",
+    "expected_experience": 4,
+    "expected_skills": [
+      "Tableau",
+      "Power BI",
+      "SQL",
+      "Data Analysis"
+    ]
+  },
+  {
+    "id": 10,
+    "text": "Liam Chen\nliam@example.com\n555-0110\nMachine Learning Researcher with 6+ years experience in Python, NumPy, Pandas, and Machine Learning.",
+    "expected_experience": 6,
+    "expected_skills": [
+      "Python",
+      "NumPy",
+      "Pandas",
+      "Machine Learning"
+    ]
+  },
+  {
+    "id": 11,
+    "text": "Priya Patel\npriya@example.com\n555-0111\nCloud Architect with 9+ years of experience managing AWS infrastructure, Docker containers, and Redis.",
+    "expected_experience": 9,
+    "expected_skills": [
+      "AWS",
+      "Docker",
+      "Redis"
+    ]
+  },
+  {
+    "id": 12,
+    "text": "Carlos Mendez\ncarlos@example.com\n555-0112\nEnterprise Developer with 12 years experience in C#, .NET, SQL, and Git.",
+    "expected_experience": 12,
+    "expected_skills": [
+      "C#",
+      ".NET",
+      "SQL",
+      "Git"
+    ]
+  },
+  {
+    "id": 13,
+    "text": "Sophie Martin\nsophie@example.com\n555-0113\nJunior Python Coder with 1 year experience building REST endpoints in FastAPI and SQLite/SQL.",
+    "expected_experience": 1,
+    "expected_skills": [
+      "Python",
+      "FastAPI",
+      "SQL"
+    ]
+  },
+  {
+    "id": 14,
+    "text": "Lucas Silva\nlucas@example.com\n555-0114\nWeb App Engineer with 4+ yrs req in Next.js, React, and TypeScript architecture.",
+    "expected_experience": 4,
+    "expected_skills": [
+      "Next.js",
+      "React",
+      "TypeScript"
+    ]
+  },
+  {
+    "id": 15,
+    "text": "Amina Diallo\namina@example.com\n555-0115\nStatistical Modeler with 5 years experience in R, Python, Matplotlib, and Data Analysis.",
+    "expected_experience": 5,
+    "expected_skills": [
+      "R",
+      "Python",
+      "Matplotlib",
+      "Data Analysis"
+    ]
+  },
+  {
+    "id": 16,
+    "text": "Viktor Novak\nviktor@example.com\n555-0116\nEmbedded Systems Lead with 11 years experience in C++, Git, and Docker.",
+    "expected_experience": 11,
+    "expected_skills": [
+      "C++",
+      "Git",
+      "Docker"
+    ]
+  },
+  {
+    "id": 17,
+    "text": "Zoe Washington\nzoe@example.com\n555-0117\nPlatform Engineer with 7+ years of experience in AWS, Docker, Kubernetes, and Redis.",
+    "expected_experience": 7,
+    "expected_skills": [
+      "AWS",
+      "Docker",
+      "Redis"
+    ]
+  },
+  {
+    "id": 18,
+    "text": "Aiden Murphy\naiden@example.com\n555-0118\nFull Stack Developer with 3 years experience required in React, TypeScript, and FastAPI.",
+    "expected_experience": 3,
+    "expected_skills": [
+      "React",
+      "TypeScript",
+      "FastAPI"
+    ]
+  },
+  {
+    "id": 19,
+    "text": "Hana Tanaka\nhana@example.com\n555-0119\nData Visualization Specialist with 5 years experience in Power BI, Tableau, and SQL reporting.",
+    "expected_experience": 5,
+    "expected_skills": [
+      "Power BI",
+      "Tableau",
+      "SQL"
+    ]
+  },
+  {
+    "id": 20,
+    "text": "Omar Farooq\nomar@example.com\n555-0120\nDeep Learning Engineer with 4+ years of practical experience in Python, PyTorch, NumPy, and Machine Learning.",
+    "expected_experience": 4,
+    "expected_skills": [
+      "Python",
+      "NumPy",
+      "Machine Learning"
+    ]
+  },
+  {
+    "id": 21,
+    "text": "Rachel Green\nrachel@example.com\n555-0121\nBackend Specialist with 6 years experience in Java, SQL, and PostgreSQL databases.",
+    "expected_experience": 6,
+    "expected_skills": [
+      "Java",
+      "SQL",
+      "PostgreSQL"
+    ]
+  },
+  {
+    "id": 22,
+    "text": "David Kim\ndavid@example.com\n555-0122\nModern Frontend Engineer with 2+ years experience in Next.js, React, and TypeScript.",
+    "expected_experience": 2,
+    "expected_skills": [
+      "Next.js",
+      "React",
+      "TypeScript"
+    ]
+  },
+  {
+    "id": 23,
+    "text": "Fatima Al-Sayed\nfatima@example.com\n555-0123\nAnalytics Consultant with 8 years experience in Data Analysis, SQL, and Tableau.",
+    "expected_experience": 8,
+    "expected_skills": [
+      "Data Analysis",
+      "SQL",
+      "Tableau"
+    ]
+  },
+  {
+    "id": 24,
+    "text": "Nikolai Volkov\nnikolai@example.com\n555-0124\nHigh Performance Computing Developer with 14 years experience in C++, Python, and Git.",
+    "expected_experience": 14,
+    "expected_skills": [
+      "C++",
+      "Python",
+      "Git"
+    ]
+  },
+  {
+    "id": 25,
+    "text": "Chloe Bennett\nchloe@example.com\n555-0125\nDevSecOps Practitioner with 5+ yrs req experience in Docker, AWS, and Git.",
+    "expected_experience": 5,
+    "expected_skills": [
+      "Docker",
+      "AWS",
+      "Git"
+    ]
+  },
+  {
+    "id": 26,
+    "text": "Tariq Mansoor\ntariq@example.com\n555-0126\nAPI Architect with 8+ years experience in FastAPI, Python, Redis, and PostgreSQL.",
+    "expected_experience": 8,
+    "expected_skills": [
+      "FastAPI",
+      "Python",
+      "Redis",
+      "PostgreSQL"
+    ]
+  },
+  {
+    "id": 27,
+    "text": "Grace Hopper\ngrace@example.com\n555-0127\nSenior Systems Architect with 15+ years of experience in Java, C++, and SQL.",
+    "expected_experience": 15,
+    "expected_skills": [
+      "Java",
+      "C++",
+      "SQL"
+    ]
+  },
+  {
+    "id": 28,
+    "text": "Ethan Wright\nethan@example.com\n555-0128\nUI Engineer with 3 years experience building responsive web interfaces in React and TypeScript.",
+    "expected_experience": 3,
+    "expected_skills": [
+      "React",
+      "TypeScript"
+    ]
+  },
+  {
+    "id": 29,
+    "text": "Maya Lin\nmaya@example.com\n555-0129\nQuantitative Analyst with 7 years experience in Python, R, and Machine Learning.",
+    "expected_experience": 7,
+    "expected_skills": [
+      "Python",
+      "R",
+      "Machine Learning"
+    ]
+  },
+  {
+    "id": 30,
+    "text": "Gabriel Santos\ngabriel@example.com\n555-0130\nInfrastructure Lead with 10+ years experience in AWS, Docker, and Redis clustering.",
+    "expected_experience": 10,
+    "expected_skills": [
+      "AWS",
+      "Docker",
+      "Redis"
+    ]
+  },
+  {
+    "id": 31,
+    "text": "Kavita Sharma\nkavita@example.com\n555-0131\nSoftware Developer with 4 years experience required in C#, .NET, and SQL Server.",
+    "expected_experience": 4,
+    "expected_skills": [
+      "C#",
+      ".NET",
+      "SQL"
+    ]
+  },
+  {
+    "id": 32,
+    "text": "Benjamin Cole\nben@example.com\n555-0132\nFull Stack Web Developer with 5+ yrs req in TypeScript, Next.js, and PostgreSQL.",
+    "expected_experience": 5,
+    "expected_skills": [
+      "TypeScript",
+      "Next.js",
+      "PostgreSQL"
+    ]
+  },
+  {
+    "id": 33,
+    "text": "Leila Haddad\nleila@example.com\n555-0133\nData Engineer with 6 years experience in Python, SQL, Pandas, and AWS pipelines.",
+    "expected_experience": 6,
+    "expected_skills": [
+      "Python",
+      "SQL",
+      "Pandas",
+      "AWS"
+    ]
+  },
+  {
+    "id": 34,
+    "text": "Felix Becker\nfelix@example.com\n555-0134\nGame Engine Programmer with 7+ years of experience in C++, Git, and graphics shaders.",
+    "expected_experience": 7,
+    "expected_skills": [
+      "C++",
+      "Git"
+    ]
+  },
+  {
+    "id": 35,
+    "text": "Olivia Brown\nolivia@example.com\n555-0135\nFrontend Lead with 8 years experience in React, TypeScript, and Git repository management.",
+    "expected_experience": 8,
+    "expected_skills": [
+      "React",
+      "TypeScript",
+      "Git"
+    ]
+  },
+  {
+    "id": 36,
+    "text": "Rohan Verma\nrohan@example.com\n555-0136\nMicroservices Developer with 5 years experience in FastAPI, Docker, and Redis caching.",
+    "expected_experience": 5,
+    "expected_skills": [
+      "FastAPI",
+      "Docker",
+      "Redis"
+    ]
+  },
+  {
+    "id": 37,
+    "text": "Ingrid Bergman\ningrid@example.com\n555-0137\nBusiness Intelligence Developer with 4+ years of practical experience in Tableau, Power BI, and SQL.",
+    "expected_experience": 4,
+    "expected_skills": [
+      "Tableau",
+      "Power BI",
+      "SQL"
+    ]
+  },
+  {
+    "id": 38,
+    "text": "Dante Rossi\ndante@example.com\n555-0138\nAI Researcher with 3 years experience in Python, Machine Learning, and NumPy computing.",
+    "expected_experience": 3,
+    "expected_skills": [
+      "Python",
+      "Machine Learning",
+      "NumPy"
+    ]
+  },
+  {
+    "id": 39,
+    "text": "Yuki Takahashi\nyuki@example.com\n555-0139\nReliability Engineer with 6+ yrs req in AWS, Docker, and PostgreSQL.",
+    "expected_experience": 6,
+    "expected_skills": [
+      "AWS",
+      "Docker",
+      "PostgreSQL"
+    ]
+  },
+  {
+    "id": 40,
+    "text": "Zara Phillips\nzara@example.com\n555-0140\nFull Stack Engineer with 4 years experience in Java, React, and SQL.",
+    "expected_experience": 4,
+    "expected_skills": [
+      "Java",
+      "React",
+      "SQL"
+    ]
+  },
+  {
+    "id": 41,
+    "text": "Simon Cowell\nsimon@example.com\n555-0141\nEnterprise Architect with 13+ years of experience in .NET, C#, and SQL.",
+    "expected_experience": 13,
+    "expected_skills": [
+      ".NET",
+      "C#",
+      "SQL"
+    ]
+  },
+  {
+    "id": 42,
+    "text": "Nadia Comaneci\nnadia@example.com\n555-0142\nFrontend Specialist with 5 years experience in Next.js, React, and TypeScript.",
+    "expected_experience": 5,
+    "expected_skills": [
+      "Next.js",
+      "React",
+      "TypeScript"
+    ]
+  },
+  {
+    "id": 43,
+    "text": "Arthur Dent\narthur@example.com\n555-0143\nBackend Software Developer with 4 years experience required in Python, FastAPI, and PostgreSQL.",
+    "expected_experience": 4,
+    "expected_skills": [
+      "Python",
+      "FastAPI",
+      "PostgreSQL"
+    ]
+  },
+  {
+    "id": 44,
+    "text": "Beatrix Potter\nbeatrix@example.com\n555-0144\nData Scientist with 5+ years of experience in Python, Pandas, Matplotlib, and Machine Learning.",
+    "expected_experience": 5,
+    "expected_skills": [
+      "Python",
+      "Pandas",
+      "Matplotlib",
+      "Machine Learning"
+    ]
+  },
+  {
+    "id": 45,
+    "text": "Charles Darwin\ncharles@example.com\n555-0145\nSystems Specialist with 10 years experience in C++, Git, and Docker.",
+    "expected_experience": 10,
+    "expected_skills": [
+      "C++",
+      "Git",
+      "Docker"
+    ]
+  },
+  {
+    "id": 46,
+    "text": "Daphne Blake\ndaphne@example.com\n555-0146\nCloud Consultant with 7 years experience in AWS, Redis, and Git.",
+    "expected_experience": 7,
+    "expected_skills": [
+      "AWS",
+      "Redis",
+      "Git"
+    ]
+  },
+  {
+    "id": 47,
+    "text": "Edward Elric\nedward@example.com\n555-0147\nApplication Developer with 3+ yrs req in Java, SQL, and Docker.",
+    "expected_experience": 3,
+    "expected_skills": [
+      "Java",
+      "SQL",
+      "Docker"
+    ]
+  },
+  {
+    "id": 48,
+    "text": "Fiona Gallagher\nfiona@example.com\n555-0148\nReporting Analyst with 4 years experience in Tableau, SQL, and Data Analysis.",
+    "expected_experience": 4,
+    "expected_skills": [
+      "Tableau",
+      "SQL",
+      "Data Analysis"
+    ]
+  },
+  {
+    "id": 49,
+    "text": "George Weasley\ngeorge@example.com\n555-0149\nFull Stack Web Engineer with 6 years experience in React, Next.js, and TypeScript.",
+    "expected_experience": 6,
+    "expected_skills": [
+      "React",
+      "Next.js",
+      "TypeScript"
+    ]
+  },
+  {
+    "id": 50,
+    "text": "Hermione Granger\nhermione@example.com\n555-0150\nLead Machine Learning Engineer with 8+ years of practical experience in Python, Machine Learning, Pandas, and PostgreSQL.",
+    "expected_experience": 8,
+    "expected_skills": [
+      "Python",
+      "Machine Learning",
+      "Pandas",
+      "PostgreSQL"
+    ]
+  }
+]

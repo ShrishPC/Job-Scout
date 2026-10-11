@@ -262,8 +262,9 @@ def extract_experience_heuristics(text: str) -> int | None:
     text_lower = text.lower()
     patterns = [
         r'(\d+)\s*(?:-|to)\s*\d+\s*(?:years?|yrs?)\b.*experience',
-        r'(?:minimum|at least|req|requires?|required)\s*(\d+)\s*(?:years?|yrs?)\b',
-        r'(\d+)\s*(?:years?|yrs?)\b\s*(?:\+)?\s*(?:of)?\s*experience',
+        r'(\d+)\s*(?:\+)?\s*(?:years?|yrs?)\b\s*(?:req|requires?|required|needed)',
+        r'(?:minimum|at least|req|requires?|required)\s*(\d+)\s*(?:\+)?\s*(?:years?|yrs?)\b',
+        r'(\d+)\s*(?:\+)?\s*(?:years?|yrs?)\b\s*(?:of)?\s*(?:practical\s*)?experience',
         r'experience\s*(?:of|required)?\s*(\d+)\s*(?:years?|yrs?)'
     ]
     for pattern in patterns:
