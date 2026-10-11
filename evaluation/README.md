@@ -51,4 +51,4 @@ Evaluates the factual fidelity of AI-tailored resume bullets and cover letters a
 - Verifies named tech skills, past employers, degree titles, and numeric metrics against ground-truth resume entities.
 - Calculates the `unsupported_claim_rate` (hallucinations per generation).
 - Compares `unsloth/Llama-3.2-3B-Instruct` versus `TinyLlama-1.1B-Chat-v1.0`.
-- Outputs blind qualitative review samples to `results/generation_samples_review.csv` ($\ge 50$ samples with blank human evaluation columns).
+- Outputs blind qualitative review samples to `results/generation_samples_review.csv` (28 pairs, 56 outputs with blank human evaluation columns).
