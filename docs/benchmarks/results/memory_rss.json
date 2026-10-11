@@ -1,0 +1,13 @@
+{
+  "benchmark": "memory_rss_profiling",
+  "date": "2026-10-11 13:25:23 UTC",
+  "model_loaded": "unsloth/Llama-3.2-3B-Instruct",
+  "baseline_rss_mb": 15.9375,
+  "post_embedding_rss_mb": 875.92578125,
+  "post_llm_rss_mb": 1107.62109375,
+  "peak_inference_rss_mb": 7225.9921875,
+  "peak_inference_rss_gb": 7.056632995605469,
+  "model_overhead_mb": 7210.0546875,
+  "system_total_ram_gb": 15.314525604248047,
+  "system_available_ram_gb": 9.970355987548828
+}

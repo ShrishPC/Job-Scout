@@ -1,0 +1,14 @@
+{
+  "benchmark": "llm_generation_throughput",
+  "date": "2026-10-11 13:24:22 UTC",
+  "model": "unsloth/Llama-3.2-3B-Instruct",
+  "device": "cpu",
+  "cuda_available": false,
+  "cpu_thread_count": 10,
+  "torch_dtype": "torch.bfloat16",
+  "max_new_tokens_requested": 128,
+  "tokens_generated": 129,
+  "total_latency_seconds": 70.78506849100813,
+  "tokens_per_second": 1.8224182408806588,
+  "sample_output_preview": "Here are three impactful bullet points for a Python developer with 5 years of experience in FastAPI and PostgreSQL:\n\n\u2022 **High-performance API development with FastAPI**: Designed and developed multipl"
+}

@@ -1,0 +1,24 @@
+{
+  "benchmark": "offline_operation_audit",
+  "date": "2026-10-11 13:24:35 UTC",
+  "hf_hub_offline": true,
+  "transformers_offline": true,
+  "steps": {
+    "resume_parsing": {
+      "status": "SUCCESS",
+      "parsed_name": "Demo Candidate"
+    },
+    "vector_matching": {
+      "status": "SUCCESS",
+      "vector_dim": 384,
+      "embedding_latency_ms": 145.54536700597964,
+      "matches_count": 5
+    },
+    "llm_generation": {
+      "status": "SUCCESS",
+      "tokens_output": 18,
+      "latency_s": 27.21727491301135
+    }
+  },
+  "overall_verdict": "PASSED_100_PERCENT_OFFLINE"
+}
