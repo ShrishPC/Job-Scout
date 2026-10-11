@@ -3,6 +3,7 @@ from app.models.models import Job
 from sqlalchemy import text
 
 import re
+import os
 
 def get_job_matches(db: Session, user_embedding: list, limit: int = 10, skip: int = 0, workplace_types: list[str] | None = None, search_keyword: str | None = None):
     """
@@ -50,36 +51,84 @@ def get_job_matches(db: Session, user_embedding: list, limit: int = 10, skip: in
         score_calculation = "(1 - (j.embedding <=> :embedding)) * 100"
         order_score_expr = "1 - (j.embedding <=> :embedding)"
 
-    select_clause = f"""
-        SELECT j.id, j.title, j.company, j.description, j.location, j.salary, j.job_url, j.date_posted, j.experience_required, j.workplace_type,
-               m.status, 
-               (1 - (j.embedding <=> :embedding)) * 100 as vector_score,
-               ({keyword_score_expr}) * 100 as keyword_score,
-               ({score_calculation}) as match_score
-        FROM jobs j
-        LEFT JOIN user_job_matches m ON j.id = m.job_id
-        WHERE (m.job_id IS NULL OR m.status = 'rejected')
-    """
-    
-    params.update({"embedding": str(user_embedding), "limit": limit, "skip": skip})
-    
-    if search_keyword and search_keyword.strip():
-        select_clause += " AND (j.title ILIKE :kw OR j.company ILIKE :kw OR j.description ILIKE :kw)"
-        params["kw"] = f"%{search_keyword.strip()}%"
-    
-    if workplace_types and len(workplace_types) > 0:
-        cleaned_types = [wt.lower().strip() for wt in workplace_types if wt]
-        if cleaned_types:
-            select_clause += " AND LOWER(j.workplace_type) IN :workplace_types"
-            params["workplace_types"] = tuple(cleaned_types)
-            
-    order_and_limit = f"""
-        ORDER BY ({order_score_expr}) DESC
-        LIMIT :limit OFFSET :skip
-    """
-    
-    query = text(select_clause + order_and_limit)
+    hybrid_mode = os.getenv("HYBRID_MODE", "two_stage").lower()
+
+    if hybrid_mode == "two_stage":
+        candidate_k = max(100, (limit + skip) * 5)
+        params.update({"embedding": str(user_embedding), "limit": limit, "skip": skip, "candidate_k": candidate_k})
+
+        where_filters = []
+        if search_keyword and search_keyword.strip():
+            where_filters.append("(j.title ILIKE :kw OR j.company ILIKE :kw OR j.description ILIKE :kw)")
+            params["kw"] = f"%{search_keyword.strip()}%"
+
+        if workplace_types and len(workplace_types) > 0:
+            cleaned_types = [wt.lower().strip() for wt in workplace_types if wt]
+            if cleaned_types:
+                where_filters.append("LOWER(j.workplace_type) IN :workplace_types")
+                params["workplace_types"] = tuple(cleaned_types)
+
+        filter_str = f"WHERE {' AND '.join(where_filters)}" if where_filters else ""
+
+        cte_keyword_expr = keyword_score_expr.replace("j.", "c.")
+        cte_order_expr = order_score_expr.replace("j.", "c.")
+        cte_score_calc = score_calculation.replace("j.", "c.")
+
+        query_sql = f"""
+            WITH candidates AS (
+                SELECT j.id, j.title, j.company, j.description, j.location, j.salary, j.job_url, 
+                       j.date_posted, j.experience_required, j.workplace_type, j.embedding
+                FROM jobs j
+                {filter_str}
+                ORDER BY j.embedding <=> :embedding
+                LIMIT :candidate_k
+            )
+            SELECT c.id, c.title, c.company, c.description, c.location, c.salary, c.job_url, 
+                   c.date_posted, c.experience_required, c.workplace_type,
+                   m.status,
+                   (1 - (c.embedding <=> :embedding)) * 100 as vector_score,
+                   ({cte_keyword_expr}) * 100 as keyword_score,
+                   ({cte_score_calc}) as match_score
+            FROM candidates c
+            LEFT JOIN user_job_matches m ON c.id = m.job_id
+            WHERE (m.job_id IS NULL OR m.status = 'rejected')
+            ORDER BY ({cte_order_expr}) DESC
+            LIMIT :limit OFFSET :skip
+        """
+        query = text(query_sql)
+    else:
+        select_clause = f"""
+            SELECT j.id, j.title, j.company, j.description, j.location, j.salary, j.job_url, j.date_posted, j.experience_required, j.workplace_type,
+                   m.status, 
+                   (1 - (j.embedding <=> :embedding)) * 100 as vector_score,
+                   ({keyword_score_expr}) * 100 as keyword_score,
+                   ({score_calculation}) as match_score
+            FROM jobs j
+            LEFT JOIN user_job_matches m ON j.id = m.job_id
+            WHERE (m.job_id IS NULL OR m.status = 'rejected')
+        """
+        
+        params.update({"embedding": str(user_embedding), "limit": limit, "skip": skip})
+        
+        if search_keyword and search_keyword.strip():
+            select_clause += " AND (j.title ILIKE :kw OR j.company ILIKE :kw OR j.description ILIKE :kw)"
+            params["kw"] = f"%{search_keyword.strip()}%"
+        
+        if workplace_types and len(workplace_types) > 0:
+            cleaned_types = [wt.lower().strip() for wt in workplace_types if wt]
+            if cleaned_types:
+                select_clause += " AND LOWER(j.workplace_type) IN :workplace_types"
+                params["workplace_types"] = tuple(cleaned_types)
+                
+        order_and_limit = f"""
+            ORDER BY ({order_score_expr}) DESC
+            LIMIT :limit OFFSET :skip
+        """
+        
+        query = text(select_clause + order_and_limit)
+
     results = db.execute(query, params)
+
     
     matches = []
     for row in results:

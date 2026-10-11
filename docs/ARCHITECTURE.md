@@ -65,7 +65,7 @@ flowchart TD
 ### C. Hybrid Search Formula
 The hybrid retrieval engine evaluates candidate-to-job fit via a linear combination of vector semantic closeness and exact keyword occurrence:
 
-1261777\text{Score} = 100 \times \left(0.7 \times (1 - \text{cosine\_distance}) + 0.3 \times \text{keyword\_score}\right)1261777
+$$\text{Score} = 100 \times \left(0.7 \times (1 - \text{cosine\_distance}) + 0.3 \times \text{keyword\_score}\right)$$
 
 Where:
 - $\text{cosine\_distance} = \mathbf{u} \cdot \mathbf{j} / (\|\mathbf{u}\| \|\mathbf{j}\|)$ via `j.embedding <=> :embedding`

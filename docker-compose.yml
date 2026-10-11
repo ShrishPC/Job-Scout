@@ -41,12 +41,12 @@ services:
       - TRANSFORMERS_OFFLINE=1
     volumes:
       - ./models:/models
-      - ./backend:/app
-      - ./tests:/app/tests
-      - ./scripts:/app/scripts
-      - ./scraper:/app/scraper
-      - ./evaluation:/app/evaluation
-      - ./docs:/app/docs
+      - ./backend:/app:z
+      - ./tests:/app/tests:z
+      - ./scripts:/app/scripts:z
+      - ./scraper:/app/scraper:z
+      - ./evaluation:/app/evaluation:z
+      - ./docs:/app/docs:z
     depends_on:
       db:
         condition: service_healthy

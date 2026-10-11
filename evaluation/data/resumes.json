@@ -164,53 +164,53 @@
     "id": 8,
     "name": "Carlos Mendez",
     "domain": "enterprise_dotnet",
-    "title": "Lead .NET Solutions Architect",
+    "title": "Senior .NET Core Architect",
     "skills": [
-      "C#",
       ".NET",
+      "C#",
       "ASP.NET Core",
       "SQL Server",
       "Azure",
+      "Entity Framework",
       "Microservices",
-      "Docker",
-      "Entity Framework"
+      "RabbitMQ"
     ],
-    "experience_years": 11,
+    "experience_years": 9,
     "employers": [
-      "Enterprise Core Tech",
-      "Global Services"
+      "OmniCorp Financial",
+      "Meridian Solutions"
     ],
     "degree": "B.S. Information Systems",
-    "summary": "Enterprise solutions architect with 11 years designing enterprise-grade .NET and C# applications."
+    "summary": "Enterprise architect with 9 years designing distributed C# .NET microservices on Microsoft Azure."
   },
   {
     "id": 9,
-    "name": "Chloe Bennett",
+    "name": "Amina Diallo",
     "domain": "cybersecurity",
-    "title": "Security Operations & AppSec Engineer",
+    "title": "Application Security Engineer",
     "skills": [
       "Python",
       "Linux",
+      "Application Security",
+      "Penetration Testing",
       "OWASP",
       "SIEM",
-      "Penetration Testing",
-      "Docker",
-      "AWS",
-      "Cryptography"
+      "Cryptography",
+      "Git"
     ],
     "experience_years": 5,
     "employers": [
-      "CyberShield Guard",
-      "ZeroTrust Systems"
+      "CyberDefend Labs",
+      "Sentinel Security"
     ],
     "degree": "B.S. Cybersecurity",
-    "summary": "Application security engineer with 5 years conducting threat modeling, vulnerability audits, and AppSec hardening."
+    "summary": "AppSec specialist with 5 years securing containerized web APIs, performing code reviews, and threat modeling."
   },
   {
     "id": 10,
     "name": "Jordan Lee",
     "domain": "fullstack_general",
-    "title": "Senior Full Stack Engineer",
+    "title": "Full Stack Software Engineer",
     "skills": [
       "TypeScript",
       "React",
@@ -218,61 +218,429 @@
       "Express",
       "PostgreSQL",
       "Docker",
-      "Next.js",
-      "Redis"
-    ],
-    "experience_years": 6,
-    "employers": [
-      "OmniStack Inc",
-      "Veloce Media"
-    ],
-    "degree": "B.S. Computer Science",
-    "summary": "Full stack generalist with 6 years building modern React frontends and Node.js/PostgreSQL APIs."
-  },
-  {
-    "id": 11,
-    "name": "Sophie Martin",
-    "domain": "bi_analytics",
-    "title": "Business Intelligence & Data Analyst",
-    "skills": [
-      "SQL",
-      "Tableau",
-      "Power BI",
-      "Data Analysis",
-      "Python",
-      "Excel",
-      "Reporting",
-      "Statistics"
+      "REST API",
+      "Tailwind CSS"
     ],
     "experience_years": 4,
     "employers": [
-      "MetricPulse",
-      "InsightMetrics"
+      "Veloce Web Systems",
+      "Beacon Tech"
     ],
-    "degree": "B.S. Economics & Statistics",
-    "summary": "BI analyst with 4 years creating executive KPI dashboards, cohort retention models, and SQL pipelines."
+    "degree": "B.S. Software Development",
+    "summary": "Full-stack builder with 4 years deploying end-to-end web applications with Node.js, React, and PostgreSQL."
+  },
+  {
+    "id": 11,
+    "name": "Rachel Goldberg",
+    "domain": "bi_analytics",
+    "title": "Senior BI & Analytics Specialist",
+    "skills": [
+      "SQL",
+      "Python",
+      "Tableau",
+      "Power BI",
+      "Data Modeling",
+      "Excel",
+      "Data Analysis",
+      "Snowflake"
+    ],
+    "experience_years": 6,
+    "employers": [
+      "Strategic Insights",
+      "OmniMetrics"
+    ],
+    "degree": "B.A. Economics & Statistics",
+    "summary": "Analytics lead with 6 years building executive dashboards, SQL aggregations, and cohort retention models."
   },
   {
     "id": 12,
-    "name": "Lucas Silva",
+    "name": "Taro Tanaka",
     "domain": "qa_automation",
-    "title": "Lead SDET & Automation Engineer",
+    "title": "Lead QA Automation Engineer",
     "skills": [
       "Python",
       "Playwright",
       "Selenium",
       "CI/CD",
       "Docker",
-      "Git",
-      "pytest",
-      "API Testing"
+      "PyTest",
+      "API Testing",
+      "Git"
+    ],
+    "experience_years": 7,
+    "employers": [
+      "QualityFirst Soft",
+      "TestMatrix Labs"
+    ],
+    "degree": "B.S. Computer Engineering",
+    "summary": "QA lead with 7 years architecting automated regression pipelines using Python, Playwright, and PyTest."
+  },
+  {
+    "id": 13,
+    "name": "Dmitri Volkov",
+    "domain": "systems_rust",
+    "title": "Rust Systems Software Engineer",
+    "skills": [
+      "Rust",
+      "Tokio",
+      "Concurrency",
+      "Linux",
+      "gRPC",
+      "Systems Programming",
+      "Distributed Systems",
+      "Git"
+    ],
+    "experience_years": 5,
+    "employers": [
+      "HyperDrive Storage",
+      "KernelScale"
+    ],
+    "degree": "B.S. Computer Engineering",
+    "summary": "Low-level systems programmer with 5 years writing high-throughput asynchronous storage engines in Rust."
+  },
+  {
+    "id": 14,
+    "name": "Chloe Bennett",
+    "domain": "mobile_android",
+    "title": "Senior Android Engineer",
+    "skills": [
+      "Kotlin",
+      "Android",
+      "Jetpack Compose",
+      "Coroutines",
+      "Dagger Hilt",
+      "Room",
+      "Gradle",
+      "Git"
     ],
     "experience_years": 6,
     "employers": [
-      "QualityFirst Labs",
-      "TestWave Corp"
+      "MobilityHQ",
+      "PulseMobile"
+    ],
+    "degree": "B.S. Computer Science",
+    "summary": "Android developer with 6 years building reactive Jetpack Compose mobile experiences with Kotlin Coroutines."
+  },
+  {
+    "id": 15,
+    "name": "Karthik Subramanian",
+    "domain": "distributed_go",
+    "title": "Senior Go Distributed Systems Engineer",
+    "skills": [
+      "Go",
+      "Golang",
+      "gRPC",
+      "Kubernetes",
+      "Docker",
+      "Distributed Systems",
+      "Prometheus",
+      "PostgreSQL"
+    ],
+    "experience_years": 6,
+    "employers": [
+      "MicroMesh Networks",
+      "StreamGlobal"
+    ],
+    "degree": "B.Tech Computer Science",
+    "summary": "Go engineer with 6 years writing low-latency microservices, gRPC protocols, and resilient distributed systems."
+  },
+  {
+    "id": 16,
+    "name": "Sarah Jenkins",
+    "domain": "cloud_sre",
+    "title": "Site Reliability Engineer (SRE)",
+    "skills": [
+      "Linux",
+      "Kubernetes",
+      "Prometheus",
+      "Grafana",
+      "Python",
+      "Terraform",
+      "Incident Management",
+      "AWS"
+    ],
+    "experience_years": 7,
+    "employers": [
+      "UptimeForge",
+      "GlobalPay Tech"
+    ],
+    "degree": "B.S. Computer Networks",
+    "summary": "SRE with 7 years implementing SLO/SLAs, multi-region observability, and automated chaos testing."
+  },
+  {
+    "id": 17,
+    "name": "Zackary Taylor",
+    "domain": "nlp_genai",
+    "title": "GenAI & RAG Solutions Engineer",
+    "skills": [
+      "Python",
+      "LangChain",
+      "LlamaIndex",
+      "pgvector",
+      "PyTorch",
+      "HuggingFace",
+      "Vector Search",
+      "RAG"
+    ],
+    "experience_years": 4,
+    "employers": [
+      "LexiconAI",
+      "CognitiveSearch"
+    ],
+    "degree": "M.S. Data Science",
+    "summary": "GenAI specialist with 4 years building retrieval-augmented generation (RAG) engines and vector search pipelines."
+  },
+  {
+    "id": 18,
+    "name": "Lars Lindqvist",
+    "domain": "low_latency_cpp",
+    "title": "Staff Low-Latency C++ Engineer",
+    "skills": [
+      "C++",
+      "Linux",
+      "Socket Programming",
+      "Multi-threading",
+      "Memory Management",
+      "Algorithms",
+      "Git",
+      "C"
+    ],
+    "experience_years": 11,
+    "employers": [
+      "Apex Quant Trading",
+      "Citadel Markets"
+    ],
+    "degree": "M.S. Applied Mathematics",
+    "summary": "Quantitative systems developer with 11 years optimizing kernel bypass networking and nanosecond order matching engines."
+  },
+  {
+    "id": 19,
+    "name": "Fatima Zahra",
+    "domain": "enterprise_java",
+    "title": "Principal Java Spring Boot Engineer",
+    "skills": [
+      "Java",
+      "Spring Boot",
+      "Microservices",
+      "Kafka",
+      "PostgreSQL",
+      "Docker",
+      "Kubernetes",
+      "Hibernate"
+    ],
+    "experience_years": 10,
+    "employers": [
+      "Financiere Globale",
+      "Enterprise Transit"
+    ],
+    "degree": "M.S. Computer Science",
+    "summary": "Java architect with 10 years designing mission-critical enterprise banking platforms using Spring Boot and Kafka."
+  },
+  {
+    "id": 20,
+    "name": "Gabriel Santos",
+    "domain": "data_science",
+    "title": "Staff Data Scientist",
+    "skills": [
+      "Python",
+      "Pandas",
+      "Scikit-Learn",
+      "Machine Learning",
+      "SQL",
+      "Statistics",
+      "NumPy",
+      "Matplotlib"
+    ],
+    "experience_years": 8,
+    "employers": [
+      "BioAnalytics Lab",
+      "HealthPulse"
+    ],
+    "degree": "Ph.D. Biostatistics",
+    "summary": "Data scientist with 8 years building predictive survival models, randomized clinical trial analytics, and causal inference."
+  },
+  {
+    "id": 21,
+    "name": "Ananya Sharma",
+    "domain": "mlops_platform",
+    "title": "Senior MLOps Platform Engineer",
+    "skills": [
+      "Python",
+      "Kubeflow",
+      "MLflow",
+      "Docker",
+      "Kubernetes",
+      "AWS",
+      "CI/CD",
+      "PyTorch"
+    ],
+    "experience_years": 5,
+    "employers": [
+      "ModelScale Systems",
+      "InferenceGrid"
+    ],
+    "degree": "B.S. Information Technology",
+    "summary": "MLOps engineer with 5 years establishing continuous training workflows, feature stores, and automated model deployment."
+  },
+  {
+    "id": 22,
+    "name": "Brian O'Connor",
+    "domain": "dba_postgresql",
+    "title": "Senior PostgreSQL Database Administrator",
+    "skills": [
+      "PostgreSQL",
+      "SQL",
+      "Database Administration",
+      "Linux",
+      "Performance Tuning",
+      "Replication",
+      "Bash",
+      "Backup"
+    ],
+    "experience_years": 9,
+    "employers": [
+      "DataVault Managed Services",
+      "CoreCloud DB"
+    ],
+    "degree": "B.S. Database Systems",
+    "summary": "PostgreSQL DBA with 9 years managing terabyte-scale clusters, WAL replication, and query optimization."
+  },
+  {
+    "id": 23,
+    "name": "Maya Lin",
+    "domain": "frontend_web",
+    "title": "Frontend UI/UX Systems Specialist",
+    "skills": [
+      "React",
+      "TypeScript",
+      "Tailwind CSS",
+      "HTML5",
+      "CSS3",
+      "Design Systems",
+      "JavaScript",
+      "Figma"
+    ],
+    "experience_years": 5,
+    "employers": [
+      "Starlight Design",
+      "Echo Web"
+    ],
+    "degree": "B.A. Digital Media Design",
+    "summary": "Frontend developer focusing on accessible component libraries, Tailwind tokens, and responsive web animations."
+  },
+  {
+    "id": 24,
+    "name": "Henrik Sorensen",
+    "domain": "cloud_security",
+    "title": "Cloud Security Architect",
+    "skills": [
+      "AWS",
+      "Azure",
+      "Terraform",
+      "Security",
+      "IAM",
+      "Compliance",
+      "Linux",
+      "Kubernetes"
+    ],
+    "experience_years": 8,
+    "employers": [
+      "Nordic Shield Cyber",
+      "EuroCloud Sec"
+    ],
+    "degree": "B.S. Computer Information Systems",
+    "summary": "Cloud security architect designing Zero-Trust architectures, IAM policies, and automated CSPM audits."
+  },
+  {
+    "id": 25,
+    "name": "Mei-Ling Wu",
+    "domain": "backend_python",
+    "title": "Python API & Platform Developer",
+    "skills": [
+      "Python",
+      "FastAPI",
+      "Django",
+      "PostgreSQL",
+      "Redis",
+      "Celery",
+      "REST API",
+      "Docker"
+    ],
+    "experience_years": 4,
+    "employers": [
+      "TechBridge Digital",
+      "SaaSStream"
     ],
     "degree": "B.S. Software Engineering",
-    "summary": "SDET lead with 6 years architecting end-to-end automation frameworks with Playwright, pytest, and CI pipelines."
+    "summary": "Python engineer with 4 years building asynchronous background workers with Celery and REST APIs with FastAPI."
+  },
+  {
+    "id": 26,
+    "name": "Mateo Rossi",
+    "domain": "mobile_react_native",
+    "title": "Cross-Platform Mobile Engineer",
+    "skills": [
+      "React Native",
+      "TypeScript",
+      "JavaScript",
+      "iOS",
+      "Android",
+      "Redux",
+      "REST API",
+      "Git"
+    ],
+    "experience_years": 5,
+    "employers": [
+      "AppHive Studios",
+      "OmniMobile"
+    ],
+    "degree": "B.S. Computer Applications",
+    "summary": "Mobile engineer with 5 years shipping cross-platform iOS and Android apps with React Native."
+  },
+  {
+    "id": 27,
+    "name": "Lucas Dubois",
+    "domain": "blockchain_web3",
+    "title": "Smart Contract & Protocol Engineer",
+    "skills": [
+      "Solidity",
+      "Rust",
+      "Ethereum",
+      "Smart Contracts",
+      "Cryptography",
+      "Git",
+      "Linux",
+      "Web3"
+    ],
+    "experience_years": 4,
+    "employers": [
+      "DecentralChain",
+      "TokenMatrix"
+    ],
+    "degree": "M.S. Cryptography",
+    "summary": "Web3 engineer specializing in audited Solidity smart contracts, DeFi liquidity protocols, and zero-knowledge proofs."
+  },
+  {
+    "id": 28,
+    "name": "Olga Ivanova",
+    "domain": "bioinformatics",
+    "title": "Bioinformatics Pipeline Engineer",
+    "skills": [
+      "Python",
+      "Nextflow",
+      "Linux",
+      "Bash",
+      "Docker",
+      "Data Analysis",
+      "Git",
+      "SQL"
+    ],
+    "experience_years": 6,
+    "employers": [
+      "GenomeSeq Analytics",
+      "BioCore Labs"
+    ],
+    "degree": "Ph.D. Bioinformatics",
+    "summary": "Computational biologist with 6 years developing reproducible Nextflow and Python pipelines for high-throughput DNA sequencing."
   }
 ]

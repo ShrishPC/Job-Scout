@@ -1,45 +1,54 @@
 # Retrieval & Generation Evaluation Suite
 
-This directory contains the empirical evaluation dataset and benchmarks for Job Scout's retrieval ranking algorithms and local text generation factuality.
+This directory contains the empirical evaluation dataset, methodology disclosures, and reproducible benchmark harnesses for Job Scout's retrieval ranking algorithms and local text generation factuality.
 
 ---
 
-## 1. Dataset Methodology & Ground-Truth Labeling
+## 1. Ground-Truth Dataset Provenance & Methodology Disclosures
 
-The evaluation dataset comprises:
-- **12 Candidate Profiles (`data/resumes.json`)**: Realistic synthetic resumes spanning 12 distinct software engineering and data disciplines (Python Backend, Frontend React/Next.js, Machine Learning, DevOps/Cloud, Data Engineering, Embedded C++, iOS Mobile, Enterprise .NET, Cybersecurity, Full-Stack, BI/Analytics, QA Automation).
-- **220 Job Postings (`data/jobs.json`)**: Realistic job descriptions distributed across all 12 disciplines with varying seniority levels (Junior to Principal).
-- **2,640 Graded Relevance Annotations (`data/ground_truth_relevance.csv`)**: Evaluates every `(resume_id, job_id)` pair on a 4-point graded relevance scale:
-
-### Graded Relevance Rubric:
-- **Grade 3 (Highly Relevant)**: Exact match on primary domain, core tech stack, and seniority requirements.
-- **Grade 2 (Moderately Relevant)**: Same primary domain with minor technology variance, or adjacent domain with strong transferable overlap (e.g., Python Backend $\leftrightarrow$ Data Engineering, Frontend $\leftrightarrow$ Full Stack).
-- **Grade 1 (Marginally Relevant)**: Minimal auxiliary overlap (e.g. general SQL/Git familiarity) with mismatched core discipline.
-- **Grade 0 (Irrelevant)**: Disjoint disciplines (e.g. iOS Swift developer applied to Embedded C++ or DevOps applied to Frontend CSS).
-
-### Label Provenance & Disclosure:
-- **Provenance**: The labels were produced via deterministic programmatic rubric mapping technology co-occurrence and domain adjacency matrices, followed by manual audit of edge-case pairings.
-- **Human Review Status**: 2,640 pairs were automatically assigned initial grades; 100 sample pairings were manually verified. A random sample of 20 LLM generation outputs is exported to `evaluation/results/generation_samples_review.csv` with a blank `human_rating` column reserved for blind human qualitative grading.
+### A. Initial Synthetic Baseline (2,640 Labels - Saturated & Circular)
+The initial evaluation suite utilized 12 candidate profiles and 220 synthetic job postings (`2,640 pairs`). 
+> [!WARNING]
+> **Methodology Disclosure & Circularity Limitation**:
+> In the initial 2,640-pair dataset, ground-truth relevance grades (0 to 3) were generated via programmatic rules calculating the intersection between the candidate's skill set and the job's listed skills (`common_skills = r_skills.intersection(j_skills)`). 
+> Because Job Scout's keyword ranking algorithm scores jobs by counting exact skill occurrences in titles and descriptions, **evaluating keyword retrieval against labels derived from skill intersections produced artificial saturation and circular confirmation**. On that synthetic dataset, keyword-only search scored $P@5 = 1.000$ and $NDCG@10 = 0.963$ simply because the scoring code and ground truth shared the exact same vocabulary.
 
 ---
 
-## 2. Evaluation Scripts
+### B. Hard & Discriminating Evaluation Benchmark (15,680 Labels)
+To eliminate circularity and provide a rigorous, discriminating benchmark, we generated an expanded dataset in `data/generate_hard_dataset.py`:
+- **28 Diverse Candidate Resumes (`data/resumes.json`)**: Spanning 14 distinct software engineering specializations (Backend Python, Frontend React, ML/AI, DevOps, Data Engineering, Embedded Systems, iOS, .NET, Cybersecurity, Full-Stack, BI/Analytics, QA Automation, Systems Rust, Android Kotlin, Go Distributed, SRE, GenAI/RAG, Low-Latency C++, Enterprise Java, Data Science).
+- **560 Job Postings (`data/jobs.json`)**: Systematically divided into five distinct categories:
+  1. **Canonical Engineering Postings (240 jobs)**: Direct domain and tech stack matches ($Grade = 3$).
+  2. **Paraphrased / Synonymous Postings (80 jobs)**: Identical domain and problem scope, but written with **zero keyword overlap** (e.g., *"predictive modelling / statistical inference / neural representations"* for ML; *"declarative IaC / cluster scheduling manifests"* for DevOps; *"asynchronous event loops / relational persistence layers"* for Python Backend). In this subset, naive keyword search fails ($Score \approx 0.0$), while semantic embeddings correctly capture high relevance ($Grade = 3$).
+  3. **Keyword Distractor Postings (80 jobs)**: High keyword density on engineering terms, but representing **completely wrong or non-engineering roles** (e.g. *Technical Recruiter sourcing Python/FastAPI engineers*, *Enterprise Account Executive selling Kubernetes licenses*, *Course Instructor teaching Playwright*, *Executive Assistant to VP of ML*). Naive keyword search naively ranks these at the top, whereas semantic search and hybrid reranking correctly penalize them ($Grade = 0$).
+  4. **Adjacent Cross-Domain Technical Roles (80 jobs)**: Transferable engineering disciplines (e.g., Data Platform $\leftrightarrow$ Backend, SRE $\leftrightarrow$ DevOps) ($Grade = 2$ or $1$).
+  5. **Disjoint Non-Engineering Postings (80 jobs)**: Chefs, civil engineers, accountants, nurses, paralegals ($Grade = 0$).
 
-### A. Retrieval Quality (`evaluate_retrieval.py`)
-Compares retrieval effectiveness across:
-1. **Keyword-Only Retrieval**: Exact substring & title weighting.
-2. **Semantic-Only Retrieval**: Cosine similarity via `all-MiniLM-L6-v2`.
-3. **Production Hybrid (0.7 / 0.3)**: Weighted combination ($0.7 \times \text{Cosine} + 0.3 \times \text{Keyword}$).
-4. **Alpha Weight Sweep**: Systematic sweep of $\alpha \in [0.0, 1.0]$ in increments of $0.1$.
+- **Independent Ground Truth (`data/ground_truth_relevance.csv`)**:
+  Ground truth grades (0–3) are assigned strictly according to **role taxonomy and engineering candidate qualifications**, completely independent of keyword matching counts or vector distance scores.
 
-**Reported Metrics (with Bootstrap 95% Confidence Intervals, B=1000):**
-- Precision@5 ($P@5$) & Precision@10 ($P@10$)
-- Recall@10 ($R@10$)
-- Mean Reciprocal Rank ($MRR$)
-- Normalized Discounted Cumulative Gain at 10 ($NDCG@10$)
+---
 
-### B. Factual Grounding & Unsupported-Claim Rate (`evaluate_generation.py`)
-Evaluates the factual fidelity of generated application materials against source candidate resumes:
-- Automatically scans generated output for named skills, employers, degree titles, and numeric metrics.
-- Flags any entity not grounded in the source resume (`unsupported_claim_rate`).
-- Compares hallucination rates of `unsloth/Llama-3.2-3B-Instruct` versus `TinyLlama-1.1B-Chat-v1.0`.
+## 2. Evaluation Scripts & Metrics
+
+### A. Retrieval Evaluation (`evaluate_retrieval.py`)
+Computes top-$k$ ranking performance across three primary modes:
+1. **Keyword-Only Retrieval**: Exact substring matching and title weighting ($2.0\times$ title, $1.0\times$ description).
+2. **Semantic-Only Retrieval**: Cosine similarity via `all-MiniLM-L6-v2` dense embeddings.
+3. **Production Hybrid ($\alpha = 0.7$)**: Linear combination:
+   $$\text{Score} = 100 \times [0.7 \times (1 - \text{cosine\_dist}) + 0.3 \times \text{keyword\_score}]$$
+4. **Weight Sweep ($\alpha \in [0.0, 1.0]$)**: Systematic sweep in $0.1$ increments.
+
+**Reported Ranking Metrics (with Bootstrap 95% CIs, $B=1,000$):**
+- **Precision@5 ($P@5$)** and **Precision@10 ($P@10$)**
+- **Recall@10 ($R@10$)**
+- **Mean Reciprocal Rank ($MRR$)**
+- **Normalized Discounted Cumulative Gain at 10 ($NDCG@10$)**
+
+### B. Factual Grounding & Hallucination Audit (`evaluate_generation.py`)
+Evaluates the factual fidelity of AI-tailored resume bullets and cover letters against source resume text:
+- Verifies named tech skills, past employers, degree titles, and numeric metrics against ground-truth resume entities.
+- Calculates the `unsupported_claim_rate` (hallucinations per generation).
+- Compares `unsloth/Llama-3.2-3B-Instruct` versus `TinyLlama-1.1B-Chat-v1.0`.
+- Outputs blind qualitative review samples to `results/generation_samples_review.csv` ($\ge 50$ samples with blank human evaluation columns).

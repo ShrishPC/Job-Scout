@@ -22,11 +22,11 @@ def benchmark_generation():
     print("=" * 60)
 
     device = "cuda" if torch.cuda.is_available() else "cpu"
-    thread_count = torch.get_num_threads()
+    initial_threads = torch.get_num_threads()
     dtype = str(torch.float16 if device == "cuda" else torch.bfloat16)
 
     print(f"Device: {device.upper()}")
-    print(f"Thread count: {thread_count}")
+    print(f"Initial thread count: {initial_threads}")
     print(f"Precision dtype: {dtype}")
 
     # Load LLM
@@ -34,7 +34,10 @@ def benchmark_generation():
     t0_load = time.perf_counter()
     llm = get_local_llm()
     t_load = time.perf_counter() - t0_load
+    clamped_threads = torch.get_num_threads()
     print(f"[+] Loaded {ACTIVE_LLM_MODEL_NAME} in {t_load:.2f} s")
+    print(f"[+] Thread allocation: Initial={initial_threads} -> Clamped for inference={clamped_threads}")
+
 
     test_prompt = format_prompt(
         "You are an ATS resume optimization assistant. Write 3 impactful bullet points for a Python developer.",
@@ -70,7 +73,8 @@ def benchmark_generation():
         "model": ACTIVE_LLM_MODEL_NAME,
         "device": device,
         "cuda_available": torch.cuda.is_available(),
-        "cpu_thread_count": thread_count,
+        "initial_thread_count": initial_threads,
+        "cpu_thread_count": clamped_threads,
         "torch_dtype": dtype,
         "max_new_tokens_requested": max_tokens,
         "tokens_generated": token_count,
@@ -88,7 +92,7 @@ def benchmark_generation():
     print("📊 GENERATION THROUGHPUT RESULTS")
     print("=" * 60)
     print(f"Model Name        : {results['model']}")
-    print(f"Device / Threads  : {device} ({thread_count} threads, {dtype})")
+    print(f"Device / Threads  : {device} (Initial: {initial_threads}, Clamped: {clamped_threads} threads, {dtype})")
     print(f"Tokens Generated  : {token_count} tokens")
     print(f"Total Time        : {t_gen:.2f} s")
     print(f"Throughput        : {tokens_per_sec:.2f} tokens/sec")

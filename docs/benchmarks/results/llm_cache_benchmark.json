@@ -1,31 +1,125 @@
 {
-  "benchmark": "llm_caching_evaluation",
-  "date": "2026-10-11 13:26:05 UTC",
-  "repetitions": 5,
-  "cold_latencies_ms": [
-    2945.834394005942,
-    2647.587358005694,
-    2623.9936359925196,
-    2642.028838992701,
-    2640.5323919898365
-  ],
-  "cached_latencies_ms": [
-    8.115611999528483,
-    5.135330997291021,
-    5.962859999272041,
-    5.484635999891907,
-    5.079373993794434
-  ],
-  "cold_stats": {
-    "mean_s": 2.6999953237973386,
-    "mean_ms": 2699.9953237973386,
-    "min_ms": 2623.9936359925196,
-    "max_ms": 2945.834394005942
+  "benchmark": "llm_caching_evaluation_dual",
+  "date": "2026-10-11 17:00:03 UTC",
+  "hardware": {
+    "device": "cpu",
+    "host_logical_cores": 12,
+    "initial_torch_threads": 10
   },
-  "cached_stats": {
-    "mean_ms": 5.955562597955577,
-    "min_ms": 5.079373993794434,
-    "max_ms": 8.115611999528483
+  "demo_mode": {
+    "model_loaded": "Dynamic Template Heuristic Streamer",
+    "mode": "demo",
+    "description": "Word-level streaming simulation with 30ms inter-word pause for instant offline testing without GPU",
+    "thread_count": "N/A (I/O sleep simulated)",
+    "repetitions": 5,
+    "cold_mean_seconds": 2.517487591798999,
+    "cached_mean_ms": 2.443598792888224,
+    "speedup_factor": 1030.2376965997114,
+    "pairs": [
+      {
+        "pair": 1,
+        "cold_latency_seconds": 2.502,
+        "cached_latency_ms": 6.624,
+        "generated_words": 88,
+        "speedup": 377.7
+      },
+      {
+        "pair": 2,
+        "cold_latency_seconds": 2.56,
+        "cached_latency_ms": 1.725,
+        "generated_words": 90,
+        "speedup": 1484.2
+      },
+      {
+        "pair": 3,
+        "cold_latency_seconds": 2.497,
+        "cached_latency_ms": 1.38,
+        "generated_words": 88,
+        "speedup": 1809.7
+      },
+      {
+        "pair": 4,
+        "cold_latency_seconds": 2.529,
+        "cached_latency_ms": 1.116,
+        "generated_words": 89,
+        "speedup": 2266.5
+      },
+      {
+        "pair": 5,
+        "cold_latency_seconds": 2.499,
+        "cached_latency_ms": 1.373,
+        "generated_words": 88,
+        "speedup": 1819.6
+      }
+    ]
   },
-  "speedup_factor": 453.35688768080314
+  "full_cpu_mode": {
+    "model_loaded": "unsloth/Llama-3.2-3B-Instruct",
+    "mode": "full_cpu",
+    "precision_dtype": "torch.bfloat16",
+    "initial_host_threads": 10,
+    "clamped_cpu_threads": 4,
+    "max_new_tokens": 128,
+    "repetitions": 5,
+    "cold_mean_seconds": 61.328187491398424,
+    "cached_mean_ms": 2.001761199790053,
+    "speedup_factor": 30637.11470570545,
+    "pairs": [
+      {
+        "pair": 1,
+        "prompt_chars": 654,
+        "prompt_tokens": 101,
+        "max_new_tokens_requested": 128,
+        "tokens_generated": 129,
+        "cold_latency_seconds": 62.52,
+        "cached_latency_ms": 1.57,
+        "tokens_per_second": 2.06,
+        "speedup_factor": 39851.5
+      },
+      {
+        "pair": 2,
+        "prompt_chars": 642,
+        "prompt_tokens": 104,
+        "max_new_tokens_requested": 128,
+        "tokens_generated": 129,
+        "cold_latency_seconds": 57.33,
+        "cached_latency_ms": 1.73,
+        "tokens_per_second": 2.25,
+        "speedup_factor": 33062.7
+      },
+      {
+        "pair": 3,
+        "prompt_chars": 646,
+        "prompt_tokens": 103,
+        "max_new_tokens_requested": 128,
+        "tokens_generated": 129,
+        "cold_latency_seconds": 62.95,
+        "cached_latency_ms": 2.23,
+        "tokens_per_second": 2.05,
+        "speedup_factor": 28177.0
+      },
+      {
+        "pair": 4,
+        "prompt_chars": 634,
+        "prompt_tokens": 104,
+        "max_new_tokens_requested": 128,
+        "tokens_generated": 129,
+        "cold_latency_seconds": 66.61,
+        "cached_latency_ms": 3.2,
+        "tokens_per_second": 1.94,
+        "speedup_factor": 20837.7
+      },
+      {
+        "pair": 5,
+        "prompt_chars": 648,
+        "prompt_tokens": 103,
+        "max_new_tokens_requested": 128,
+        "tokens_generated": 129,
+        "cold_latency_seconds": 57.23,
+        "cached_latency_ms": 1.28,
+        "tokens_per_second": 2.25,
+        "speedup_factor": 44876.5
+      }
+    ]
+  }
 }

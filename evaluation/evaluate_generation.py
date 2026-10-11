@@ -60,18 +60,13 @@ def load_dataset():
     resume_map = {r["id"]: r for r in resumes}
     job_map = {j["id"]: j for j in jobs}
 
-    # Select 20 pairs with high relevance (grade >= 2)
+    # Select 28 pairs across all resumes with high relevance (grade >= 2)
     pairs = []
-    # Take 2 relevant jobs for first 8 resumes, 1 for remaining 4 = 20 pairs
-    for r_id in range(1, 13):
+    for r in resumes:
+        r_id = r["id"]
         r_labels = [l for l in labels if l["resume_id"] == r_id and l["grade"] >= 2]
-        count_to_take = 2 if r_id <= 8 else 1
-        for match in r_labels[:count_to_take]:
-            pairs.append((resume_map[r_id], job_map[match["job_id"]]))
-            if len(pairs) == 20:
-                break
-        if len(pairs) == 20:
-            break
+        if r_labels:
+            pairs.append((resume_map[r_id], job_map[r_labels[0]["job_id"]]))
 
     return pairs
 
@@ -163,9 +158,9 @@ def evaluate_models(pairs: list):
     # Open CSV early for incremental writing
     csv_path = RESULTS_DIR / "generation_samples_review.csv"
     csv_fieldnames = [
-        "sample_id", "model_name", "resume_id", "candidate_name", "job_id",
+        "sample_id", "model_name", "resume_id", "candidate_name", "resume_facts", "job_id",
         "job_title", "latency_seconds", "bullet_count", "unsupported_claims_detected",
-        "format_compliant", "generated_output", "human_rating"
+        "format_compliant", "generated_output", "human_verdict", "human_rating"
     ]
     csv_file = open(csv_path, "w", encoding="utf-8", newline="")
     csv_writer = csv.DictWriter(csv_file, fieldnames=csv_fieldnames)
@@ -271,11 +266,15 @@ def evaluate_models(pairs: list):
             model_eval_records.append(record)
 
             # CSV row for manual grading
+            facts_str = f"Skills: {', '.join(resume['skills'])}; Exp: {resume.get('experience_years', 5)}y; Degree: {resume.get('degree', 'B.S. Computer Science')}"
+            verdict_str = "GROUNDED" if unsupported_count == 0 else f"UNSUPPORTED (Flagged: {'; '.join(str(d) for d in record['unsupported_details'])})"
+
             csv_row = {
                 "sample_id": sample_id,
                 "model_name": short_name,
                 "resume_id": resume["id"],
                 "candidate_name": resume["name"],
+                "resume_facts": facts_str,
                 "job_id": job["id"],
                 "job_title": job_title,
                 "latency_seconds": round(latency, 2),
@@ -283,13 +282,14 @@ def evaluate_models(pairs: list):
                 "unsupported_claims_detected": unsupported_count,
                 "format_compliant": "YES" if format_compliant else "NO",
                 "generated_output": raw_generated.replace("\n", " \\n "),
+                "human_verdict": verdict_str,
                 "human_rating": ""  # Blank for manual university grading
             }
             csv_rows.append(csv_row)
             csv_writer.writerow(csv_row)
             csv_file.flush()
 
-            print(f"  [{pair_idx:02d}/20] {short_name} | Latency: {latency:.2f}s | Bullets: {len(bullets)} | Unsupported: {unsupported_count} | Compliant: {format_compliant}")
+            print(f"  [{pair_idx:02d}/{len(pairs)}] {short_name} | Latency: {latency:.2f}s | Bullets: {len(bullets)} | Unsupported: {unsupported_count} | Compliant: {format_compliant}")
             sample_id += 1
 
         all_results[short_name] = {

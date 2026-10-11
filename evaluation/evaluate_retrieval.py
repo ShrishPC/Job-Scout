@@ -233,7 +233,7 @@ def main():
     summary_path = os.path.join(RESULTS_DIR, "retrieval_summary.md")
     with open(summary_path, "w", encoding="utf-8") as f:
         f.write("# Retrieval Algorithm Benchmark Results\n\n")
-        f.write("Evaluation conducted over **12 synthetic candidate profiles** and **220 job listings** (2,640 ground truth relevance labels).\n\n")
+        f.write(f"Evaluation conducted over **{n_resumes} candidate profiles** and **{n_jobs} job listings** ({len(gt):,} ground truth relevance labels).\n\n")
         f.write("All confidence intervals represent **Bootstrap 95% CIs** ($B=1,000$ resamples).\n\n")
         f.write("## 1. Primary Strategy Comparison\n\n")
         f.write("| Strategy | Weight (α) | P@5 (95% CI) | P@10 (95% CI) | R@10 (95% CI) | MRR (95% CI) | NDCG@10 (95% CI) |\n")

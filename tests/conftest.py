@@ -30,6 +30,12 @@ def db_session():
 
 @pytest.fixture(autouse=True)
 def mock_external_calls(monkeypatch):
-    """Guarantees tests never make external network calls."""
+    """Guarantees tests never make external network calls and execute swiftly."""
     monkeypatch.setenv("HF_HUB_OFFLINE", "1")
     monkeypatch.setenv("TRANSFORMERS_OFFLINE", "1")
+    monkeypatch.setenv("DEMO_MODE", "True")
+    from app.core.config import settings
+    settings.DEMO_MODE = True
+
+
+
