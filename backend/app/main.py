@@ -57,6 +57,8 @@ class MatchRequest(BaseModel):
     skip: int = 0
     workplace_types: list[str] | None = None
     search_keyword: str | None = None
+    hybrid_mode: str | None = None
+    candidate_k: int | None = None
 
     @field_validator('embedding')
     @classmethod
@@ -147,7 +149,16 @@ def get_matches(request: MatchRequest, db: Session = Depends(get_db)):
     """
     print(f"Match request received. Embedding size: {len(request.embedding)}")
     try:
-        matches = get_job_matches(db, request.embedding, request.limit, request.skip, request.workplace_types, request.search_keyword)
+        matches = get_job_matches(
+            db, 
+            request.embedding, 
+            request.limit, 
+            request.skip, 
+            request.workplace_types, 
+            request.search_keyword,
+            candidate_k=request.candidate_k,
+            hybrid_mode=request.hybrid_mode
+        )
         print(f"Returning {len(matches)} matches.")
         return matches
     except Exception as e:

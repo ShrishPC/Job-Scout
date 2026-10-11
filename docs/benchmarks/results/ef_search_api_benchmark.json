@@ -1,0 +1,124 @@
+{
+  "benchmark": "real_api_ef_search_and_data_integrity",
+  "date": "2026-10-11 23:05:41 UTC",
+  "distinct_base_jobs_count": 2000,
+  "api_endpoint": "POST /jobs/matches",
+  "hnsw_ef_search_configured": 400,
+  "results_10k": {
+    "two_stage": {
+      "mode": "two_stage",
+      "requests_measured": 100,
+      "mean_ms": 8.43,
+      "p50_ms": 8.1,
+      "p95_ms": 10.03,
+      "p99_ms": 10.56,
+      "min_ms": 5.86,
+      "max_ms": 43.45,
+      "recall_at_10": 0.731
+    },
+    "legacy": {
+      "mode": "legacy",
+      "requests_measured": 100,
+      "mean_ms": 90.01,
+      "p50_ms": 89.38,
+      "p95_ms": 94.76,
+      "p99_ms": 98.41,
+      "min_ms": 85.8,
+      "max_ms": 99.86,
+      "recall_at_10": 0.73
+    }
+  },
+  "results_100k": {
+    "two_stage": {
+      "mode": "two_stage",
+      "requests_measured": 100,
+      "mean_ms": 9.08,
+      "p50_ms": 8.74,
+      "p95_ms": 11.13,
+      "p99_ms": 12.05,
+      "min_ms": 7.05,
+      "max_ms": 23.24,
+      "recall_at_10": 0.75
+    },
+    "legacy": {
+      "mode": "legacy",
+      "requests_measured": 100,
+      "mean_ms": 890.88,
+      "p50_ms": 890.62,
+      "p95_ms": 912.03,
+      "p99_ms": 924.41,
+      "min_ms": 867.42,
+      "max_ms": 925.45,
+      "recall_at_10": 0.673
+    }
+  },
+  "triplicate_sequential_100k": [
+    {
+      "run": 1,
+      "mean_ms": 29.31,
+      "p50_ms": 28.13,
+      "p95_ms": 34.6,
+      "p99_ms": 39.62,
+      "min_ms": 24.4,
+      "max_ms": 80.5
+    },
+    {
+      "run": 2,
+      "mean_ms": 29.79,
+      "p50_ms": 29.29,
+      "p95_ms": 34.92,
+      "p99_ms": 36.69,
+      "min_ms": 26.77,
+      "max_ms": 37.42
+    },
+    {
+      "run": 3,
+      "mean_ms": 28.68,
+      "p50_ms": 28.46,
+      "p95_ms": 30.97,
+      "p99_ms": 32.52,
+      "min_ms": 26.3,
+      "max_ms": 34.27
+    }
+  ],
+  "distinct_2000_sweep": {
+    "sequential_baseline": {
+      "mean_ms": 1.16,
+      "p50_ms": 1.21,
+      "p95_ms": 1.64,
+      "p99_ms": 1.88
+    },
+    "sweep": [
+      {
+        "m": 16,
+        "ef_construction": 128,
+        "ef_search": 40,
+        "recall_at_10": 1.0,
+        "mean_ms": 0.3,
+        "p50_ms": 0.27,
+        "p95_ms": 0.47,
+        "p99_ms": 0.74
+      },
+      {
+        "m": 16,
+        "ef_construction": 128,
+        "ef_search": 100,
+        "recall_at_10": 1.0,
+        "mean_ms": 0.73,
+        "p50_ms": 0.72,
+        "p95_ms": 1.03,
+        "p99_ms": 1.11
+      },
+      {
+        "m": 16,
+        "ef_construction": 128,
+        "ef_search": 400,
+        "recall_at_10": 1.0,
+        "mean_ms": 1.43,
+        "p50_ms": 1.39,
+        "p95_ms": 1.76,
+        "p99_ms": 1.93
+      }
+    ]
+  }
+}

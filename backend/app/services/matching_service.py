@@ -5,18 +5,32 @@ from sqlalchemy import text
 import re
 import os
 
-def get_job_matches(db: Session, user_embedding: list, limit: int = 10, skip: int = 0, workplace_types: list[str] | None = None, search_keyword: str | None = None):
+def get_job_matches(
+    db: Session, 
+    user_embedding: list, 
+    limit: int = 10, 
+    skip: int = 0, 
+    workplace_types: list[str] | None = None, 
+    search_keyword: str | None = None,
+    candidate_k: int | None = None,
+    hybrid_mode: str | None = None,
+    user_skills: list[str] | None = None
+):
     """
     Uses Hybrid RAG (pgvector cosine similarity + Postgres keyword matching)
     to find the most similar jobs based on the user's resume embedding and skills.
     """
-    # 1. Fetch User Skills from User(id=1)
-    from app.models.models import User
-    user = db.query(User).filter(User.id == 1).first()
-    
-    skills = []
-    if user and user.parsed_data and isinstance(user.parsed_data.get("skills"), list):
-        skills = [s.strip().lower() for s in user.parsed_data.get("skills") if s.strip()]
+    from app.core.config import settings
+
+    # 1. Fetch User Skills (from argument or User(id=1))
+    if user_skills is not None:
+        skills = [s.strip().lower() for s in user_skills if s and s.strip()]
+    else:
+        from app.models.models import User
+        user = db.query(User).filter(User.id == 1).first()
+        skills = []
+        if user and user.parsed_data and isinstance(user.parsed_data.get("skills"), list):
+            skills = [s.strip().lower() for s in user.parsed_data.get("skills") if s.strip()]
 
     # 2. Build Keyword Match expressions
     case_whens = []
@@ -51,10 +65,17 @@ def get_job_matches(db: Session, user_embedding: list, limit: int = 10, skip: in
         score_calculation = "(1 - (j.embedding <=> :embedding)) * 100"
         order_score_expr = "1 - (j.embedding <=> :embedding)"
 
-    hybrid_mode = os.getenv("HYBRID_MODE", "two_stage").lower()
+    ef_search = int(os.getenv("HNSW_EF_SEARCH", str(getattr(settings, "HNSW_EF_SEARCH", 400))))
+    if hybrid_mode is None:
+        hybrid_mode = os.getenv("HYBRID_MODE", getattr(settings, "HYBRID_MODE", "two_stage")).lower()
+    else:
+        hybrid_mode = hybrid_mode.lower()
 
     if hybrid_mode == "two_stage":
-        candidate_k = max(100, (limit + skip) * 5)
+        if candidate_k is None:
+            candidate_k = int(os.getenv("CANDIDATE_K", str(max(100, (limit + skip) * 5))))
+        # ef_search must never be below candidate_k
+        ef_search = max(ef_search, candidate_k)
         params.update({"embedding": str(user_embedding), "limit": limit, "skip": skip, "candidate_k": candidate_k})
 
         where_filters = []
@@ -124,9 +145,9 @@ def get_job_matches(db: Session, user_embedding: list, limit: int = 10, skip: in
             ORDER BY ({order_score_expr}) DESC
             LIMIT :limit OFFSET :skip
         """
-        
         query = text(select_clause + order_and_limit)
 
+    db.execute(text(f"SET LOCAL hnsw.ef_search = {ef_search};"))
     results = db.execute(query, params)
 
     
