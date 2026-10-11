@@ -8,7 +8,7 @@ Job Scout runs a 100% local, privacy-first vector search and text generation pip
 ```mermaid
 graph TD
     JD[Target Job Description] --> EMB[SentenceTransformer Model]
-    EMB --> |384d Vector padded to 768d| Q_VEC[Query Vector]
+    EMB --> |384d Native Vector| Q_VEC[Query Vector]
     
     %% DB Retrieval
     Q_VEC --> |pgvector similarity search| DB_JOBS[(PostgreSQL Jobs)]
@@ -32,8 +32,8 @@ graph TD
 
 ## 1. Embedding Pipeline
 - **Model**: `all-MiniLM-L6-v2` via `sentence-transformers`.
-- **Dimensions**: 384 dimensions.
-- **Padding**: Vectors are zero-padded to 768 dimensions to maintain compatibility with the PostgreSQL `pgvector` database schema.
+- **Dimensions**: Native 384 dimensions.
+- **Storage**: Stored directly as PostgreSQL pgvector `Vector(384)` matching the model's native dimension with zero artificial padding.
 - **Optimization**: Batched vector encoding (`generate_embeddings_batch`) is used during RAG parsing to submit all resume sentences in a single tensor operation. This avoids sequential PyTorch forward-pass loops, resulting in a **95%+ speedup** in sentence embedding.
 
 ---

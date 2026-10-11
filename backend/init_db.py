@@ -30,12 +30,15 @@ def init_db():
                 conn.commit()
                 print("Column 'workplace_type' added successfully.")
         
-        # Create HNSW index for vector cosine distance optimization
+        # Create HNSW and performance indexes
         with engine.connect() as conn:
-            print("Checking/Creating HNSW index on jobs.embedding column...")
-            conn.execute(text("CREATE INDEX IF NOT EXISTS jobs_embedding_hnsw_idx ON jobs USING hnsw (embedding vector_cosine_ops);"))
+            print("Checking/Creating performance indexes...")
+            conn.execute(text("CREATE INDEX IF NOT EXISTS idx_jobs_embedding_hnsw ON jobs USING hnsw (embedding vector_cosine_ops);"))
+            conn.execute(text("CREATE INDEX IF NOT EXISTS idx_resume_is_active ON resumes (is_active) WHERE is_active = true;"))
+            conn.execute(text("CREATE INDEX IF NOT EXISTS idx_jobs_workplace_type_lower ON jobs (LOWER(workplace_type));"))
+            conn.execute(text("CREATE INDEX IF NOT EXISTS idx_user_job_matches_composite ON user_job_matches (user_id, job_id);"))
             conn.commit()
-            print("HNSW index initialized successfully.")
+            print("Performance and HNSW indexes initialized successfully.")
                 
         print("Database initialized successfully.")
     except Exception as e:

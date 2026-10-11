@@ -22,9 +22,9 @@ The Job Scout intelligence pipeline consists of four distinct, complementary lay
 ```
 ┌─────────────────────────────────────────────────────────────────────────┐
 │                           1. CLIENT UI TIER                             │
-│       Next.js 14 Web UI / AI Copilot / ATS Diagnostic Modal / Vault      │
+│       Next.js 16 Web UI / AI Copilot / ATS Diagnostic Modal / Vault      │
 └────────────────────────────────────┬────────────────────────────────────┘
-                                     │ HTTP / SSE Stream
+                                     │ HTTP / Chunked Stream (text/plain)
 ┌────────────────────────────────────▼────────────────────────────────────┐
 │                    2. FASTAPI BACKEND & ROUTING TIER                    │
 │   ┌───────────────────────────┐       ┌──────────────────────────────┐  │

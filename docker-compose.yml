@@ -42,6 +42,11 @@ services:
     volumes:
       - ./models:/models
       - ./backend:/app
+      - ./tests:/app/tests
+      - ./scripts:/app/scripts
+      - ./scraper:/app/scraper
+      - ./evaluation:/app/evaluation
+      - ./docs:/app/docs
     depends_on:
       db:
         condition: service_healthy

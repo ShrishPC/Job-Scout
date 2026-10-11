@@ -31,6 +31,8 @@ screenshots/
 scraper/screenshots/
 scripts/screenshots/
 *.docx.md
+.coverage
+.pytest_cache/
 
 # Local-only documentation
 docs/*.docx
