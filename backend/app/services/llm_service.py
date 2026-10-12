@@ -379,6 +379,9 @@ def generate_tailored_resume_service(resume_text: str, job_title: str, job_desc:
     """
     Generates a tailored Professional Summary and suggested resume edits using the local LLM and RAG.
     """
+    if settings.DEMO_MODE or AI_DEVICE == "demo":
+        return generate_dynamic_tailored_resume(resume_text, job_title, "Target Company", job_desc)
+
     truncated_resume = resume_text[:2000] if resume_text else ""
     truncated_job = job_desc[:1500] if job_desc else ""
     
@@ -416,6 +419,9 @@ def generate_cover_letter_service(resume_text: str, job_title: str, company: str
     """
     Generates a cover letter tailored to a job description using the local LLM and RAG.
     """
+    if settings.DEMO_MODE or AI_DEVICE == "demo":
+        return generate_dynamic_cover_letter(resume_text, job_title, company, job_desc)
+
     truncated_resume = resume_text[:2000] if resume_text else ""
     truncated_job = job_desc[:1500] if job_desc else ""
     

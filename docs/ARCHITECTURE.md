@@ -37,8 +37,8 @@ flowchart TD
     subgraph 5. RAG Generation & Cache
         ATS -->|Tailor Request| GEN[POST /ai/generate]
         GEN -->|SHA-256 Hash of Inputs| CACHE{AIGenerationCache}
-        CACHE -->|Cache Hit ~15ms| STREAM_FAST[Fast Stream Plain-Text]
-        CACHE -->|Cache Miss ~45s CPU| LLM_INF[Llama-3.2-3B-Instruct Local RAG]
+        CACHE -->|Cache Hit ~2 ms (Demo ~0.5 ms)| STREAM_FAST[Fast Stream Plain-Text]
+        CACHE -->|Cache Miss 61.33 s CPU (Demo: Instant Mock)| LLM_INF[Llama-3.2-3B-Instruct Local RAG]
         LLM_INF -->|Persist Result| CACHE
         LLM_INF -->|HTTP Chunked Stream text/plain| STREAM_FAST
     end

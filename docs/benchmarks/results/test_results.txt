@@ -4,45 +4,46 @@ rootdir: /app
 configfile: pytest.ini
 testpaths: tests
 plugins: mock-3.16.0, cov-7.1.0, anyio-4.14.2
-collected 110 items
+collected 126 items
 
 tests/integration/test_ai_streaming.py .                                 [  0%]
-tests/integration/test_main_routes.py ........                           [  8%]
-tests/integration/test_orm_crud.py .                                     [  9%]
-tests/integration/test_scraper_task.py .                                 [ 10%]
-tests/security/test_security.py ....                                     [ 13%]
-tests/unit/test_ats_service.py .....                                     [ 18%]
-tests/unit/test_db_indexes.py .                                          [ 19%]
-tests/unit/test_export_service.py ....                                   [ 22%]
+tests/integration/test_main_routes.py .................                  [ 14%]
+tests/integration/test_orm_crud.py .                                     [ 15%]
+tests/integration/test_scraper_task.py .                                 [ 15%]
+tests/security/test_security.py ....                                     [ 19%]
+tests/unit/test_ats_service.py .....                                     [ 23%]
+tests/unit/test_db_indexes.py .                                          [ 23%]
+tests/unit/test_export_service.py ....                                   [ 26%]
 tests/unit/test_heuristic_parser.py .................................... [ 55%]
-.....................                                                    [ 74%]
-tests/unit/test_keyword_math.py .                                        [ 75%]
-tests/unit/test_llm_fallback.py ..                                       [ 77%]
-tests/unit/test_llm_service_logic.py ...............                     [ 90%]
+.....................                                                    [ 72%]
+tests/unit/test_keyword_math.py .                                        [ 73%]
+tests/unit/test_llm_fallback.py ..                                       [ 74%]
+tests/unit/test_llm_service_logic.py ...................                 [ 89%]
+tests/unit/test_matching_service.py ...                                  [ 92%]
 tests/unit/test_resume_service.py .......                                [ 97%]
 tests/unit/test_validation.py ...                                        [100%]
 
 ================================ tests coverage ================================
 _______________ coverage: platform linux, python 3.11.16-final-0 _______________
 
-Name                               Stmts   Miss  Cover
-------------------------------------------------------
+Name                               Stmts   Miss  Cover   Missing
+----------------------------------------------------------------
 app/__init__.py                        0      0   100%
 app/api/__init__.py                    0      0   100%
 app/core/__init__.py                   0      0   100%
-app/core/config.py                    11      0   100%
+app/core/config.py                    13      0   100%
 app/core/database.py                  10      0   100%
-app/main.py                          678    253    63%
+app/main.py                          680    191    72%   114-115, 141-142, 164-168, 196, 212-213, 232-244, 247-248, 276-277, 279-282, 284-285, 296-297, 345-346, 361-363, 391-393, 416-417, 427, 439-444, 470-472, 485, 490-491, 506-507, 517, 545-547, 554-568, 586, 591, 595, 603-607, 610, 635-638, 654-655, 659-662, 675, 677, 686-689, 701, 710-711, 723-725, 748, 792-795, 807, 843-845, 852-855, 875-879, 884-894, 897, 904-908, 911, 923-926, 943, 971-974, 988, 1007-1008, 1023-1046, 1053-1085, 1105-1106, 1124-1125, 1128-1129
 app/models/__init__.py                 0      0   100%
 app/models/models.py                  53      0   100%
 app/schemas/__init__.py                0      0   100%
 app/services/__init__.py               0      0   100%
-app/services/ats_service.py          134     16    88%
-app/services/export_service.py       254     21    92%
-app/services/llm_fallback.py          50     17    66%
-app/services/llm_service.py          467    184    61%
-app/services/matching_service.py      68     20    71%
-app/services/resume_service.py        50      8    84%
-------------------------------------------------------
-TOTAL                               1775    519    71%
-============================= 110 passed in 13.80s =============================
+app/services/ats_service.py          134     16    88%   150, 236-237, 288-290, 301-303, 309-311, 321, 327, 388-389
+app/services/export_service.py       254     19    93%   133-141, 227-229, 246-247, 261, 271, 279, 290, 302, 369
+app/services/llm_fallback.py          50     17    66%   7-11, 36, 65-66, 69-70, 72, 81-91
+app/services/llm_service.py          471    101    79%   30-38, 43, 70-71, 80, 91-92, 102, 137, 184-190, 210-213, 221, 231-234, 261, 277-278, 307-309, 326, 351-352, 373-374, 414-416, 459-461, 499, 501, 503, 608-609, 621-626, 681-682, 694-699, 750-751, 763-766, 789-837
+app/services/matching_service.py      77     19    75%   27, 51-52, 72, 121-148, 173-175
+app/services/resume_service.py        50      8    84%   21-22, 46-47, 57-58, 65-66
+----------------------------------------------------------------
+TOTAL                               1792    371    79%
+============================= 126 passed in 14.60s =============================

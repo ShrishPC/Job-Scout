@@ -109,6 +109,8 @@ def test_generate_tailored_resume_and_cover_letter_service(db_session, monkeypat
     resume = "Marcus Vance. Skills: Python, Docker, PostgreSQL. 4 years experience."
     job_desc = "Looking for Python Engineer."
 
+    monkeypatch.setattr("app.services.llm_service.settings.DEMO_MODE", False)
+    monkeypatch.setattr("app.services.llm_service.AI_DEVICE", "cpu")
     mock_pipeline = lambda prompt, **kwargs: [{"generated_text": "Tailored Summary: Proven Python developer."}]
     monkeypatch.setattr("app.services.llm_service.get_local_llm", lambda *a, **kw: mock_pipeline)
     
@@ -140,15 +142,18 @@ def test_generate_streams_in_demo_mode():
     assert "Dear Hiring Manager," in "".join(cl_chunks)
 
 def test_research_company_stream(db_session):
+    import uuid
+    comp = f"AcmeCorp_{uuid.uuid4().hex[:6]}"
+    cache_key = f"company_research_{comp.lower().replace(' ', '_')}"
     # Prepopulate cache so it tests the streaming cached path without hitting external DuckDuckGo network
-    cache = AIGenerationCache(cache_key="company_research_acme_corp", response_text="Acme Corp is a high-tech engineering platform.")
+    cache = AIGenerationCache(cache_key=cache_key, response_text=f"{comp} is a high-tech engineering platform.")
     db_session.add(cache)
     db_session.commit()
 
-    stream = research_company_stream("Acme Corp", db=db_session)
+    stream = research_company_stream(comp, db=db_session)
     chunks = list(stream)
     assert len(chunks) > 0
-    assert "Acme Corp" in "".join(chunks)
+    assert comp in "".join(chunks)
 
 def test_refine_stream_demo_mode():
     import app.services.llm_service as llm_svc
@@ -174,4 +179,109 @@ def test_parse_markdown_with_llm():
 
 def test_set_ai_device():
     set_ai_device("cpu")
+    with pytest.raises(ValueError):
+        set_ai_device("quantum_accelerator")
+
+def test_extract_candidate_insights():
+    from app.services.llm_service import extract_candidate_insights
+    resume = "Alex Mercer\nSoftware Engineer\nSkills: Python, FastAPI, Docker, PostgreSQL"
+    job_desc = "Senior Developer requiring Python, FastAPI, and Kubernetes."
+    insights = extract_candidate_insights(resume, job_desc)
+    assert "Python" in insights["matched_skills"]
+    assert "FastAPI" in insights["matched_skills"]
+    assert insights["name"] == "Alex Mercer"
+
+def test_generate_dynamic_tailored_resume():
+    from app.services.llm_service import generate_dynamic_tailored_resume
+    resume = "Alex Mercer\nSkills: Python, Docker, PostgreSQL"
+    tailored = generate_dynamic_tailored_resume(resume, "Backend Engineer", "TechCorp", "Python backend")
+    assert "Backend Engineer" in tailored
+    assert "Suggested Bullets:" in tailored
+
+def test_extract_experience_heuristics():
+    from app.services.llm_service import extract_experience_heuristics
+    assert extract_experience_heuristics("Requires 5+ years of experience in Python.") == 5
+    assert extract_experience_heuristics("Minimum 3 years experience required.") == 3
+    assert extract_experience_heuristics("No experience specified") is None
+
+def test_generate_services_with_demo_mode():
+    from app.services.llm_service import (
+        generate_tailored_resume_service,
+        generate_cover_letter_service
+    )
+    import app.services.llm_service as llm_svc
+    llm_svc.AI_DEVICE = "demo"
+    llm_svc.settings.DEMO_MODE = True
+
+    resume = "Alex Mercer. Skills: Python, FastAPI, PostgreSQL. 5 years experience."
+    job_desc = "Looking for Senior Python Developer with FastAPI and PostgreSQL expertise."
+    
+    res = generate_tailored_resume_service(resume, "Senior Python Developer", job_desc)
+    assert len(res) > 0
+    
+    cl = generate_cover_letter_service(resume, "Senior Python Developer", "InnovateTech", job_desc)
+    assert len(cl) > 0
+
+def test_format_prompt_dialects():
+    from app.services.llm_service import format_prompt
+    import app.services.llm_service as llm_svc
+
+    llm_svc.ACTIVE_LLM_MODEL_NAME = "Qwen/Qwen2.5-Coder-7B"
+    qwen_p = format_prompt("You are a helper.", "Write code.")
+    assert "<|im_start|>system" in qwen_p
+
+    llm_svc.ACTIVE_LLM_MODEL_NAME = "microsoft/Phi-3-mini"
+    phi_p = format_prompt("You are a helper.", "Write code.")
+    assert "<|system|>" in phi_p
+
+    llm_svc.ACTIVE_LLM_MODEL_NAME = "custom-generic-model"
+    gen_p = format_prompt("You are a helper.", "Write code.")
+    assert "Instructions:" in gen_p
+
+def test_extract_experience_from_job_with_llm(monkeypatch):
+    from app.services.llm_service import extract_experience_from_job
+    mock_llm = lambda prompt, **kwargs: [{"generated_text": "4 years required"}]
+    monkeypatch.setattr("app.services.llm_service.get_local_llm", lambda *a, **kw: mock_llm)
+    
+    desc_no_heuristics = "Looking for someone with deep hands-on background in cloud systems."
+    years = extract_experience_from_job(desc_no_heuristics, use_llm=True)
+    assert years == 4
+
+def test_streaming_functions_with_mock_llm(monkeypatch):
+    from app.services.llm_service import (
+        generate_tailored_resume_stream,
+        generate_cover_letter_stream,
+        refine_stream
+    )
+    import app.services.llm_service as llm_svc
+    monkeypatch.setattr("app.services.llm_service.settings.DEMO_MODE", False)
+    monkeypatch.setattr("app.services.llm_service.AI_DEVICE", "cpu")
+
+    class MockTokenizer:
+        pass
+    class MockStreamer:
+        def __init__(self, *a, **kw): pass
+        def __iter__(self): return iter(["Mocked ", "generation ", "output."])
+        def end(self): pass
+
+    class MockLLM:
+        tokenizer = MockTokenizer()
+        def __call__(self, *a, **kw):
+            return [{"generated_text": "output"}]
+
+    monkeypatch.setattr("app.services.llm_service.get_local_llm", lambda: MockLLM())
+    monkeypatch.setattr("app.services.llm_service.TextIteratorStreamer", MockStreamer)
+
+    # Test tailored resume stream non-demo
+    t_chunks = list(generate_tailored_resume_stream("Resume text", "Software Engineer", "Job desc"))
+    assert len(t_chunks) > 0
+
+    # Test cover letter stream non-demo
+    c_chunks = list(generate_cover_letter_stream("Resume text", "Software Engineer", "Acme", "Job desc"))
+    assert len(c_chunks) > 0
+
+    # Test refine stream non-demo
+    r_chunks = list(refine_stream("Existing bullet text", "Make it punchier"))
+    assert len(r_chunks) > 0
+
 

@@ -64,13 +64,23 @@ docker compose up --build -d
 
 ## 📊 Performance Benchmarking
 
-To prove the efficiency of the HNSW vector indexing, a benchmark script is included. It generates 10,000 mock 384-dimensional job embeddings and measures the latency of sequential scans vs. indexed graph traversal.
+Job Scout includes comprehensive empirical benchmarking suites testing real API endpoints and vector index scaling:
 
-Run the benchmark inside the backend container:
-```bash
-docker compose exec backend python scripts/benchmark_pgvector.py
-```
-*Expected Output: Sequential scans (~140ms) vs. HNSW Index (~9ms).*
+- **Real Production API Benchmark (`POST /jobs/matches`):**
+  Evaluates end-to-end HTTP matching with `SET LOCAL hnsw.ef_search = 400` across 10,000 and 100,000 job rows:
+  - **10k Rows:** Two-Stage CTE **8.43 ms** (Recall@10: 0.731) vs Legacy **90.01 ms** (10.7x speedup).
+  - **100k Rows:** Two-Stage CTE **9.08 ms** (Recall@10: 0.750) vs Legacy **890.88 ms** (98.1x speedup).
+  - **Sequential Baseline (Triplicate):** Run 1: 29.31 ms, Run 2: 29.79 ms, Run 3: 28.68 ms.
+  ```bash
+  docker compose exec backend python scripts/benchmarks/benchmark_api_matches.py
+  ```
+
+- **Retrieval Quality Suite (28 Resumes x 560 Jobs = 15,680 Labels):**
+  Evaluates in-Python vs production SQL retrieval ranking:
+  - **Two-Stage SQL (k=100):** NDCG@10 = 0.985, P@5 = 0.986, P@10 = 0.989, MRR = 1.000 (100% top-10 overlap, Kendall $\tau = 1.000$ vs Legacy).
+  ```bash
+  docker compose exec backend python evaluation/evaluate_retrieval.py
+  ```
 
 ---
 

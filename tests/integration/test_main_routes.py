@@ -200,3 +200,180 @@ def test_admin_stats(client):
     assert "total_jobs" in stats
     assert "system_cpu_usage_percent" in stats
 
+def test_ai_refine_route(client):
+    res = client.post("/ai/refine", json={
+        "current_text": "Experienced software developer with strong skills in Python.",
+        "instruction": "Make it more executive and concise"
+    })
+    assert res.status_code == 200
+    assert len(res.text) > 0
+
+def test_ai_research_route(client, db_session):
+    import uuid
+    company_name = f"TestCorp_{uuid.uuid4().hex[:6]}"
+    cache_entry = AIGenerationCache(cache_key=f"company_research_{company_name.lower().replace(' ', '_')}", response_text="TestCorp builds cloud platforms.")
+    db_session.add(cache_entry)
+    db_session.commit()
+
+    res = client.post("/ai/research", json={"company": company_name})
+    assert res.status_code == 200
+    assert len(res.text) > 0
+
+def test_ai_config_routes(client):
+    # GET config
+    get_res = client.get("/ai/config")
+    assert get_res.status_code == 200
+    assert "device" in get_res.json()
+
+    # POST config valid demo
+    demo_res = client.post("/ai/config", json={"device": "demo"})
+    assert demo_res.status_code == 200
+    assert demo_res.json()["device"] == "demo"
+
+    # POST config valid cpu
+    cpu_res = client.post("/ai/config", json={"device": "cpu"})
+    assert cpu_res.status_code == 200
+    assert cpu_res.json()["device"] == "cpu"
+
+    # POST config invalid
+    err_res = client.post("/ai/config", json={"device": "quantum"})
+    assert err_res.status_code in [400, 422]
+
+def test_export_document_formats(client):
+    # Test TXT
+    txt_res = client.post("/ai/export", json={
+        "content": "Professional Summary\nSoftware Engineer with experience.",
+        "mode": "tailor",
+        "format": "txt"
+    })
+    assert txt_res.status_code == 200
+    assert "attachment" in txt_res.headers.get("content-disposition", "")
+
+    # Test DOCX
+    docx_res = client.post("/ai/export", json={
+        "content": "Professional Summary\nSoftware Engineer with experience.",
+        "mode": "cover_letter",
+        "format": "docx",
+        "candidate_name": "Alex Mercer",
+        "company": "TechCorp"
+    })
+    assert docx_res.status_code == 200
+    assert len(docx_res.content) > 100
+
+    # Test PDF
+    pdf_res = client.post("/ai/export", json={
+        "content": "Professional Summary\nSoftware Engineer with experience.",
+        "mode": "tailor",
+        "format": "pdf"
+    })
+    assert pdf_res.status_code == 200
+    assert pdf_res.content.startswith(b"%PDF")
+
+def test_export_ats_report_formats(client):
+    sample_ats = {
+        "overall_score": 85.0,
+        "job_title": "Python Developer",
+        "company": "Tech Corp",
+        "summary": "High alignment candidate.",
+        "matched_skills": ["Python", "FastAPI"],
+        "missing_critical_skills": ["Docker"],
+        "score_breakdown": {
+            "hard_skills": {"score": 80.0, "weight": 40},
+            "experience_level": {"score": 90.0, "weight": 20}
+        }
+    }
+    # DOCX format
+    docx_res = client.post("/export/ats-report", json={
+        "ats_data": sample_ats,
+        "format": "docx",
+        "candidate_name": "Devon Vance"
+    })
+    assert docx_res.status_code == 200
+    assert len(docx_res.content) > 100
+
+    # TXT format
+    txt_res = client.post("/export/ats-report", json={
+        "ats_data": sample_ats,
+        "format": "txt",
+        "candidate_name": "Devon Vance"
+    })
+    assert txt_res.status_code == 200
+    assert b"ATS Diagnostic Report" in txt_res.content or len(txt_res.content) > 0
+
+def test_vault_resume_export(client, db_session):
+    import uuid
+    uniq_url = f"https://example.com/job/test-{uuid.uuid4().hex[:6]}"
+    resume = Resume(
+        filename=f"test_export_{uuid.uuid4().hex[:6]}.pdf",
+        resume_markdown="# Candidate Profile\nSkills: Python, FastAPI\nExperience: 5 years",
+        parsed_data={"full_name": "Test Candidate", "skills": ["Python", "FastAPI"]},
+        is_active=True
+    )
+    db_session.add(resume)
+    db_session.commit()
+
+    # Export PDF
+    pdf_res = client.get(f"/resumes/{resume.id}/export?format=pdf")
+    assert pdf_res.status_code == 200
+    assert pdf_res.content.startswith(b"%PDF")
+
+    # Export DOCX
+    docx_res = client.get(f"/resumes/{resume.id}/export?format=docx")
+    assert docx_res.status_code == 200
+    assert len(docx_res.content) > 100
+
+    # Delete resume
+    del_res = client.delete(f"/resumes/{resume.id}")
+    assert del_res.status_code == 200
+
+def test_scrape_trigger_and_task_status(client, monkeypatch):
+    class MockTask:
+        id = "mock-task-id-12345"
+    monkeypatch.setattr("app.main.celery_app.send_task", lambda *a, **kw: MockTask())
+    
+    # Test /jobs/scrape POST
+    res = client.post("/jobs/scrape", json={"keyword": "Python Developer", "location": "Remote", "limit": 5, "source": "linkedin"})
+    assert res.status_code == 200
+    assert "task_ids" in res.json()
+    assert res.json()["task_ids"] == ["mock-task-id-12345"]
+
+    # Test /tasks/{task_id} GET
+    t_res = client.get("/tasks/mock-task-id-12345")
+    assert t_res.status_code == 200
+    assert "state" in t_res.json()
+
+    # Test /tasks/batch-status POST
+    b_res = client.post("/tasks/batch-status", json={"task_ids": ["mock-task-id-12345"]})
+    assert b_res.status_code == 200
+    assert "tasks" in b_res.json()
+
+def test_resume_upload_and_parse_endpoint(client, db_session):
+    content = b"Candidate Name: Devon Vance\nTitle: Senior Python Engineer\nSkills: Python, FastAPI, Docker\nExperience: 5 years at TechCorp."
+    files = {"file": ("test_resume.txt", content, "text/plain")}
+    res = client.post("/resume/parse", files=files)
+    assert res.status_code == 200
+    data = res.json()
+    assert "parsed_json" in data
+    assert "id" in data
+
+def test_get_user_profile_and_activate(client, db_session):
+    # GET user profile
+    u_res = client.get("/user")
+    assert u_res.status_code == 200
+
+    # Add resume and activate
+    import uuid
+    res_obj = Resume(
+        filename=f"activate_test_{uuid.uuid4().hex[:6]}.pdf",
+        resume_markdown="# Active Dev\nSkills: Python",
+        parsed_data={"full_name": "Active Dev", "skills": ["Python"]},
+        is_active=False
+    )
+    db_session.add(res_obj)
+    db_session.commit()
+
+    act_res = client.post(f"/resumes/{res_obj.id}/activate")
+    assert act_res.status_code == 200
+    assert act_res.json()["status"] == "success"
+
+
