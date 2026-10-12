@@ -40,7 +40,7 @@ The Job Scout intelligence pipeline consists of four distinct, complementary lay
                   │                                    │
 ┌─────────────────▼────────────────────────────────────▼──────────────────┐
 │                   3. STORAGE & PGVECTOR ACCELERATION                    │
-│   - PostgreSQL 16 + pgvector (`idx_jobs_embedding_hnsw` HNSW Cosine)    │
+│   - PostgreSQL 15 + pgvector (`idx_jobs_embedding_hnsw` HNSW Cosine)    │
 │   - Redis Cache & Task Broker (0 slowlog queries, 1.93MB footprint)     │
 │   - Persistent Vector Embeddings & Active Candidate Profiles            │
 └─────────────────────────────────────────────────────────────────────────┘

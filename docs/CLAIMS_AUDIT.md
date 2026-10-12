@@ -27,13 +27,13 @@ Every metric recorded in this document is grounded in reproducible command outpu
 
 ---
 
-## 2. Test Suite & Coverage Metrics (Phase 2 Audit)
+## 2. Test Suite & Coverage Metrics (Phase 2 & Step 5 Expansion)
 
 The repository automated test suite was constructed under `tests/` and executed inside the production backend container environment (`job-scout-backend`):
 
-* **Total Test Cases Executed**: **110 tests**
-* **Total Passing Tests**: **110 passed (100% pass rate)**
-* **Execution Duration**: **13.76 seconds**
+* **Total Test Cases Executed**: **126 tests**
+* **Total Passing Tests**: **126 passed (100% pass rate)**
+* **Execution Duration**: **14.60 seconds**
 * **Continuous Integration**: Configured via `.github/workflows/tests.yml`
 
 ### Test Suite Breakdown
@@ -41,32 +41,33 @@ The repository automated test suite was constructed under `tests/` and executed 
 | Suite Category | File Path | Test Count | Key Invariants Verified |
 |---|---|---|---|
 | **Database Indexes** | `tests/unit/test_db_indexes.py` | 1 | UTC-01: Verifies `idx_jobs_embedding_hnsw` (WITH m=16, ef_c=128), `idx_resume_is_active`, `idx_jobs_workplace_type_lower`, and `idx_user_job_matches_composite` exist in PostgreSQL `pg_indexes`. |
-| **Request Validation** | `tests/unit/test_validation.py` | 5 | UTC-02: Rejects embedding length != 384 (422).<br>UTC-03: Enforces limit 1..100 and skip >= 0.<br>UTC-06: Sanitises directory traversal in uploaded filename to basename + UUID. |
-| **Heuristic Parser** | `tests/unit/test_heuristic_parser.py` | 52 | UTC-04: Extracts years of experience across regex patterns (e.g. "5+ yrs req" -> 5) and evaluates 50 diverse synthetic resumes from `tests/data/synthetic_resumes_50.json`. |
-| **LLM Fallback** | `tests/unit/test_llm_fallback.py` | 3 | UTC-05: Simulates primary OOM and verifies TinyLlama fallback; simulates dual failure and asserts regex heuristic path without crash. |
-| **Keyword Maths** | `tests/unit/test_keyword_math.py` | 4 | Verifies word-boundary regex for alphanumeric skills, LIKE for special characters (`C++`, `C#`, `.NET`), title (2.0) vs description (1.0) weighting, and normalization in `[0, 1]`. |
-| **ATS Service** | `tests/unit/test_ats_service.py` | 13 | Comprehensive rubric, skill extraction, deterministic scoring, recommendations, and edge case coverage. |
-| **Resume Service** | `tests/unit/test_resume_service.py` | 10 | MarkItDown parsing, PyMuPDF fallback, python-docx fallback, experience extraction, section splitting. |
-| **Export Service** | `tests/unit/test_export_service.py` | 7 | Publication-grade DOCX and PDF generation, cover letter styling, text fallback, Unicode sanitization. |
-| **LLM Service Logic** | `tests/unit/test_llm_service_logic.py` | 7 | Dynamic candidate insights extraction, RAG context retrieval, line embedding cache, streaming yield. |
+| **Request Validation** | `tests/unit/test_validation.py` | 3 | UTC-02: Rejects embedding length != 384 (422).<br>UTC-03: Enforces limit 1..100 and skip >= 0.<br>UTC-06: Sanitises directory traversal in uploaded filename to basename + UUID. |
+| **Heuristic Parser** | `tests/unit/test_heuristic_parser.py` | 57 | UTC-04: Extracts years of experience across regex patterns (e.g. "5+ yrs req" -> 5) and evaluates 50 diverse synthetic resumes from `tests/data/synthetic_resumes_50.json`. |
+| **LLM Fallback** | `tests/unit/test_llm_fallback.py` | 2 | UTC-05: Simulates primary OOM and verifies TinyLlama fallback; simulates dual failure and asserts regex heuristic path without crash. |
+| **Keyword Maths** | `tests/unit/test_keyword_math.py` | 1 | Verifies word-boundary regex for alphanumeric skills, LIKE for special characters (`C++`, `C#`, `.NET`), title (2.0) vs description (1.0) weighting, and normalization in `[0, 1]`. |
+| **ATS Service** | `tests/unit/test_ats_service.py` | 5 | Comprehensive rubric, skill extraction, deterministic scoring, recommendations, and edge case coverage. |
+| **Resume Service** | `tests/unit/test_resume_service.py` | 7 | MarkItDown parsing, PyMuPDF fallback, python-docx fallback, experience extraction, section splitting. |
+| **Export Service** | `tests/unit/test_export_service.py` | 4 | Publication-grade DOCX and PDF generation, cover letter styling, text fallback, Unicode sanitization. |
+| **LLM Service Logic** | `tests/unit/test_llm_service_logic.py` | 19 | Dynamic candidate insights extraction, RAG context retrieval, line embedding cache, streaming yield, prompt assembly. |
+| **Matching Service** | `tests/unit/test_matching_service.py` | 3 | Production HNSW `ef_search` GUC clamping, candidate_k floor, transaction isolation. |
 | **ORM & Pool Stability** | `tests/integration/test_orm_crud.py` | 1 | INT-01: Verifies ORM CRUD operations and asserts connection pool stability without session leakage. |
 | **Scraper Celery Task** | `tests/integration/test_scraper_task.py` | 1 | INT-02: Verifies task deduplication against existing `job_url` records and asserts 384-d vector insertion. |
-| **AI Streaming & Cache** | `tests/integration/test_ai_streaming.py` | 2 | INT-03: Verifies chunked plain-text streaming (`text/plain`).<br>INT-04: Verifies subsequent identical generation hit returns cached content from `AIGenerationCache`. |
-| **Main API Routes** | `tests/integration/test_main_routes.py` | 6 | Route status codes, profile reset, active resume retrieval, Kanban status update, admin stats auth. |
-| **Security Hardening** | `tests/security/test_security.py` | 5 | SEC-01: Verifies SQL-injection payloads are treated strictly as data.<br>SEC-02: Verifies admin endpoints return 503 without `ADMIN_API_KEY` and 401/403 with invalid keys.<br>SEC-03: Verifies 413 for oversized uploads, 400 for disallowed extensions, and CORS blocking.<br>SEC-04: Verifies cross-session persistence of Kanban status changes. |
+| **AI Streaming & Cache** | `tests/integration/test_ai_streaming.py` | 1 | INT-03: Verifies chunked plain-text streaming (`text/plain`) and cache retrieval from `AIGenerationCache`. |
+| **Main API Routes** | `tests/integration/test_main_routes.py` | 17 | Route status codes, profile reset, active resume retrieval, Kanban status update, admin stats auth, validation guards. |
+| **Security Hardening** | `tests/security/test_security.py` | 4 | SEC-01: Verifies SQL-injection payloads treated strictly as data.<br>SEC-02: Admin endpoints require `X-Admin-Key`.<br>SEC-03: Oversized upload 413, invalid format 400.<br>SEC-04: Kanban state persistence. |
 
 ### Measured Code Coverage
-* **Overall Backend Repository Coverage**: **71%** (1,248 / 1,755 statements)
+* **Overall Backend Repository Coverage**: **79%** (1,421 / 1,792 statements)
 * **Core Application Services Coverage**:
-  * `app/services/matching_service.py`: **83%**
+  * `app/services/matching_service.py`: **75%**
   * `app/services/llm_fallback.py`: **66%**
-  * `app/services/llm_service.py`: **61%**
+  * `app/services/llm_service.py`: **79%**
   * `app/services/ats_service.py`: **88%**
   * `app/services/resume_service.py`: **84%**
-  * `app/services/export_service.py`: **92%**
-  * `app/models/models.py`: **96%**
-  * `app/core/database.py`: **93%**
-  * `app/main.py`: **63%**
+  * `app/services/export_service.py`: **93%**
+  * `app/models/models.py`: **100%**
+  * `app/core/database.py`: **100%**
+  * `app/main.py`: **72%**
 
 ---
 

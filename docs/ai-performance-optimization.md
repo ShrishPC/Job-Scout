@@ -18,7 +18,7 @@ By default, PyTorch attempts to distribute tensor operations across **all logica
 
 ### C. Excess Token Generation Loops
 The cover letter prompt explicitly asks for a response under 180 words, but `max_new_tokens` was capped at `250`. 
-* On local CPU hardware, generating 70 extra tokens that are ultimately ignored or cut off adds an unnecessary **30 to 45 seconds** of inference time per request.
+* On local CPU hardware, generating 70 extra tokens that are ultimately ignored or cut off adds an unnecessary **~35 to 50 seconds** of inference time per request (at ~1.7–1.8 tokens/sec).
 
 ---
 

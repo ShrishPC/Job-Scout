@@ -2,6 +2,10 @@
 
 This report documents reproducible, empirical benchmarks executed on the Job Scout stack. All values reported below were directly measured from automated benchmark runs with raw JSON outputs stored in this directory.
 
+> [!NOTE]
+> **Exploratory Phase 1 Baseline**: This document records initial exploratory baseline benchmarks on default, uncalibrated parameters (e.g. pgvector default $ef\_search=40$, where recall was 0.064) and outlines the proposed two-stage CTE architecture.
+> For production-calibrated benchmarks and empirical grid sweeps, see [`hnsw_sweep.md`](file:///home/rishav/job-scout/docs/benchmarks/results/hnsw_sweep.md) ($ef\_search=400$ achieving recall 0.9565) and [`ef_search_api_benchmark.md`](file:///home/rishav/job-scout/docs/benchmarks/results/ef_search_api_benchmark.md) (production two-stage API benchmark achieving 9.08 ms at 100k rows).
+
 ---
 
 ## 1. Test Environment & System Specifications
