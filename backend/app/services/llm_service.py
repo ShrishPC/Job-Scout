@@ -144,18 +144,8 @@ def parse_markdown_with_llm(markdown_content: str, **kwargs):
     """
     if settings.DEMO_MODE:
         import time
-        print("DEMO_MODE: Bypassing local LLM parsing for speed.")
-        time.sleep(0.5)
-        return {
-            "full_name": "Demo Candidate",
-            "email": "demo@example.com",
-            "phone": "555-0199",
-            "target_role": "Software Engineer",
-            "target_location": "Remote",
-            "skills": ["Python", "React", "Docker", "AWS", "Machine Learning"],
-            "experience": [{"title": "Senior Engineer", "company": "Tech Corp", "duration": "3 years", "description": "Built scalable APIs"}],
-            "education": [{"degree": "B.S. Computer Science", "institution": "State University", "year": "2020"}]
-        }
+        print("DEMO_MODE: Parsing candidate details dynamically via fast heuristic pipeline.")
+        return extract_structured_data_fallback(markdown_content)
 
     truncated_content = markdown_content[:3000] if markdown_content else ""
     

@@ -14,12 +14,15 @@ except ImportError:
 
 def extract_structured_data_fallback(markdown_content: str):
     """
-    Heuristic-based extraction of resume data when LLM is unavailable.
+    Heuristic-based extraction of resume data when LLM is unavailable or in DEMO mode.
+    Dynamically extracts information from ANY uploaded resume without hardcoded assumptions.
     """
     data = {
-        "full_name": "Unknown User",
+        "full_name": "Candidate",
         "email": "N/A",
         "phone": "N/A",
+        "target_role": "Software Engineer",
+        "target_location": "Remote",
         "skills": [],
         "experience": [],
         "education": []
@@ -35,16 +38,47 @@ def extract_structured_data_fallback(markdown_content: str):
     if phone_match:
         data["phone"] = phone_match.group(0)
         
-    # 3. Heuristic Name (First line often contains name)
+    # 3. Dynamic Candidate Name (First clean line in header)
     lines = [l.strip() for l in markdown_content.split('\n') if l.strip()]
-    if lines:
-        data["full_name"] = lines[0]
+    for line in lines[:6]:
+        clean = re.sub(r'^[#\s\*\-\•\|]+', '', line).strip()
+        if (clean and len(clean.split()) in (2, 3, 4) 
+                and '@' not in clean 
+                and not any(kw in clean.lower() for kw in ['resume', 'curriculum', 'vitae', 'contact', 'email', 'phone', 'summary', 'profile', 'linkedin', 'github', 'portfolio'])):
+            data["full_name"] = clean
+            break
+    if data["full_name"] == "Candidate" and lines:
+        data["full_name"] = re.sub(r'^[#\s\*\-\•\|]+', '', lines[0]).strip()
 
-    # 4. Extract Skills (Common keyword matching)
+    # 4. Dynamic Target Role
+    role_candidates = [
+        "Data Analyst", "Data Scientist", "Machine Learning Engineer", "AI Engineer",
+        "Software Engineer", "Backend Engineer", "Frontend Engineer", "Full Stack Engineer",
+        "Fullstack Developer", "DevOps Engineer", "Cloud Architect", "Systems Engineer",
+        "Mobile Developer", "Android Developer", "iOS Developer", "QA Engineer",
+        "Security Engineer", "Database Administrator", "Business Analyst", "Product Manager"
+    ]
+    for role in role_candidates:
+        if re.search(rf'\b{re.escape(role)}\b', markdown_content, re.IGNORECASE):
+            data["target_role"] = role
+            break
+
+    # 5. Dynamic Target Location
+    loc_match = re.search(r'\b([A-Z][a-zA-Z\s]+,\s*[A-Z][a-zA-Z\s]+)\b', markdown_content[:600])
+    if loc_match and not any(kw in loc_match.group(1).lower() for kw in ['curriculum', 'university', 'college', 'school']):
+        data["target_location"] = loc_match.group(1).strip()
+    elif "remote" in markdown_content[:1000].lower():
+        data["target_location"] = "Remote"
+
+    # 6. Extract Skills (Comprehensive multi-domain tech keywords)
     common_skills = [
-        "Python", "SQL", "R", "Java", "C++", "C#", ".NET", "Pandas", "NumPy", "Matplotlib", 
-        "Machine Learning", "Data Analysis", "Tableau", "Power BI", "Git", 
-        "Docker", "AWS", "FastAPI", "React", "Next.js", "TypeScript", "PostgreSQL", "Redis"
+        "Python", "SQL", "R", "Java", "C++", "C#", ".NET", "Golang", "Rust", "Swift", "Kotlin",
+        "Pandas", "NumPy", "Matplotlib", "Seaborn", "Scikit-Learn", "PyTorch", "TensorFlow",
+        "Machine Learning", "Data Analysis", "Data Cleaning", "Tableau", "Power BI", "Git", "GitHub",
+        "Docker", "Kubernetes", "AWS", "Azure", "GCP", "CI/CD",
+        "FastAPI", "Django", "Flask", "React", "Next.js", "TypeScript", "JavaScript", "HTML", "CSS",
+        "PostgreSQL", "MySQL", "SQLite", "MongoDB", "Redis", "Elasticsearch", "Kafka", "Celery",
+        "Linux", "REST API", "GraphQL", "Microservices"
     ]
     for skill in common_skills:
         if re.match(r'^[a-zA-Z0-9\s\-]+$', skill):
@@ -54,22 +88,29 @@ def extract_structured_data_fallback(markdown_content: str):
         if re.search(pattern, markdown_content, re.IGNORECASE):
             data["skills"].append(skill)
             
-    # 5. Experience/Education (Simple line splitting)
-    # This is very rough, but better than nothing
+    # 7. Experience / Education line extraction
     current_section = None
     for line in lines:
-        if "EXPERIENCE" in line.upper():
+        upper_line = line.upper()
+        if "EXPERIENCE" in upper_line or "WORK HISTORY" in upper_line:
             current_section = "experience"
             continue
-        if "EDUCATION" in line.upper():
+        if "EDUCATION" in upper_line or "ACADEMIC" in upper_line:
             current_section = "education"
+            continue
+        if "PROJECTS" in upper_line or "SKILLS" in upper_line:
+            current_section = None
             continue
             
         if current_section == "experience" and len(line) > 10:
-            if i := line.find('|'): # Often company | title
+            if '|' in line:
+                i = line.find('|')
                 data["experience"].append({"title": line[:i].strip(), "company": line[i+1:].strip()})
+            elif len(data["experience"]) < 5:
+                data["experience"].append({"title": line[:60].strip(), "company": "Experience"})
         elif current_section == "education" and len(line) > 10:
-            data["education"].append({"degree": line})
+            if len(data["education"]) < 4:
+                data["education"].append({"degree": line.strip()})
             
     return data
 

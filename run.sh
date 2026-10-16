@@ -56,8 +56,14 @@ pkill -f "celery -A celery_app" 2>/dev/null || true
 
 echo -e "${GREEN}✨ Building and launching services with Docker Compose...${NC}"
 
-# 6. Start Docker containers with build check
-docker compose up -d --build
+# 6. Start Docker containers (fast, offline-resilient launch by default; rebuild only with --build flag)
+if [ "$1" == "--build" ]; then
+    echo -e "${YELLOW}[Docker] --build flag detected. Rebuilding images...${NC}"
+    docker compose up -d --build
+else
+    echo -e "${GREEN}[Docker] Starting pre-built containers instantly (offline-ready)...${NC}"
+    docker compose up -d
+fi
 
 # 7. Wait briefly for backend health check
 echo -e "${CYAN}[Health] Waiting for backend API and database to initialize...${NC}"

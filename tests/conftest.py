@@ -37,5 +37,39 @@ def mock_external_calls(monkeypatch):
     from app.core.config import settings
     settings.DEMO_MODE = True
 
+@pytest.fixture(scope="session", autouse=True)
+def preserve_active_profile():
+    """Restores the user's active resume and cleans test artifacts after test session ends."""
+    session = SessionLocal()
+    active = session.query(Resume).filter(Resume.is_active == True).first()
+    active_id = active.id if active else None
+    session.close()
+    yield
+    session = SessionLocal()
+    try:
+        session.query(Resume).filter(
+            (Resume.filename.like("activate_test_%")) | 
+            (Resume.filename.like("test_resume%")) |
+            (Resume.filename.like("devon_resume%"))
+        ).delete(synchronize_session=False)
+        if active_id:
+            session.query(Resume).update({Resume.is_active: False})
+            restored = session.query(Resume).filter(Resume.id == active_id).first()
+            if restored:
+                restored.is_active = True
+                user = session.query(User).filter(User.id == 1).first()
+                if user:
+                    user.resume_markdown = restored.resume_markdown
+                    user.parsed_data = restored.parsed_data
+                    user.embedding = restored.embedding
+                    if restored.parsed_data:
+                        user.name = restored.parsed_data.get('full_name', user.name)
+                        user.email = restored.parsed_data.get('email', user.email)
+        session.commit()
+    except Exception as e:
+        session.rollback()
+    finally:
+        session.close()
+
 
 
